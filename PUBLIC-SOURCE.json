@@ -811,7 +811,7 @@
     },
     {
       "path": "packages/elements/src/grid/grid.ts",
-      "sha256": "e9bb28626c3e7661df378a3f5db80b5522e92a7e8590c02db60e9f8fab852b33"
+      "sha256": "9478b8fb11517dd73150f817100a902472d161368fee890f2f9922a118cd660a"
     },
     {
       "path": "packages/elements/src/grid/rows.ts",
@@ -1799,7 +1799,7 @@
     },
     {
       "path": "tests/e2e/grouping.spec.ts",
-      "sha256": "9973948efa214724bc75de474d4b9f2c95338944c7d9bdc31df0d50d95b0824b"
+      "sha256": "586effcae487c9c4766dc055da3fdc7f86a21ab2ce52b00c44f51a13e77859ad"
     },
     {
       "path": "tests/e2e/keyed-sessions.spec.ts",

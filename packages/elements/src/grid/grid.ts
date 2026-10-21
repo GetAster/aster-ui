@@ -2244,6 +2244,8 @@ export class Grid extends AsterElement {
 
   #focusEditor(key: KeyText, col: number): void {
     const row = this.querySelector<HTMLElement>(`.aster-grid-row[data-key="${CSS.escape(key)}"]`);
+    // A user may choose another control before deferred initial focus runs.
+    if (row?.contains(document.activeElement)) return;
     const cells = row ? [...row.querySelectorAll<HTMLElement>('[role="gridcell"]')] : [];
     const target =
       cells[col]?.querySelector<HTMLElement>("input:not([readonly]), textarea:not([readonly]), [role=combobox]:not([aria-readonly])") ??

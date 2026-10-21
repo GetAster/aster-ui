@@ -156,6 +156,23 @@ test("nested groups retain bounded DOM and page windows on a large leaf", async 
   })).toBeLessThanOrEqual(400);
 });
 
+test("opening an inline editor preserves a control the user focuses before the next frame", async ({ page }) => {
+  await open(page, "platform,online");
+  await expand(page, ["Linux"]); await expand(page, ["Linux", true]);
+  await page.evaluate(() => { (globalThis as any).reportDemo.grouped.editable = true; });
+  const record = page.locator('.aster-grid-row[data-key="[1]"]');
+  await expect(record).toBeVisible();
+  expect(await record.evaluate(async row => {
+    row.querySelector('[aria-colindex="1"]')!.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    // Let the editor render, then choose another control before deferred focus.
+    await new Promise<void>(resolve => queueMicrotask(() => queueMicrotask(resolve)));
+    const cost = row.querySelector<HTMLInputElement>('[aria-colindex="4"] input')!;
+    cost.focus();
+    await new Promise(requestAnimationFrame);
+    return document.activeElement === cost;
+  })).toBe(true);
+});
+
 test("collapse and regroup refuse to hide an invalid inline draft", async ({ page }) => {
   await open(page, "platform,online");
   await expand(page, ["Linux"]); await expand(page, ["Linux", true]);
