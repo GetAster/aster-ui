@@ -154,9 +154,8 @@ try {
     $("#edit").disabled = $("#simulate").disabled = !currentSelection.value.any.value;
     for (const name of ["dataset", "selection"]) control(name).inert = false;
   }
-  $("#edit").addEventListener("click", () => {
-    const key = currentSelection.value.key.value;
-    if (key === undefined || model) return;
+  function editRecord(key) {
+    if (key === undefined || model || busy) return;
     model = new EditModel(ctx, collection().query.set, key);
     const folder = state.dataset === "folders";
     render(html`<aster-form .model=${model} .sections=${[{ title: "Edit record", columns: 1, items: ["name", folder ? "owner" : "platform"] }]}></aster-form>`, $("#editor-out"));
@@ -166,7 +165,8 @@ try {
     stopEditor = effect(() => { $("#save").disabled = model.busy.value || !model.dirty.value; $("#cancel").disabled = model.busy.value; });
     status("Editing a separate draft. Switch presentation to see that it stays open.");
     queueMicrotask(() => $("#editor-out input")?.focus());
-  });
+  }
+  $("#edit").addEventListener("click", () => editRecord(currentSelection.value.key.value));
   $("#cancel").addEventListener("click", () => { closeEditor(); status("Draft discarded."); $("#edit").focus(); });
   $("#save").addEventListener("click", async () => {
     busy = true;
@@ -210,7 +210,15 @@ try {
   $("#query").addEventListener("change", applyName);
   $("#query").addEventListener("keydown", e => { if (e.key === "Enter") applyName(); });
   $("#online").addEventListener("change", () => { state.online = $("#online").checked; query(); notify(); });
-  tiles.addEventListener("tile-open", event => status(`Opened ${ctx.store.get(collection().query.set, event.detail.key)?.entity.name} (demonstration only).`));
+  tiles.addEventListener("tile-open", event => {
+    if (busy) return;
+    if (model) {
+      status("Save or discard the current draft before opening another record.");
+      $("#editor-out input")?.focus();
+      return;
+    }
+    editRecord(event.detail.key);
+  });
   notify();
   status("Ready. Paging and selection are shared between the table and tiles.");
   addEventListener("pagehide", event => {

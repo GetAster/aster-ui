@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "ed0f61e6f6796d3d9f1ec1eb3851c8743e8b78c793741b0b4ba541e9e8a0313c"
+      "sha256": "fe8a828c249caec301b343481e1f1adc16d2e81668a84eb4022977339e4e5924"
     },
     {
       "path": "LICENSE",
@@ -47,7 +47,7 @@
     },
     {
       "path": "apps/docs/build/agent-docs.ts",
-      "sha256": "45f38b65882cfea9547f0a72d865875b8393e2379fcf39709d6768a6eedd05dc"
+      "sha256": "9f0f8d18c27bcd67c479c7f0870ccd18bc1ce846e00eabc5610ad6a6648271ee"
     },
     {
       "path": "apps/docs/build/examples.ts",
@@ -83,7 +83,7 @@
     },
     {
       "path": "apps/docs/src/app/navigation.ts",
-      "sha256": "069278d3bdbb0b6421a6215c56071589de41c85f3cd3a23656ef0a8d772a165c"
+      "sha256": "67672f1aaf4e8c715a868e39044b7af7dc4645fe00e222955fea7d68acdf5b47"
     },
     {
       "path": "apps/docs/src/app/viewer.ts",
@@ -195,11 +195,11 @@
     },
     {
       "path": "apps/docs/src/templates/product.ts",
-      "sha256": "58ca7531d7d3fc8a94b3a83b44a61890032a984c72ae6640cd0258fd647088d1"
+      "sha256": "03d16cd7879834205563c77e63d388f978f4cfd4b5f9066c0d13a19b899ac2f2"
     },
     {
       "path": "apps/docs/src/templates/shell.ts",
-      "sha256": "41f0eb951e0a2adb7d21b79034b2c29b13ebd574e3353791eac711a54295b618"
+      "sha256": "5f9df4b5270c02ac76dc75840ca63652d5e3132799178d37a899721feb8ef45e"
     },
     {
       "path": "apps/docs/tsconfig.json",
@@ -299,7 +299,7 @@
     },
     {
       "path": "apps/showcase/src/examples/collections/collection-demo.css",
-      "sha256": "4fed10e8549b5bbb411be7b1ab1b04ba3df7e2e4bb0984817810b9f2082f2232"
+      "sha256": "7fdd8a2b5ac8a55d313e5fc1baa16805fabd2a6c850a8ff257dffc2df0e1d319"
     },
     {
       "path": "apps/showcase/src/examples/collections/collection-demo.html",
@@ -307,7 +307,7 @@
     },
     {
       "path": "apps/showcase/src/examples/collections/collection-demo.js",
-      "sha256": "c24023986ef226cc07384ae2fa77bff38fc36c17a2a1e244db685a0237fec2c7"
+      "sha256": "eacf9ed2723b44dafd97059e6e9c5f63edc6c608ee9d3cb6ef692553c4e0983d"
     },
     {
       "path": "apps/showcase/src/examples/composition/README.md",
@@ -667,7 +667,7 @@
     },
     {
       "path": "docs/guide/data-model.md",
-      "sha256": "b27558d869612b4d6caa238b31c56be63af9d68d449e4bba5113e5e55550323f"
+      "sha256": "63c76f192ecab6f43130f330bf3af6be33c238bb12eb1fa357df8a17e2f50a8b"
     },
     {
       "path": "docs/guide/data.md",
@@ -683,7 +683,7 @@
     },
     {
       "path": "docs/guide/evaluating-aster-ui.md",
-      "sha256": "c9907b443ce16a45c786703492384ee3f8ddc5deec7b634f89e7b88373fb8b23"
+      "sha256": "9ed4ecd4e7073977aefc53942dab263f38421476faffbcf06f8148f78e4716a5"
     },
     {
       "path": "docs/guide/fields-and-layouts.md",
@@ -700,6 +700,10 @@
     {
       "path": "docs/guide/getting-started.md",
       "sha256": "20f215aa81fe5b8924f18266e50a9244eb0ebfaa0ab6064cb8611edb555d2063"
+    },
+    {
+      "path": "docs/guide/integrate-sql-and-apis.md",
+      "sha256": "6469b87fba1c32f64b80493af45f947e786fddbfaab08b8e10f68cfd3d4226d7"
     },
     {
       "path": "docs/guide/keyed-sessions.md",
@@ -731,7 +735,7 @@
     },
     {
       "path": "docs/guide/why-aster.md",
-      "sha256": "577d8d9f9c29c702740314d97cb1b7667725c52a55c38c038cd17d0edfae2680"
+      "sha256": "108de097ab83d7d390cd248c9dc5023e31efd762d74e3eea7481b2e59b691794"
     },
     {
       "path": "docs/guide/workspace-patterns.md",
@@ -2039,7 +2043,7 @@
     },
     {
       "path": "tests/e2e/explorer.spec.ts",
-      "sha256": "b735462a1672594aab25dbc5aaeafd8fecd72658d552e98171152dde9b1d66b7"
+      "sha256": "30e56492f3d0c8c08f3edb207550d607d8687d30144cbe48395e8d66ced0e7c7"
     },
     {
       "path": "tests/e2e/filtering.spec.ts",

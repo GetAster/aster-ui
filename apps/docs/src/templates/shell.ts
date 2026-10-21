@@ -2,7 +2,7 @@ import { navigation } from "./navigation.ts";
 
 export function shell(title: string, body: string, script = "../docs-assets/docs.js"): string {
  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
- <meta name="description" content="Aster UI developer documentation. Connected data, enterprise controls and accessible interfaces.">
+ <meta name="description" content="Aster UI developer documentation. Connect SQL and backend APIs through Aster WebData virtual data sources, then build connected web interfaces.">
  <link rel="describedby" href="../llms.txt" type="text/plain">
  <title>${title.replaceAll("&", "&amp;").replaceAll("<", "&lt;")} · Aster UI</title>
  <script>try{const s=localStorage.getItem('aster-docs-scheme')||'system';document.documentElement.dataset.scheme=s==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s}catch{}</script>

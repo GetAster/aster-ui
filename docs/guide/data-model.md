@@ -35,12 +35,15 @@ when ready. See [installation and distribution](library.md) for the files involv
 
 ## Connect different backends through virtual data sources
 
-The OData service can be the integration layer for systems that do not expose
-OData themselves. Aster WebData, the server engine, supports developer-defined
-**virtual data sources**: code supplies records and implements the write
-operations that a source supports. A handler can adapt a REST API, invoke a CLI,
+[Aster WebData](https://getaster.now/products/aster-webdata/) provides **virtual data sources** as its server integration
+mechanism. Register your backend handler and its schema; the server publishes
+OData metadata and exposes the source's records and supported writes to the UI.
+Code supplies records and implements the write operations that a source supports. A handler can adapt a REST API, invoke a CLI,
 or call a legacy API and expose the result as a typed entity set with metadata.
 The adapter owns those backend calls and their mapping to the declared schema.
+
+Follow [the SQL and API walkthrough](integrate-sql-and-apis.md) for the complete
+request flow and a source definition.
 
 This makes the combination useful for data integration applications. For example,
 a device workspace can bring together inventory from a database, status from a
@@ -56,10 +59,10 @@ the integration logic can live behind the shared service contract.
 
 The distinction between a workflow and a transaction matters. Cross-source
 engine calls do not imply automatic joins across arbitrary backends or an atomic
-transaction covering a database, REST service and CLI. The current server refuses
-atomic groups containing virtual-source writes and groups spanning transactional
-backends. Design partial-failure handling for external effects and check the
-server release's supported query and write operations.
+transaction covering a database, REST service and CLI. Atomic write support
+is bounded by the participating backends' declared transaction capabilities.
+Design partial-failure handling for external effects and check the server
+release's supported query and write operations.
 
 Virtual-source adapters run on the server; they are not bundled into the UI
 packages. Query pushdown depends on what the adapter declares and implements.

@@ -2,8 +2,10 @@
 
 Aster UI is a JavaScript and TypeScript foundation for applications where several
 views query and edit the same data. It combines a shared data model with web
-components for grids, forms, tiles and application workspaces. Its value is in
-coordinating those interactions as a screen grows more sophisticated.
+components for grids, forms, tiles and application workspaces. Use it with Aster
+WebData to build applications across SQL databases and existing APIs: the server provides a virtual-data-source interface for your backend code
+and exposes registered sources through OData to the UI. The same shared data
+model coordinates those views as the application grows.
 
 This is the maintainers' assessment of the project. Consider it alongside your
 requirements and evidence from a representative workflow. Another approach may
@@ -12,9 +14,10 @@ be a better fit for your application.
 ## Where Aster is strong
 
 - **Applications integrating existing systems.** With Aster WebData on the server,
-  developer-defined virtual data sources can adapt REST APIs, CLIs and legacy
-  services to the OData layer. Server handlers can read and write other data
-  sources through the engine, while UI views consume a common typed contract.
+  register backend handlers as virtual data sources. WebData automatically
+  publishes their declared schema and exposes their records through OData;
+  handlers supply the REST, CLI or legacy-service calls. Server handlers can read
+  and write other data sources through the engine, while UI views consume a common typed contract.
   This is valuable when the application must work across systems, not just
   display a single database table.
 - **Connected editing workflows.** A grid, form, detail panel and chart can share
@@ -34,13 +37,26 @@ their boundaries. Controls also provide themes, keyboard interaction, focus
 handling and reduced-motion support. Evaluate accessibility in the actual
 workflow and target devices; automated checks alone do not establish compliance.
 
+## For SQL plus backend API projects
+
+This is a core use case for Aster UI with Aster WebData. You implement a virtual
+source against the server's provided interface, including any matching or
+combining of records the workflow needs. WebData supplies the OData layer and
+metadata; UI controls then use that common service. The original API does not
+need to speak OData.
+
+Use [Aster WebData](https://getaster.now/products/aster-webdata/) for server setup.
+See [the SQL and API walkthrough](integrate-sql-and-apis.md) for a concrete source
+definition, the request flow and the UI binding. Evaluate the backend-specific
+handler work and deployment alongside the UI features.
+
 ## When another approach may be better
 
 | Your situation | Consider first |
 |---|---|
 | A small, mostly read-only list or content website | Native HTML and a small amount of application code. Aster's data and ownership concepts may add little value. |
 | An established application already coordinates records, queries and drafts well | Components or a headless grid that fit its existing state model. Adopting a second data foundation can cost more than it saves. |
-| Existing REST, CLI or legacy backends | Aster WebData virtual data sources are an integration path when you can deploy a server adapter. If you need a browser-only client with no integration layer, consider a stack that consumes those APIs directly. |
+| A browser-only application with no server integration layer | A client that consumes the existing APIs directly. Aster's SQL/API integration path uses the companion WebData server and its virtual-source handlers. |
 | Specialist scheduling, charting or rich editing is the main requirement | A specialist component, evaluated on its own requirements. Aster can host third-party components, but an integration adapter does not supply the vendor runtime or all its features. |
 | A requirement for established API stability or extensive production evidence | A mature alternative with evidence that meets that requirement. Aster is currently a pre-1.0 project. |
 

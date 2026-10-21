@@ -7,6 +7,7 @@ export const navigationGroups: readonly NavigationGroup[] = [
   { label: "Start here", links: [
     { href: "../guide/why-aster.html", label: "Why Aster UI?" },
     { href: "../guide/evaluating-aster-ui.html", label: "Is Aster UI a fit?" },
+    { href: "../guide/integrate-sql-and-apis.html", label: "Integrate SQL & APIs" },
     { href: "../guide/getting-started.html", label: "Get started" },
     { href: "../guide/library.html", label: "Installation & distribution" },
     { href: "../guide/data-model.html", label: "The shared data model" },

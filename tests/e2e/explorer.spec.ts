@@ -1,7 +1,7 @@
-import { test, expect, type FrameLocator } from "@playwright/test";
+import { test, expect, type FrameLocator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-async function choose(frame: FrameLocator, name: string, option: string) {
+async function choose(frame: FrameLocator | Page, name: string, option: string) {
   await frame.getByRole("combobox", { name, exact: true }).click();
   await frame.getByRole("listbox", { name, exact: true }).getByRole("option", { name: option, exact: true }).click();
 }
@@ -144,3 +144,36 @@ test("table headers and cells have distinct aligned columns", async ({ page }) =
     }
   }
 });
+
+for (const width of [1280, 390]) {
+  test(`collection tile actions open the editor and keep their positions at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/playground/collection-demo.html?view=tiles&size=compact");
+    const tile = page.getByRole("gridcell", { name: "Design MacBook", exact: true });
+    await expect(tile).toBeVisible();
+    await expect(tile.getByRole("button", { name: "View content of Design MacBook", exact: true })).toBeHidden();
+    const select = tile.getByRole("button", { name: "Select Design MacBook", exact: true });
+    const open = tile.getByRole("button", { name: "Open Design MacBook", exact: true });
+    const selectBefore = await select.boundingBox();
+    const openBefore = await open.boundingBox();
+    await select.click();
+    const deselect = tile.getByRole("button", { name: "Deselect Design MacBook", exact: true });
+    await expect(deselect).toHaveAttribute("aria-pressed", "true");
+    const selectAfter = await deselect.boundingBox();
+    const openAfter = await open.boundingBox();
+    expect(selectAfter!.width).toBeCloseTo(selectBefore!.width, 0);
+    expect(openAfter!.x).toBeCloseTo(openBefore!.x, 0);
+    expect(openAfter!.y).toBeCloseTo(openBefore!.y, 0);
+    await open.click();
+    const name = page.getByRole("textbox", { name: "Name", exact: true });
+    await expect(name).toHaveValue("Design MacBook");
+    await name.fill("Design laptop draft");
+    await page.getByRole("gridcell", { name: "Build server", exact: true }).getByRole("button", { name: "Open Build server", exact: true }).click();
+    await expect(name).toHaveValue("Design laptop draft");
+    await expect(page.locator("#status")).toContainText("Save or discard the current draft");
+    await choose(page, "Presentation", "Table");
+    await expect(name).toHaveValue("Design laptop draft");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(page.getByRole("grid", { name: "Device fleet table", exact: true })).toContainText("Design laptop draft");
+  });
+}

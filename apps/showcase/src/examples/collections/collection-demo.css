@@ -41,3 +41,11 @@ input[type=checkbox] { accent-color:var(--aster-accent); }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 
 .control:has(aster-choice[inert]) { opacity:.55; }
+
+/* These cards contain static text; they need no content-navigation action. */
+#out .aster-tile-actions button[aria-label^="View content of "] { display:none; }
+#out .aster-tile-actions { justify-content:flex-start; gap:6px; opacity:1; }
+#out .aster-tile-actions .aster-button { min-height:36px; padding-inline:10px; justify-content:center; }
+#out .aster-tile-actions button[aria-pressed] { min-width:7em; }
+#out .aster-tile-actions button[aria-label^="Open "] { margin-left:auto; }
+@media(pointer:coarse) { #out .aster-tile-actions .aster-button { min-height:44px; } }
