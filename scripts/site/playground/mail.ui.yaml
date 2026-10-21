@@ -1,0 +1,72 @@
+version: 1
+name: MailWorkspace
+model:
+  type: mail-workspace
+  inputs:
+    ctx: { ref: inputs.ctx }
+    refreshCounts: { ref: inputs.refreshCounts }
+    sessionRegistry: { ref: inputs.sessionRegistry }
+publish:
+  messages: { ref: model.publications.selection }
+commands:
+  compose: { use: model.commands.compose }
+  open:
+    use: model.commands.open
+    enabledWhen: messages.any
+    reason: Select messages to open.
+  read: { use: model.commands.read }
+  refresh: { use: model.commands.refresh }
+  send: { use: model.commands.send }
+children:
+  folders:
+    type: Sidebar
+    props:
+      label: Mail folders
+      items: { bind: inputs.folders }
+      value: { bind: model.folder }
+  actions:
+    type: CommandBar
+    props:
+      label: Mail actions
+      showErrors: false
+      commands:
+        - { ref: commands.compose }
+        - { ref: commands.open }
+        - { ref: commands.read }
+        - { ref: commands.refresh }
+        - { ref: commands.send }
+  messages:
+    type: Grid
+    props:
+      label: Messages in the selected folder
+      ctx: { ref: inputs.ctx }
+      collection: { ref: model.collection }
+      selection: { ref: model.selection }
+      editable: false
+      formatters:
+        date: { renderer: mail-date }
+      renderers:
+        sender: { renderer: mail-sender }
+        subject: { renderer: mail-subject }
+      view:
+        columns:
+          - { field: sender, width: 150 }
+          - { field: subject }
+          - { field: date, width: 95 }
+        sort: []
+        filters: {}
+        frozen: 0
+  reading:
+    type: Tabs
+    props:
+      label: Open messages and drafts
+      items: { bind: model.items }
+      value: { bind: model.active }
+      renderPanel: { renderer: mail-panel }
+layout:
+  type: stack
+  items:
+    - { child: folders }
+    - { child: actions }
+    - { child: messages }
+    - { child: reading }

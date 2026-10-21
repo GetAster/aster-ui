@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "../..",
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rewriteRelativeImportExtensions": true,
+    "outDir": "../../dist-local/lib/types"
+  },
+  "files": [
+    "aster-ui.ts",
+    "aster-ui-mock.ts",
+    "aster-ui-preview.ts"
+  ],
+  "include": [
+    "../../packages/*/src/**/*.ts"
+  ],
+  "exclude": [
+    "../../packages/**/*.test.ts"
+  ]
+}

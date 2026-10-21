@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Declarative device workspace — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css"><link rel="stylesheet" href="./showcase.css">
+<style>
+body { height:auto; min-height:100dvh; padding:24px; background:var(--aster-surface); }
+main { max-width:1120px; margin:auto; } h1 { margin-block-end:8px; } a { color:var(--aster-accent); }
+.composition-intro { max-width:75ch; color:var(--aster-text-2); }
+.composition-tools { display:flex; flex-wrap:wrap; align-items:end; gap:16px; margin-block:24px; }
+.composition-tools label { display:grid; gap:6px; flex:1; min-width:180px; }
+.composition-tools #variant { width:13rem; }
+.composition-tools input { color:var(--aster-text); background:var(--aster-sunk); border:1px solid var(--aster-rule); border-radius:var(--aster-r-ctl); padding:10px 12px; font:inherit; }
+#workspace { border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); padding:20px; }
+#workspace aster-grid { display:flex; flex-direction:column; height:390px; min-width:0; }
+#workspace aster-tile-grid { display:block; --tile-viewport-height:390px; --tile-min-width:208px; --tile-height:174px; }
+.composition-device { display:flex; flex-direction:column; align-items:start; gap:8px; padding:12px; }
+.composition-device svg { width:42px; height:42px; fill:none; stroke:var(--aster-accent); stroke-width:2; }
+.composition-device span { color:var(--aster-text-2); }
+.composition-regions { display:grid; gap:16px; }
+.composition-regions > header { display:grid; gap:12px; }
+.composition-regions > section,.composition-regions > aside { min-width:0; }
+.composition-draft-status { display:flex; align-items:center; gap:8px; margin:0; color:var(--aster-text-2); font-size:.875rem; }
+.composition-draft-status > span { color:var(--aster-accent); }
+.composition-editor { background:var(--aster-sunk); padding:20px; border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); }
+.composition-editor h2 { margin-top:0; } .composition-editor p { color:var(--aster-text-2); }
+.composition-status { margin-block:20px; padding:16px; border-inline-start:3px solid var(--aster-accent); background:var(--aster-sunk); }
+.composition-status p { margin:4px 0; } #rule-status { color:var(--aster-text-2); }
+.composition-sources { display:flex; flex-wrap:wrap; gap:16px; margin-block:20px; }
+dialog { color:var(--aster-text); background:var(--aster-surface); border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); padding:24px; max-width:min(28rem,90vw); }
+dialog::backdrop { background:var(--aster-backdrop, #0008); }
+@media(max-width:600px) { body { padding:12px; } #workspace { padding:12px; } .composition-editor { padding:12px; } }
+@media(pointer:coarse) { .aster-command-bar .aster-button { min-height:44px; } }
+</style></head><body><main>
+<h1>Declaratively compose your layouts with YAML or JS</h1>
+<p class="composition-intro">Named children, ordinary JavaScript behaviour, one shared selection and editing session. PageRules controls Save; details load only when opened. Mock changes last for this visit.</p>
+<div class="composition-tools">
+<div class="showcase-appearance"><span>Variant</span><aster-choice id="variant"></aster-choice></div>
+<div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div>
+<div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div>
+<label>Find a device<input id="query" placeholder="Try ‘012’" type="search"></label>
+<button class="aster-button" type="button" id="reset">Recreate workspace</button>
+</div>
+<div id="workspace" aria-label="Declarative device workspace"></div>
+<div class="composition-status"><p id="status" role="status">Connecting to the sample fleet…</p><p id="rule-status"></p></div>
+<div class="composition-sources"><a href="./composition.ui.yaml">YAML definition</a><a id="download-schema">Download YAML schema</a><a href="./composition.js">Host registrations & renderers</a><a href="./composition-model.js">Model & function bodies</a><a href="./composition-details.js">Lazy details component</a><a href="./composition-status.js">Custom component declaration</a><a href="../guide/declarative-workspace.html">How it works →</a></div>
+<dialog id="confirm-reset" aria-labelledby="discard-title"><form method="dialog"><h2 id="discard-title">Discard this draft?</h2><p>Recreating the workspace clears its selection and unsaved draft.</p><button class="aster-button" value="keep" autofocus>Keep editing</button> <button class="aster-button" value="discard">Discard and recreate</button></form></dialog>
+</main><script type="module" src="./showcase-nav.js"></script><script type="module" src="./composition.js"></script></body></html>

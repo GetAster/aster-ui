@@ -1,0 +1,86 @@
+/* Polish primitives every screen gets without asking: one focus ring,
+   cursor by role, selectable text by role, themed platform details, and
+   reduced motion. Components never set a cursor or a focus ring themselves. */
+@layer aster.identity, aster.base, aster.elements, app;
+
+@layer aster.base {
+  /* Density: standard, unless chosen or the pointer is coarse. */
+  :root, :root[data-density="standard"] { --aster-ctl: 30px; --aster-ctl-tight: 26px; --aster-pad-y: 9px; --aster-row-y: 6px; --aster-pad: 12px; --aster-gap: 14px; }
+  :root[data-density="compact"] { --aster-ctl: 26px; --aster-ctl-tight: 22px; --aster-pad-y: 5px; --aster-row-y: 3px; --aster-pad: 8px; --aster-gap: 10px; }
+  :root[data-density="comfortable"] { --aster-ctl: 38px; --aster-ctl-tight: 32px; --aster-pad-y: 12px; --aster-row-y: 9px; --aster-pad: 16px; --aster-gap: 18px; }
+  @media (pointer: coarse) {
+    :root:not([data-density]) { --aster-ctl: 38px; --aster-ctl-tight: 32px; --aster-pad-y: 12px; --aster-row-y: 9px; --aster-pad: 16px; --aster-gap: 18px; }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-color: oklch(from var(--aster-text) l c h / .22) transparent;
+  }
+  body {
+    font: var(--aster-weight) var(--aster-font-size) / var(--aster-line) var(--aster-font-ui);
+    font-optical-sizing: auto;
+    color: var(--aster-text);
+    background: var(--aster-backdrop);
+    -webkit-font-smoothing: antialiased;
+    transition: --aster-glow 600ms var(--aster-ease), background-color 400ms ease, color 300ms ease;
+  }
+  /* Texture over everything, never intercepting input. */
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none;
+    background: var(--aster-texture, none);
+    opacity: var(--aster-texture-opacity, 0);
+    mix-blend-mode: var(--aster-texture-blend, normal);
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { background: none; border: 0; padding: 0; margin: 0; text-align: inherit; }
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+
+  [hidden] { display: none !important; }
+  .aster-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* One focus ring: an outline, so it follows each element's radius and
+     never disturbs its elevation. Pointer focus shows none. */
+  :focus { outline: none; }
+  :focus-visible { outline: 2px solid var(--aster-focus); outline-offset: var(--aster-focus-offset); }
+  /* A frame that owns its ring hides the inner control's. */
+  [data-ring-owner] :focus-visible { outline: none; }
+  [data-ring-owner]:focus-within { outline: 2px solid var(--aster-focus); outline-offset: var(--aster-focus-offset); }
+
+  ::selection { background: oklch(from var(--aster-accent) l c h / .2); }
+  input, textarea { caret-color: var(--aster-accent); }
+
+  /* Cursor follows behaviour, by role. Passive rows keep the arrow. */
+  button, label:not([data-ring-owner]), select, summary, a[href], [data-click], input[type="checkbox"],
+  [role="tab"], [role="option"], [role="switch"], [role="menuitem"], [role="menuitemradio"] { cursor: pointer; }
+  input:not([type]), input[type="text"], input[type="email"], input[type="search"], textarea,
+  [contenteditable], [data-ring-owner] { cursor: text; }
+  [role="separator"][tabindex] { cursor: col-resize; }
+  [role="row"][aria-expanded] > [role="gridcell"] { cursor: pointer; }
+  [data-ring-owner]:has([aria-haspopup="listbox"]), [aria-haspopup="listbox"] { cursor: pointer; }
+  [data-ring-owner]:has([aria-haspopup="listbox"][aria-readonly="true"]) { cursor: default; }
+  :disabled, [aria-disabled="true"] { cursor: not-allowed; }
+  [aria-busy="true"] { cursor: progress; }
+
+  /* Controls are for clicking; content is for reading and copying. */
+  button, [role="tab"], [role="switch"], [role="menuitem"], [role="option"], label { user-select: none; -webkit-user-select: none; }
+  input, textarea, [data-copyable] { user-select: text; -webkit-user-select: text; }
+
+  .aster-figure-text {
+    font-family: var(--aster-font-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+    font-variation-settings: var(--aster-figure-settings);
+  }
+}
+
+/* No transition at all: even a 1 ms one shows its end state a frame late. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --aster-t-morph: 0s; --aster-t-ink: 0s; --aster-t-micro: 0s;
+    --aster-t-caret: 0s; --aster-t-scheme: 0s;
+  }
+  body { transition: none !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}

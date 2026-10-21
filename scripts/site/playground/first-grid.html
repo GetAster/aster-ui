@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aster UI — project grid</title>
+  <link rel="stylesheet" href="../lib/themes/lamplight.css">
+  <link rel="stylesheet" href="../lib/aster-ui.css">
+  <style>
+    body { margin: 0; padding: 16px; background: var(--aster-page); color: var(--aster-text); font: 14px/1.5 system-ui; }
+    h1 { margin: 0 0 12px; font-size: 17px; }
+  </style>
+</head>
+<body>
+  <h1>Projects</h1>
+  <div id="out" aria-live="polite">Loading the local OData service…</div>
+  <script>try{const s=localStorage.getItem('aster-docs-scheme')||'system';document.documentElement.dataset.scheme=s==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s}catch{}</script>
+  <script type="module" src="./first-grid.js"></script>
+</body>
+</html>

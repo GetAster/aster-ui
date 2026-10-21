@@ -1,0 +1,118 @@
+/* Lamplight: one warm lamp at the upper left, cool shadows (x = y / 2),
+   stone paper with grain, ink rules, serif ledger figures, and one green
+   ink that acts. Dark is the lamp dimmed, not a grey theme.
+   Fonts are loaded by the app; this sheet names them. */
+@property --aster-glow { syntax: "<number>"; inherits: true; initial-value: 1; }
+
+@layer aster.identity {
+  :root {
+    --aster-font-ui: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --aster-font-figure: "Fraunces Variable", "Fraunces", ui-serif, Georgia, serif;
+    --aster-font-size: 13px;
+    --aster-line: 1.45;
+    --aster-weight: 450;
+    --aster-weight-strong: 560;
+    --aster-weight-label: 600;
+    --aster-figure-settings: "SOFT" 30, "WONK" 1;
+    --aster-title-settings: "opsz" 144, "SOFT" 30, "WONK" 1;
+    --aster-heading-settings: "opsz" 96, "SOFT" 30, "WONK" 1;
+    --aster-prose-settings: "opsz" 24, "SOFT" 50, "WONK" 0;
+
+    --aster-page: oklch(95.2% .006 75);
+    --aster-surface: oklch(98.8% .004 80);
+    --aster-sunk: oklch(96.6% .006 76);
+    --aster-pane: oklch(93.6% .008 74);
+    --aster-text: oklch(25% .018 60);
+    --aster-text-2: oklch(46% .016 62);
+    --aster-text-3: oklch(53% .013 66);
+    --aster-rule: oklch(32% .025 60 / .15);
+    --aster-rule-2: oklch(32% .025 60 / .08);
+    --aster-mark-ring: oklch(0% 0 0 / .2);
+
+    --aster-accent: oklch(47% .095 168);
+    --aster-accent-hi: oklch(53% .1 168);
+    --aster-accent-soft: oklch(47% .095 168 / .085);
+    --aster-on-accent: oklch(98% .01 160);
+    --aster-accent-sheen: oklch(100% 0 0 / .18);
+    --aster-positive: var(--aster-accent);
+    --aster-negative: oklch(53% .16 28);
+    --aster-caution: oklch(65% .13 75);
+    --aster-focus: oklch(from var(--aster-accent) l c h / .7);
+    --aster-focus-offset: 0px;
+    --aster-indicator: var(--aster-accent);
+    --aster-identity-l: 62%;
+    --aster-identity-c: .1;
+
+    --aster-shadow: oklch(28% .05 265);
+    --aster-highlight: inset 0 1px 0 oklch(100% 0 0 / .85);
+    --aster-ring: 0 0 0 .5px var(--aster-rule);
+    --aster-e1: var(--aster-ring), var(--aster-highlight), 1px 1px 2px oklch(from var(--aster-shadow) l c h / .06), 2px 3px 8px oklch(from var(--aster-shadow) l c h / .05);
+    --aster-e2: var(--aster-ring), var(--aster-highlight), 1px 2px 4px oklch(from var(--aster-shadow) l c h / .07), 3px 8px 20px oklch(from var(--aster-shadow) l c h / .07), 6px 18px 40px oklch(from var(--aster-shadow) l c h / .06);
+    --aster-e3: var(--aster-ring), var(--aster-highlight), 2px 4px 10px oklch(from var(--aster-shadow) l c h / .09), 6px 16px 36px oklch(from var(--aster-shadow) l c h / .11), 12px 32px 64px oklch(from var(--aster-shadow) l c h / .11);
+    --aster-well: 0 0 0 .5px var(--aster-rule), inset 1px 1px 2px oklch(from var(--aster-shadow) l c h / .09);
+    --aster-scrim: oklch(from var(--aster-shadow) l c h / .14);
+    --aster-press: oklch(0% 0 0 / .25);
+
+    --aster-r-ctl: 3px;
+    --aster-r-card: 5px;
+    --aster-r-pop: 8px;
+    --aster-r-dialog: 8px;
+
+    --aster-ease: cubic-bezier(.2, .8, .2, 1);
+    --aster-t-morph: 220ms;
+    --aster-t-ink: 160ms;
+    --aster-t-micro: 120ms;
+    --aster-t-caret: 180ms;
+    --aster-t-scheme: 420ms;
+
+    --aster-toast-bg: var(--aster-text);
+    --aster-toast-text: var(--aster-surface);
+    --aster-toast-action: oklch(85% .1 168);
+    --aster-toast-mark: oklch(80% .12 168);
+
+    --aster-lamp: oklch(99.5% .03 88);
+    --aster-glow: 1;
+    --aster-lamp-bulb: oklch(88% .12 85 / .7);
+    --aster-backdrop:
+      radial-gradient(115% 75% at 10% -12%, oklch(from var(--aster-lamp) l c h / calc(var(--aster-glow) * .9)), transparent 62%),
+      var(--aster-page);
+    --aster-frame:
+      radial-gradient(70% 55% at 0% 0%, oklch(from var(--aster-lamp) l c h / calc(var(--aster-glow) * .55)), transparent 70%),
+      var(--aster-surface);
+    --aster-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --aster-texture-blend: multiply;
+    --aster-texture-opacity: .055;
+    color-scheme: light;
+  }
+
+  :root[data-scheme="dark"] {
+    --aster-page: oklch(19.5% .009 70);
+    --aster-surface: oklch(24.5% .01 72);
+    --aster-sunk: oklch(21.8% .009 70);
+    --aster-pane: oklch(21.5% .009 70);
+    --aster-text: oklch(92.5% .012 85);
+    --aster-text-2: oklch(72% .012 80);
+    --aster-text-3: oklch(68.5% .012 78);
+    --aster-rule: oklch(95% .02 85 / .1);
+    --aster-rule-2: oklch(95% .02 85 / .055);
+    --aster-accent: oklch(76% .1 168);
+    --aster-accent-hi: oklch(81% .1 168);
+    --aster-accent-soft: oklch(76% .1 168 / .12);
+    --aster-on-accent: oklch(20% .03 168);
+    --aster-negative: oklch(70% .14 28);
+    --aster-lamp: oklch(75% .06 80);
+    --aster-shadow: oklch(6% .03 265);
+    --aster-highlight: inset 0 1px 0 oklch(98% .02 85 / .075);
+    --aster-ring: 0 0 0 .5px oklch(0% 0 0 / .65);
+    --aster-e1: var(--aster-ring), var(--aster-highlight), 1px 1px 2px oklch(from var(--aster-shadow) l c h / .35), 2px 3px 8px oklch(from var(--aster-shadow) l c h / .25);
+    --aster-e2: var(--aster-ring), var(--aster-highlight), 1px 2px 4px oklch(from var(--aster-shadow) l c h / .4), 3px 8px 20px oklch(from var(--aster-shadow) l c h / .35), 6px 18px 40px oklch(from var(--aster-shadow) l c h / .3);
+    --aster-e3: var(--aster-ring), var(--aster-highlight), 2px 4px 10px oklch(from var(--aster-shadow) l c h / .45), 6px 16px 36px oklch(from var(--aster-shadow) l c h / .45), 12px 32px 64px oklch(from var(--aster-shadow) l c h / .4);
+    --aster-well: 0 0 0 .5px oklch(0% 0 0 / .6), inset 1px 1px 2px oklch(from var(--aster-shadow) l c h / .4);
+    --aster-scrim: oklch(0% 0 0 / .45);
+    --aster-toast-action: oklch(42% .1 168);
+    --aster-texture-blend: overlay;
+    --aster-texture-opacity: .07;
+    --aster-glow: .16;
+    color-scheme: dark;
+  }
+}

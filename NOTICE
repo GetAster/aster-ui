@@ -1,0 +1,10 @@
+Aster UI
+Copyright 2026 Aster UI contributors
+
+Aster UI source and the separately supplied OData mock WebAssembly binary are
+licensed under the Apache License, Version 2.0. Third-party components retain
+their respective licenses. The binary's attribution inventory and license texts
+are supplied in packages/mock/wasm/; packages include those notices when shipped.
+
+Geist and IBM Plex Mono fonts retain their SIL Open Font License notices.
+ECharts is an optional separately loaded third-party runtime.

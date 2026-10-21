@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shared collections — Aster UI</title>
+<link rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css"><link rel="stylesheet" href="./collection-demo.css">
+</head><body><main aria-label="Collection workspace"><h1 class="sr-only">Collection workspace</h1>
+<div class="demo-controls">
+ <div class="control"><span>Sample data</span><aster-choice id="dataset"></aster-choice></div>
+ <div class="control"><span>Presentation</span><aster-choice id="view"></aster-choice></div>
+ <div class="control"><span>Sort</span><aster-choice id="sort"></aster-choice></div>
+ <div class="control"><span>Selection</span><aster-choice id="selection-mode"></aster-choice></div>
+ <label class="control search-control">Find by name<input type="search" id="query" placeholder="Try ‘Studio’…" maxlength="80"></label>
+ <div class="control" id="platform-control"><span>Platform</span><aster-choice id="platform"></aster-choice></div>
+ <label class="online-control"><input id="online" type="checkbox"> Online only</label>
+ <div class="control" id="size-control"><span>Tile size</span><aster-choice id="size"></aster-choice></div>
+</div>
+<p class="demo-hint">Choose items, switch presentation, then edit a selected record. Both views use the same collection and selection.</p>
+<div class="demo-stage"><section class="collection-area" aria-label="Collection preview"><div id="out"><p role="status">Starting the local OData service…</p></div></section>
+<aside class="record-editor" aria-labelledby="editor-title"><p class="demo-eyebrow">Shared record</p><h2 id="editor-title">Make a change</h2>
+<p id="selected-summary" role="status">No items selected.</p>
+<div class="demo-actions"><button type="button" class="aster-button" id="edit" disabled>Edit first selected</button><button type="button" class="aster-button" id="clear" disabled>Clear selection</button></div>
+<div id="editor-out"></div>
+<div class="demo-actions" id="save-actions" hidden><button type="button" class="aster-button" data-variant="primary" id="save">Save changes</button><button type="button" class="aster-button" id="cancel">Discard draft</button></div>
+<button type="button" class="aster-button" id="simulate" disabled>Toggle selected status</button>
+<p class="demo-hint">Mock data in this page only. Reloading restores the sample. Drafts stay open when you change presentation.</p></aside></div>
+<p id="status" class="demo-status" role="status" aria-live="polite"></p>
+</main><script type="module" src="./collection-demo.js"></script></body></html>

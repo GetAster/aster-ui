@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aster UI playground</title>
+<link rel="stylesheet" href="../lib/themes/lamplight.css">
+<link rel="stylesheet" href="../lib/aster-ui.css">
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100dvh; background: var(--aster-canvas); color: var(--aster-text); font: 14px/1.45 var(--aster-font, system-ui); }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--aster-rule-2); }
+  header h1 { margin: 0; font-size: 16px; }
+  header a { color: var(--aster-accent); }
+  .code { display: grid; grid-template-rows: auto auto 1fr; gap: 8px; padding: 12px 16px; border-right: 1px solid var(--aster-rule-2); min-width: 0; }
+  .code p { margin: 0; color: var(--aster-text-2); }
+  .code textarea { width: 100%; min-height: 60dvh; box-sizing: border-box; padding: 10px; resize: vertical; border: 0; border-radius: var(--aster-r-ctl); background: var(--aster-sunk); color: inherit; font: 12.5px/1.5 ui-monospace, Menlo, monospace; tab-size: 2; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .bar select { font: inherit; }
+  iframe { width: 100%; height: 100%; border: 0; background: var(--aster-canvas); }
+  @media (max-width: 800px) { body { grid-template-columns: 1fr; } .code { border-right: 0; } iframe { min-height: 70dvh; } }
+</style>
+</head>
+<body>
+<header><h1>Aster UI playground</h1><span>Plain JavaScript against <code>aster-ui.js</code> and the mock: no build step.</span><a href="../">Home</a><a href="./tabs.html">Tabs</a><a href="./dataview.html">DataView</a><a href="./tiles.html">TileGrid examples</a><a href="./filtering.html">Advanced filtering</a><a href="./dashboard.html">Dashboard composition</a><a href="./windows.html">Application windows</a><a href="./components.html">Third-party components</a><a href="./reporting.html">Grid summaries and export</a></header>
+<section class="code" aria-label="Example">
+  <div class="bar">
+    <label for="example">Example</label> <select id="example"></select>
+    <button type="button" class="aster-button" data-variant="primary" id="run">Run</button>
+  </div>
+  <p id="about"></p>
+  <textarea id="source" aria-label="Code" spellcheck="false"></textarea>
+</section>
+<iframe id="result" title="Result"></iframe>
+<script type="module">
+  import { EXAMPLES } from "./examples.js";
+  const pick = document.querySelector("#example");
+  const source = document.querySelector("#source");
+  const about = document.querySelector("#about");
+  let frame = document.querySelector("#result");
+  EXAMPLES.forEach((e, i) => pick.add(new Option(e.name, String(i))));
+  // Only a different choice loads an example: Firefox can fire change again on blur, over edited code.
+  let shown;
+  const show = () => {
+    if (pick.value === shown) return;
+    shown = pick.value;
+    const e = EXAMPLES[Number(pick.value)];
+    source.value = e.code;
+    about.textContent = e.about;
+    run();
+  };
+  // Each run is a fresh page in a new frame (the last run's frame goes, loads and all);
+  // the code's relative imports resolve against this page.
+  function run() {
+    const base = new URL(".", location.href).href;
+    const next = document.createElement("iframe");
+    next.id = "result";
+    next.title = "Result";
+    frame.replaceWith(next);
+    frame = next;
+    frame.srcdoc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><base href="${base}">
+      <link rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css">
+      <style>body{margin:0;padding:16px;background:var(--aster-canvas);color:var(--aster-text);font:14px/1.45 var(--aster-font,system-ui)}#out{display:grid;gap:16px}</style>
+      </head><body><div id="out"></div><script type="module">${source.value.replaceAll("</scr" + "ipt", "<\\/scr" + "ipt")}<\/script></body></html>`;
+  }
+  pick.addEventListener("change", show);
+  document.querySelector("#run").addEventListener("click", run);
+  source.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") run();
+  });
+  show();
+</script>
+</body>
+</html>

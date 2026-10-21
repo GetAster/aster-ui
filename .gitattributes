@@ -1,0 +1,2 @@
+# Preserve upstream license texts byte-for-byte.
+packages/mock/wasm/licenses/** -text -whitespace

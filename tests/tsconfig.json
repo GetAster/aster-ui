@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "integration",
+    "e2e",
+    "../playwright.config.ts",
+    "site-release",
+    "../playwright.release.config.ts"
+  ]
+}

@@ -1,0 +1,19 @@
+@layer aster.preview {
+  aster-contextual-hierarchy { display:block; min-width:0; min-height:0; }
+  .aster-hierarchy { display:flex; flex-direction:column; min-height:0; height:100%; }
+  .aster-hierarchy > nav { display:flex; flex-wrap:wrap; align-items:center; gap:var(--aster-gap); padding:8px var(--aster-pad); border-block-end:1px solid var(--aster-rule); }
+  .aster-hierarchy > nav button { color:var(--aster-accent); min-height:var(--aster-ctl); }
+  .aster-hierarchy > nav span { color:var(--aster-text-2); font-size:12px; overflow-wrap:anywhere; }
+  .aster-hierarchy-level { min-height:0; overflow:auto; padding:var(--aster-pad); }
+  .aster-hierarchy-level[hidden] { display:none; }
+  .aster-hierarchy[data-motion=slide] { overflow:hidden; --hierarchy-entry:16px; }
+  .aster-hierarchy[data-motion=slide][data-direction=back] { --hierarchy-entry:-16px; }
+  .aster-hierarchy:dir(rtl) { --hierarchy-sign:-1; }
+  .aster-hierarchy[data-motion=slide] > .aster-hierarchy-level:not([hidden]) { animation:aster-hierarchy-enter 180ms var(--aster-ease); }
+  @keyframes aster-hierarchy-enter { from { opacity:.6; transform:translateX(calc(var(--hierarchy-entry) * var(--hierarchy-sign,1))); } to { opacity:1; transform:translateX(0); } }
+  @media(prefers-reduced-motion:reduce) { .aster-hierarchy[data-motion=slide] > .aster-hierarchy-level:not([hidden]) { animation:none; } }
+  .aster-hierarchy-level > header { display:flex; align-items:start; justify-content:space-between; gap:var(--aster-gap); margin-block-end:var(--aster-gap); }
+  .aster-hierarchy-level h3 { margin:0; font-size:18px; }
+  .aster-hierarchy-level header p { margin:6px 0 0; color:var(--aster-text-2); }
+  @media(pointer:coarse) { .aster-hierarchy > nav button { min-height:44px; } }
+}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Application windows — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css">
+<style>
+body { height:auto; min-height:100dvh; padding:24px; background:var(--aster-surface); } main { max-width:1100px; margin:auto; }
+.bar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-block:20px; }
+.workspace-intro { padding:24px; border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); background:var(--aster-sunk); }
+.workspace-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
+.workspace-header h2, .workspace-header p { margin:0; } .workspace-header p { font-size:12px; }
+.workspace-intro h2 { margin-top:0; } .workspace-intro p { color:var(--aster-text-2); max-width:65ch; }
+#tasks { display:flex; gap:8px; flex-wrap:wrap; } #tasks button[aria-pressed=true] { background:var(--aster-accent-soft); border-color:var(--aster-accent); }
+.aster-window-body { display:flex; flex-direction:column; gap:14px; } .aster-window-body p { margin:0; color:var(--aster-text-2); }
+.aster-window-body textarea { flex:1; min-height:100px; width:100%; padding:12px; border:1px solid var(--aster-rule); border-radius:var(--aster-r-ctl); background:var(--aster-sunk); color:var(--aster-text); font:inherit; resize:none; }
+.aster-window-body label { display:flex; flex-direction:column; gap:6px; }
+.aster-window-body .aster-field { background:var(--aster-sunk); }
+.device-detail { display:grid; grid-template-columns:auto 1fr; gap:10px 20px; margin:0; } .device-detail dd { margin:0; }
+.aster-window-body footer { display:flex; align-items:center; gap:12px; margin-top:auto; }
+a { color:var(--aster-accent); }
+@media(max-width:760px) { body { padding:12px; } .workspace-intro { padding:16px; } }
+</style><link rel="stylesheet" href="./showcase.css"></head><body><main>
+<h1>Application windows</h1>
+<p>Keep several tasks open without losing your place. Move, resize, maximize or minimize a window, then return to the same content.</p>
+<div class="bar">
+<div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div>
+<div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div>
+</div>
+<section class="workspace-intro" aria-labelledby="workspace-title">
+<div class="workspace-header"><h2 id="workspace-title">Your workspace</h2><p id="workspace-status" role="status" aria-live="polite">Open a window to begin.</p></div>
+<p>Open a device and take notes beside it. Minimized windows stay in the task list. Unsaved notes ask before closing. Save the layout to reopen it after a refresh.</p>
+<div class="bar">
+<button type="button" class="aster-button" id="open-device">Open device</button>
+<button type="button" class="aster-button" id="open-notes">Open notes</button>
+<button type="button" class="aster-button" id="save-layout">Save layout</button>
+<button type="button" class="aster-button" id="restore-layout">Restore layout</button>
+</div>
+<div id="tasks" role="group" aria-label="Open windows"></div>
+</section>
+<p>Keyboard: use each window’s Move or Resize button with arrow keys; hold Shift for larger steps. F6 switches between open windows, Shift+F6 goes back. Escape requests close.</p>
+<aster-window id="device"></aster-window><aster-window id="notes"></aster-window>
+<aster-dialog id="confirm"></aster-dialog>
+<p><a href="./">Back to the playground</a></p>
+</main><script type="module" src="./showcase-nav.js"></script><script type="module" src="./windows.js"></script></body></html>

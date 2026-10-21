@@ -1,0 +1,435 @@
+{
+  "$Version": "4.01",
+  "$Reference": {
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.json": {
+      "$Include": [{ "$Namespace": "Org.OData.Core.V1", "$Alias": "Core" }]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Validation.V1.json": {
+      "$Include": [{ "$Namespace": "Org.OData.Validation.V1", "$Alias": "Validation" }]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.json": {
+      "$Include": [{ "$Namespace": "Org.OData.Capabilities.V1", "$Alias": "Capabilities" }]
+    },
+    "https://aster.dev/vocabularies/Aster.Data.V1.json": {
+      "$Include": [{ "$Namespace": "Aster.Data.V1", "$Alias": "AsterData" }]
+    }
+  },
+  "$EntityContainer": "AsterDemo.Container",
+  "AsterDemo": {
+    "Person": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Person",
+      "@AsterData.PluralTitle": "People",
+      "@AsterData.TitleField": "name",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "name": { "$MaxLength": 80, "@Core.Description": "Name", "@AsterData.MinLength": 1 },
+      "email": {
+        "$Nullable": true,
+        "$MaxLength": 254,
+        "@Core.Description": "Email",
+        "@Validation.Pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$"
+      },
+      "hue": { "$Type": "Edm.Int32", "@Core.Description": "Colour", "@Validation.Minimum": 0, "@Validation.Maximum": 359 }
+    },
+    "Project": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Project",
+      "@AsterData.PluralTitle": "Projects",
+      "@AsterData.TitleField": "name",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "name": { "$MaxLength": 120, "@Core.Description": "Project", "@AsterData.MinLength": 1 },
+      "leadId": { "$Type": "Edm.Int32", "@Core.Description": "Lead" },
+      "lead": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Person",
+        "$ReferentialConstraint": { "leadId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "state": {
+        "@Core.Description": "State",
+        "@Validation.AllowedValues": [
+          { "Value": "active", "@Core.Description": "Active" },
+          { "Value": "paused", "@Core.Description": "Paused" },
+          { "Value": "archived", "@Core.Description": "Archived" }
+        ]
+      },
+      "health": {
+        "@Core.Description": "Status",
+        "@Validation.AllowedValues": [
+          { "Value": "notStarted", "@Core.Description": "Not started" },
+          { "Value": "onTrack", "@Core.Description": "On track" },
+          { "Value": "behind", "@Core.Description": "Behind" },
+          { "Value": "needsReview", "@Core.Description": "Needs review" }
+        ]
+      },
+      "behindDays": { "$Type": "Edm.Int32", "$Nullable": true, "@Core.Description": "Days behind", "@Validation.Minimum": 1 },
+      "clientId": { "$Type": "Edm.Int32", "$Nullable": true, "@Core.Description": "Client" },
+      "client": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Client",
+        "$Nullable": true,
+        "$ReferentialConstraint": { "clientId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "budget": { "$Type": "Edm.Decimal", "$Precision": 12, "$Scale": 2, "@Core.Description": "Budget", "@Validation.Minimum": 0 },
+      "spent": { "$Type": "Edm.Decimal", "$Precision": 12, "$Scale": 2, "@Core.Description": "Spent", "@Validation.Minimum": 0 },
+      "pinned": { "$Type": "Edm.Boolean", "@Core.Description": "Pinned" },
+      "hue": { "$Type": "Edm.Int32", "@Validation.Minimum": 0, "@Validation.Maximum": 359 },
+      "createdAt": { "$Type": "Edm.DateTimeOffset", "@Core.Computed": true, "@AsterData.SetOn": "create" },
+      "updatedAt": { "$Type": "Edm.DateTimeOffset", "@Core.Computed": true, "@AsterData.SetOn": "update", "@Core.Description": "Updated" },
+      "archivedAt": { "$Type": "Edm.DateTimeOffset", "$Nullable": true },
+      "tasks": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Task",
+        "$Collection": true,
+        "$Partner": "project"
+      }
+    },
+    "Task": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Task",
+      "@AsterData.PluralTitle": "Tasks",
+      "@AsterData.TitleField": "title",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "projectId": { "$Type": "Edm.Int32", "@Core.Description": "Project" },
+      "project": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Project",
+        "$Partner": "tasks",
+        "$ReferentialConstraint": { "projectId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "parentId": { "$Type": "Edm.Int32", "$Nullable": true, "@Core.Description": "Parent task" },
+      "parent": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Task",
+        "$Nullable": true,
+        "$Partner": "subtasks",
+        "$ReferentialConstraint": { "parentId": "id" },
+        "@AsterData.DisplayField": "title"
+      },
+      "subtasks": { "$Kind": "NavigationProperty", "$Type": "AsterDemo.Task", "$Collection": true, "$Partner": "parent" },
+      "title": { "$MaxLength": 200, "@Core.Description": "Task", "@AsterData.MinLength": 1 },
+      "due": { "$Type": "Edm.Date", "$Nullable": true, "@Core.Description": "Due" },
+      "assigneeId": { "$Type": "Edm.Int32", "$Nullable": true, "@Core.Description": "Assignee" },
+      "assignee": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Person",
+        "$Nullable": true,
+        "$ReferentialConstraint": { "assigneeId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "done": { "$Type": "Edm.Boolean", "@Core.Description": "Done" }
+    },
+    "Note": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Note",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "body": { "$MaxLength": 2000, "@AsterData.MinLength": 1 },
+      "authorId": { "$Type": "Edm.Int32" },
+      "author": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Person",
+        "$ReferentialConstraint": { "authorId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "createdAt": { "$Type": "Edm.DateTimeOffset", "@Core.Computed": true, "@AsterData.SetOn": "create" },
+      "pinned": { "$Type": "Edm.Boolean" }
+    },
+    "Client": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Client",
+      "@AsterData.PluralTitle": "Clients",
+      "@AsterData.TitleField": "name",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "name": { "$MaxLength": 120, "@Core.Description": "Client", "@AsterData.MinLength": 1 },
+      "city": { "$MaxLength": 80, "@Core.Description": "City" },
+      "country": { "$MaxLength": 80, "@Core.Description": "Country" },
+      "industry": { "$MaxLength": 80, "@Core.Description": "Industry" }
+    },
+    "TimeEntry": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Time entry",
+      "@AsterData.PluralTitle": "Time",
+      "@AsterData.TitleField": "note",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "date": { "$Type": "Edm.Date", "@Core.Description": "Date" },
+      "personId": { "$Type": "Edm.Int32", "@Core.Description": "Person" },
+      "person": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Person",
+        "$ReferentialConstraint": { "personId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "projectId": { "$Type": "Edm.Int32", "@Core.Description": "Project" },
+      "project": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Project",
+        "$ReferentialConstraint": { "projectId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "hours": {
+        "$Type": "Edm.Decimal", "$Precision": 4, "$Scale": 2, "@Core.Description": "Hours",
+        "@Validation.Minimum": "0.25", "@Validation.Maximum": "24"
+      },
+      "billable": { "$Type": "Edm.Boolean", "@Core.Description": "Billable" },
+      "status": {
+        "@Core.Description": "Status",
+        "@Validation.AllowedValues": [
+          { "Value": "draft", "@Core.Description": "Draft" },
+          { "Value": "submitted", "@Core.Description": "Submitted" },
+          { "Value": "approved", "@Core.Description": "Approved" }
+        ]
+      },
+      "note": { "$Nullable": true, "$MaxLength": 1000, "@Core.Description": "Note" }
+    },
+    "Member": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Member",
+      "@AsterData.TitleField": "name",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "personId": { "$Type": "Edm.Int32", "$Nullable": true },
+      "person": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Person",
+        "$Nullable": true,
+        "$ReferentialConstraint": { "personId": "id" }
+      },
+      "name": { "$MaxLength": 80, "@AsterData.MinLength": 1 },
+      "email": { "$Nullable": true, "$MaxLength": 254 },
+      "role": {
+        "@Validation.AllowedValues": [
+          { "Value": "owner", "@Core.Description": "Owner" },
+          { "Value": "edit", "@Core.Description": "Can edit" },
+          { "Value": "view", "@Core.Description": "Can view" }
+        ]
+      }
+    },
+    "ShareLink": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "url": { "$MaxLength": 200, "@Core.Computed": true },
+      "allowComments": { "$Type": "Edm.Boolean", "@Core.Description": "Allow comments" },
+      "allowDownloads": { "$Type": "Edm.Boolean", "@Core.Description": "Allow downloads" },
+      "expiresIn30Days": { "$Type": "Edm.Boolean", "@Core.Description": "Expire the link after 30 days" }
+    },
+    "Field": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Field",
+      "@AsterData.PluralTitle": "Fields",
+      "@AsterData.TitleField": "label",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "parentId": { "$Type": "Edm.Int32", "$Nullable": true, "@Core.Description": "Group" },
+      "parent": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Field",
+        "$Nullable": true,
+        "$Partner": "children",
+        "$ReferentialConstraint": { "parentId": "id" },
+        "@AsterData.DisplayField": "label"
+      },
+      "children": { "$Kind": "NavigationProperty", "$Type": "AsterDemo.Field", "$Collection": true, "$Partner": "parent" },
+      "name": {
+        "$MaxLength": 60, "@Core.Description": "Name", "@AsterData.MinLength": 1,
+        "@Core.LongDescription": "How rules and reports refer to the field: letters, digits and underscores, starting with a letter.",
+        "@Validation.Pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+      },
+      "label": { "$MaxLength": 200, "@Core.Description": "Label", "@AsterData.MinLength": 1 },
+      "kind": {
+        "@Core.Description": "Kind",
+        "@Core.Immutable": true,
+        "@Validation.AllowedValues": [
+          { "Value": "group", "@Core.Description": "Group" },
+          { "Value": "text", "@Core.Description": "Text" },
+          { "Value": "choice", "@Core.Description": "Choice" },
+          { "Value": "yesno", "@Core.Description": "Yes or no" },
+          { "Value": "date", "@Core.Description": "Date" },
+          { "Value": "number", "@Core.Description": "Number" }
+        ]
+      },
+      "required": { "$Type": "Edm.Boolean", "@Core.Description": "Required" },
+      "help": { "$Nullable": true, "$MaxLength": 500, "@Core.Description": "Help text", "@AsterData.EmptyAsNull": true },
+      "position": { "$Type": "Edm.Int32", "@Core.Description": "Position" },
+      "answers": { "$Kind": "NavigationProperty", "$Type": "AsterDemo.Answer", "$Collection": true, "$Partner": "field", "@AsterData.Owned": true },
+      "clauses": { "$Kind": "NavigationProperty", "$Type": "AsterDemo.Clause", "$Collection": true, "$Partner": "field", "@AsterData.Owned": true }
+    },
+    "Answer": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Answer",
+      "@AsterData.PluralTitle": "Answers",
+      "@AsterData.TitleField": "label",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "fieldId": { "$Type": "Edm.Int32", "@Core.Description": "Field" },
+      "field": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Field",
+        "$Partner": "answers",
+        "$ReferentialConstraint": { "fieldId": "id" }
+      },
+      "key": {
+        "$MaxLength": 40, "@Core.Description": "Key", "@AsterData.MinLength": 1, "@Core.Immutable": true,
+        "@Validation.Pattern": "^[a-z0-9_]+$"
+      },
+      "label": { "$MaxLength": 200, "@Core.Description": "Label", "@AsterData.MinLength": 1 },
+      "position": { "$Type": "Edm.Int32", "@Core.Description": "Position" }
+    },
+    "Clause": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Clause",
+      "@AsterData.PluralTitle": "Clauses",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "fieldId": { "$Type": "Edm.Int32", "@Core.Description": "Field" },
+      "field": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Field",
+        "$Partner": "clauses",
+        "$ReferentialConstraint": { "fieldId": "id" }
+      },
+      "category": {
+        "@Core.Description": "Rule",
+        "@Validation.AllowedValues": [
+          { "Value": "visibility", "@Core.Description": "Visibility" },
+          { "Value": "message", "@Core.Description": "Message" }
+        ]
+      },
+      "parentClauseId": { "$Type": "Edm.Int32", "$Nullable": true, "@Core.Description": "Group" },
+      "parentClause": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Clause",
+        "$Nullable": true,
+        "$Partner": "children",
+        "$ReferentialConstraint": { "parentClauseId": "id" }
+      },
+      "children": { "$Kind": "NavigationProperty", "$Type": "AsterDemo.Clause", "$Collection": true, "$Partner": "parentClause", "@AsterData.Owned": true },
+      "op": {
+        "@Core.Description": "Operator",
+        "@Validation.AllowedValues": [
+          { "Value": "and", "@Core.Description": "All of" },
+          { "Value": "or", "@Core.Description": "Any of" },
+          { "Value": "not", "@Core.Description": "None of" },
+          { "Value": "eq", "@Core.Description": "is" },
+          { "Value": "ne", "@Core.Description": "is not" },
+          { "Value": "in", "@Core.Description": "is one of" },
+          { "Value": "gt", "@Core.Description": "is more than" },
+          { "Value": "lt", "@Core.Description": "is less than" },
+          { "Value": "set", "@Core.Description": "is answered" },
+          { "Value": "unset", "@Core.Description": "is not answered" }
+        ]
+      },
+      "fieldRef": { "$Type": "Edm.Int32", "$Nullable": true, "@Core.Description": "Field" },
+      "value": { "$Nullable": true, "$MaxLength": 500, "@Core.Description": "Value" },
+      "message": { "$Nullable": true, "$MaxLength": 300, "@Core.Description": "Message", "@AsterData.EmptyAsNull": true },
+      "position": { "$Type": "Edm.Int32", "@Core.Description": "Position" }
+    },
+    "Change": {
+      "$Kind": "EntityType",
+      "$Key": ["id"],
+      "@Core.Description": "Change",
+      "@AsterData.PluralTitle": "Changes",
+      "id": { "$Type": "Edm.Int32", "@Core.Computed": true },
+      "kind": {
+        "@Core.Description": "Change",
+        "@Validation.AllowedValues": [
+          { "Value": "add", "@Core.Description": "Add" },
+          { "Value": "update", "@Core.Description": "Update" },
+          { "Value": "delete", "@Core.Description": "Delete" },
+          { "Value": "move", "@Core.Description": "Move" }
+        ]
+      },
+      "fieldId": { "$Type": "Edm.Int32", "@Core.Description": "Field" },
+      "fieldLabel": { "$MaxLength": 200, "@Core.Description": "Field" },
+      "before": { "$Nullable": true, "@Core.Description": "Before" },
+      "changes": { "@Core.Description": "Changes" },
+      "byId": { "$Type": "Edm.Int32", "@Core.Description": "By" },
+      "by": {
+        "$Kind": "NavigationProperty",
+        "$Type": "AsterDemo.Person",
+        "$ReferentialConstraint": { "byId": "id" },
+        "@AsterData.DisplayField": "name"
+      },
+      "at": { "$Type": "Edm.DateTimeOffset", "@Core.Description": "When", "@Core.Computed": true, "@AsterData.SetOn": "create" }
+    },
+    "Container": {
+      "$Kind": "EntityContainer",
+      "People": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Person",
+        "@Core.OptimisticConcurrency": []
+      },
+      "Projects": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Project",
+        "$NavigationPropertyBinding": { "lead": "People", "tasks": "Tasks", "client": "Clients" },
+        "@Core.OptimisticConcurrency": ["updatedAt"]
+      },
+      "Clients": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Client",
+        "@Core.OptimisticConcurrency": []
+      },
+      "TimeEntries": {
+        "$Collection": true,
+        "$Type": "AsterDemo.TimeEntry",
+        "$NavigationPropertyBinding": { "person": "People", "project": "Projects" },
+        "@Core.OptimisticConcurrency": []
+      },
+      "Tasks": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Task",
+        "$NavigationPropertyBinding": { "project": "Projects", "assignee": "People", "parent": "Tasks", "subtasks": "Tasks" },
+        "@Core.OptimisticConcurrency": []
+      },
+      "Notes": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Note",
+        "$NavigationPropertyBinding": { "author": "People" },
+        "@Core.OptimisticConcurrency": []
+      },
+      "Members": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Member",
+        "$NavigationPropertyBinding": { "person": "People" },
+        "@Core.OptimisticConcurrency": []
+      },
+      "ShareLinks": {
+        "$Collection": true,
+        "$Type": "AsterDemo.ShareLink",
+        "@Core.OptimisticConcurrency": []
+      },
+      "Fields": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Field",
+        "$NavigationPropertyBinding": { "parent": "Fields", "children": "Fields", "answers": "Answers", "clauses": "Clauses" },
+        "@Core.OptimisticConcurrency": []
+      },
+      "Answers": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Answer",
+        "$NavigationPropertyBinding": { "field": "Fields" },
+        "@Core.OptimisticConcurrency": []
+      },
+      "Clauses": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Clause",
+        "$NavigationPropertyBinding": { "field": "Fields", "parentClause": "Clauses", "children": "Clauses" },
+        "@Core.OptimisticConcurrency": []
+      },
+      "Changes": {
+        "$Collection": true,
+        "$Type": "AsterDemo.Change",
+        "$NavigationPropertyBinding": { "by": "People" }
+      }
+    }
+  }
+}

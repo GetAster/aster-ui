@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TileGrid examples — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css">
+<link rel="stylesheet" href="../lib/aster-ui.css">
+<style>
+  body { min-height: 100dvh; height: auto; padding: 24px; }
+  main { max-width: 1100px; margin: auto; }
+  h1 { margin-top: 0; } h2 { margin-bottom: 8px; }
+  .bar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-block: 16px; }
+  .intro, .detail { color: var(--aster-text-2); }
+  a { color: var(--aster-accent); }
+  main > section { margin-block: 28px; }
+  .device-card { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-content: start; gap: 6px 12px; padding: 4px; }
+  .device-card svg { grid-row: 1 / span 3; width: 40px; height: 40px; stroke: var(--aster-accent); fill: none; stroke-width: 1.5; }
+  .device-card > :not(svg) { grid-column: 2; }
+  .device-card > strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .device-card > small { color: var(--aster-text-2); }
+  .device-state { display: flex; align-items: center; gap: 6px; }
+  .device-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--aster-text-3); }
+  .device-dot[data-online] { background: var(--aster-positive); }
+  .tile-demo-error { color: var(--aster-negative); }
+  #files { --tile-min-width: 168px; }
+  #files .aster-tile-grid { grid-auto-rows: auto; }
+  #files .aster-tile { aspect-ratio: 1; min-height: 0; padding: 10px; overflow: hidden; }
+  #files .aster-tile-content { display: grid; grid-template-rows: minmax(36px, 1fr) auto auto; gap: 4px; min-height: 0; text-align: center; }
+  #files .aster-tile-media { height: auto; min-height: 0; margin: 0; background: none; }
+  #files .aster-tile-media > svg { width: 40px; height: 40px; stroke: var(--aster-accent); }
+  #files .aster-tile-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25; height: 2.5em; }
+  #files .aster-tile-description { margin: 0; font-size: 11px; }
+  #files .aster-tile-actions { justify-content: center; }
+  #devices { --tile-min-width: 252px; --tile-height: 190px; }
+  #fleet { --tile-min-width: 280px; --tile-height: 220px; }
+  #fleet-table { display: flex; flex-direction: column; height: 34rem; min-width: 0; }
+  @media (pointer: coarse) {
+    #files .aster-tile { padding: 6px; }
+    #files .aster-tile-actions { gap: 4px; }
+    #files .aster-tile-actions .aster-button { padding-inline: 6px; font-size: 12px; }
+  }
+  @media (max-width: 500px) { body { padding: 12px; } }
+</style>
+<link rel="stylesheet" href="./showcase.css"></head>
+<body><main>
+<h1>TileGrid</h1>
+<p class="intro">Square tiles for folders, wider cards for devices. Resize them, select items, or switch the paged 100,000-device fleet to a table without losing your picks.</p>
+<div class="bar">
+  <label>Tile size <input id="size" type="range" min="160" max="280" step="8" value="168"></label>
+  <div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div>
+  <div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div>
+</div>
+<section aria-labelledby="files-heading">
+  <h2 id="files-heading">Folders</h2>
+  <nav class="bar" aria-label="Folder path" id="path"></nav>
+  <div id="folder-out"></div>
+</section>
+<section aria-labelledby="devices-heading">
+  <h2 id="devices-heading">Your devices</h2>
+  <p class="intro">Illustrative mock devices for the future management interface. Select for details; Open activates separately.</p>
+  <div class="bar">
+    <label><input id="online-only" type="checkbox"> Online only</label>
+    <button type="button" class="aster-button" id="status-change">Simulate status change</button>
+  </div>
+  <div id="device-out"></div>
+  <p id="device-detail" class="detail"></p>
+  <button type="button" class="aster-button" id="clear-device">Clear device selection</button>
+</section>
+<section aria-labelledby="fleet-heading">
+  <h2 id="fleet-heading">Large device collection</h2>
+  <p class="intro">100,000 mock devices, loaded in pages. Table and tiles share their query and selection. Ordered selection keeps pick order; choose at most three. Alt+Up/Down or the move buttons reorder selected devices.</p>
+  <div class="bar">
+    <button type="button" class="aster-button" id="load-fleet" disabled>Load large collection</button>
+    <label>View <select id="fleet-view" disabled><option value="tiles">Tiles</option><option value="table">Table</option></select></label>
+    <label><input type="checkbox" id="fleet-online" disabled> Fleet online only</label>
+    <button type="button" class="aster-button" id="fleet-sort" disabled>Reverse fleet order</button>
+    <label>Selection <select id="fleet-mode"><option value="ordered">Ordered, maximum 3</option><option value="unlimited">Ordered, unlimited</option><option value="multiple">Multiple</option><option value="single">Single</option></select></label>
+    <label>Count <select id="fleet-count"><option value="exact">Exact</option><option value="estimated">Estimated</option><option value="unknown">Unknown</option></select></label>
+    <button type="button" class="aster-button" id="fail-fleet" disabled>Fail next page</button>
+  </div>
+  <div id="fleet-out"></div>
+  <p id="fleet-selection" class="detail"></p>
+</section>
+<p id="opened" role="status" aria-live="polite"></p>
+<a href="./">Back to the playground</a>
+</main><script type="module" src="./showcase-nav.js"></script><script type="module" src="./tiles.js"></script></body></html>

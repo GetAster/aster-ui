@@ -1,0 +1,112 @@
+# Parsed at build time; the browser loads composition.ui.json.
+version: 1
+name: DeviceWorkspace
+model:
+  type: device-workspace
+  inputs:
+    ctx: { ref: inputs.ctx }
+    selection:
+      multiple: true
+      ordered: false
+      fallback: false
+customize:
+  modelInputs: [selection]
+  children:
+    views: { optional: true }
+    table:
+      props: [label, selectable, view]
+    tiles:
+      props: [label, selectable]
+    details:
+      replace: [CompactDetails]
+publish:
+  devices: { ref: model.publications.selection }
+  editor: { ref: model.publications.editor }
+commands:
+  table: { use: model.commands.table }
+  tiles: { use: model.commands.tiles }
+  clear: { use: model.commands.clear }
+  edit:
+    use: model.commands.edit
+    enabledWhen: devices.any
+    reason: Select a device to edit.
+  save:
+    use: model.commands.save
+    enabledWhen:
+      op: and
+      args:
+        - editor.dirty
+        - { op: not, arg: editor.busy }
+    reason: Change a field before saving.
+  discard: { use: model.commands.discard }
+children:
+  status:
+    type: DraftStatus
+    props:
+      label: Device draft status
+      dirty: { bind: model.dirty }
+      busy: { bind: model.busy }
+  views:
+    type: CommandBar
+    props:
+      label: Presentation
+      commands:
+        - { ref: commands.table }
+        - { ref: commands.tiles }
+  actions:
+    type: CommandBar
+    props:
+      label: Device actions
+      commands:
+        - { ref: commands.edit }
+        - { ref: commands.save }
+        - { ref: commands.discard }
+        - { ref: commands.clear }
+  table:
+    type: Grid
+    props:
+      ctx: { ref: inputs.ctx }
+      label: Managed devices table
+      selectable: true
+      collection: { ref: model.collection }
+      selection: { ref: model.selection }
+      view:
+        columns:
+          - { field: name }
+          - { field: platform, width: 130 }
+          - { field: owner, width: 140 }
+        sort: []
+        filters: {}
+        frozen: 0
+  tiles:
+    type: TileGrid
+    create: on-demand
+    retain: true
+    props:
+      virtualized: true
+      label: Managed device tiles
+      selectable: true
+      collection: { ref: model.collection }
+      selection: { ref: model.selection }
+      renderTile: { renderer: device-card }
+      presentTile: { renderer: device-description }
+  details:
+    type: DeviceDetails
+    create: on-demand
+    retain: true
+    props:
+      editor: { bind: model.editor }
+layout:
+  type: stack
+  items:
+    - { child: views }
+    - { child: actions }
+    - { child: status }
+    - type: deck
+      active: { bind: model.presentation }
+      items:
+        table: { child: table }
+        tiles: { child: tiles }
+    - type: outlet
+      active: { bind: model.detailsOpen }
+      content: { child: details }

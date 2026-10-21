@@ -1,0 +1,40 @@
+{
+  "name": "aster-ui",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "bun test ./packages ./tests/integration",
+    "typecheck": "tsc -p packages/data && tsc -p packages/mock && tsc -p packages/elements && tsc -p packages/elements-preview && tsc -p apps/aster && tsc -p tests && tsc -p scripts && tsc -p scripts/lib --noEmit",
+    "check:deps": "bun scripts/check-deps.ts",
+    "check": "bun run typecheck && bun run check:deps && bun run test",
+    "dev": "bun --hot apps/aster/serve.ts",
+    "test:e2e": "playwright test",
+    "site": "bun scripts/build-site.ts",
+    "docs": "bun scripts/docs/build.ts",
+    "theme-check": "bun packages/elements/tools/aster-theme-check.ts",
+    "packages:build": "bun scripts/build-packages.ts",
+    "verify:wasm": "bun scripts/verify-wasm.ts",
+    "site:release": "bun scripts/build-product-site.ts",
+    "site:prepare": "node scripts/prepare-cloudflare.mjs",
+    "test:site": "playwright test --config playwright.release.config.ts"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.64.0",
+    "@types/bun": "^1.2.15",
+    "echarts": "6.1.0",
+    "highlight.js": "11.12.0",
+    "marked": "15.0.12",
+    "typescript": "^5.9.3",
+    "yaml": "^2.9.1"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GetAster/aster-ui.git"
+  }
+}

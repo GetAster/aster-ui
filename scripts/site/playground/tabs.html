@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabs — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css"><link rel="stylesheet" href="./showcase.css">
+<style>
+body { height:auto; min-height:100dvh; padding:24px; background:var(--aster-surface); } main { max-width:1100px; margin:auto; min-width:0; }
+.bar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-block:18px; }
+.workspace { min-width:0; border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); padding:20px; background:var(--aster-surface); box-shadow:var(--aster-e1); }
+.workspace h2 { margin-block:0 12px; } .workspace p { color:var(--aster-text-2); }
+.device-fields { display:grid; gap:16px; max-width:560px; }
+.device-fields label { display:grid; gap:6px; } .device-fields .aster-field { flex:none; } .device-fields input { width:100%; }
+.device-fields textarea { width:100%; min-height:130px; padding:12px; border:1px solid var(--aster-rule); border-radius:var(--aster-r-ctl); background:var(--aster-sunk); }
+.workspace dl { display:grid; grid-template-columns:max-content 1fr; gap:8px 18px; } .workspace dd { margin:0; }
+#status { color:var(--aster-text-2); } .hint { color:var(--aster-text-2); }
+@media(max-width:600px) { body { padding:12px; } .workspace { padding:12px; } }
+</style></head><body><main>
+<h1>Tabs</h1><p>A device workspace with lazy panels, protected edits and a scrolling strip that keeps your place.</p>
+<div class="bar"><div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div><div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div>
+<button type="button" class="aster-button" id="add">Open another device</button>
+<label><input type="checkbox" id="manual"> Activate with Enter or Space</label></div>
+<p class="hint">Arrow keys browse · Home / End jump · Delete requests close. Swipe or use the scroll buttons on a narrow screen. Notes remain when switching tabs.</p>
+<section class="workspace" aria-label="Device workspace"><aster-tabs id="devices"></aster-tabs></section>
+<p id="status" role="status" aria-live="polite">Drafts and saved changes stay in this visit.</p>
+<aster-dialog id="confirm"></aster-dialog>
+</main><script type="module" src="./showcase-nav.js"></script><script type="module" src="./tabs.js"></script></body></html>

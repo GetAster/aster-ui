@@ -1,0 +1,23 @@
+{
+  "name": "@getaster/elements-preview",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./conversation": "./src/conversation/session.ts",
+    "./styles/*": "./src/styles/*"
+  },
+  "dependencies": {
+    "@getaster/data": "workspace:*",
+    "@getaster/elements": "workspace:*",
+    "@preact/signals-core": "1.14.4",
+    "lit-html": "3.3.3"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GetAster/aster-ui.git",
+    "directory": "packages/elements-preview"
+  }
+}

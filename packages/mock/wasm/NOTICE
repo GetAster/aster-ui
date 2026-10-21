@@ -1,0 +1,13 @@
+Aster OData mock engine
+Copyright 2026 Aster contributors
+
+The supplied binary is licensed under Apache-2.0. Its Rust source is not
+included in this distribution. No Rust compiler is required to use it.
+
+Third-party components retain their respective licenses. ARTIFACT.json lists
+license expressions and notice files. For alternatives that include MIT or
+Apache-2.0, this distribution uses that permissive alternative. Components
+with an additional Unicode license retain that license as well.
+
+The inventory conservatively includes Cargo dependencies for the WASM target
+and the Rust standard library notices; some components may be optimized out.
