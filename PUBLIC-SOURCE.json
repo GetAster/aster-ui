@@ -7,11 +7,11 @@
     },
     {
       "path": ".github/workflows/check.yml",
-      "sha256": "1e0ee5603dd479689821765d4645972a90cefd278832ca5ad192fd33b47979c6"
+      "sha256": "6da9a010e2da4072ba4044de4679378734b585ab03f91b60aac442c61d77e21c"
     },
     {
       "path": ".github/workflows/publish.yml",
-      "sha256": "bb16f336cb851e3438a125915a077f1500ed0ab64e23f47a0e504073cc3b952a"
+      "sha256": "a2e4524cf14499a785a5151dda067710e3ae5036f38461b2f5d4a85920cdce61"
     },
     {
       "path": ".gitignore",
@@ -31,7 +31,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "b023ced15bdf337622261703224c526e436d87d4f37ed55ffb8f9ca8eda43c16"
+      "sha256": "989952f4d4c840cf7787ed89da36c1f56f18d23af35fd22420bb0ca997531b9f"
     },
     {
       "path": "apps/aster/index.html",
@@ -395,7 +395,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "178d40cc1feca04ce176e6125ee22c32d5f2acd1cb862a415b25082b92527060"
+      "sha256": "5497b36311a1057a8e5814122d5625dac8b240c61aca6cf45cf5bff671167153"
     },
     {
       "path": "packages/data/package.json",

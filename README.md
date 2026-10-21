@@ -10,7 +10,7 @@ YAML with typed JavaScript handlers.
 
 ## Run locally
 
-Install [Bun](https://bun.sh/), then:
+Install [Bun 1.4.3](https://bun.sh/) (the version used in CI), then:
 
 ```sh
 bun install --frozen-lockfile
