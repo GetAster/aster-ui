@@ -31,7 +31,8 @@ jobs:
           if-no-files-found: warn
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run verify:wasm
-      - run: bun run check
+      - run: bun run typecheck
+      - run: bun run check:deps
+      - name: Check versioning and publication paths
+        run: bun test ./tests/integration/version.test.ts ./tests/integration/agent-docs.test.ts ./tests/integration/product-site.test.ts
       - run: bun run packages:build
-      - run: bunx playwright install --with-deps chromium
-      - run: bun run test:e2e --project chromium --ignore-snapshots

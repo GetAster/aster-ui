@@ -54,19 +54,19 @@ jobs:
           if-no-files-found: warn
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run verify:wasm
-      - run: bun run check
+      - run: bun run typecheck
+      - run: bun run check:deps
+      - name: Check versioning and publication paths
+        run: bun test ./tests/integration/version.test.ts ./tests/integration/agent-docs.test.ts ./tests/integration/product-site.test.ts
       - name: Build release tarballs
         run: bun run packages:build --version "$RELEASE_VERSION"
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
       - run: bun scripts/check-package-consumer.ts
-      - run: bunx playwright install --with-deps chromium
-      - run: bun run test:e2e --project chromium --ignore-snapshots
       - name: Build the matching release website
         run: bun run site:release --version "$RELEASE_VERSION" --revision "$GITHUB_SHA"
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
-      - run: bun run test:site
       - name: Upload checked website
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

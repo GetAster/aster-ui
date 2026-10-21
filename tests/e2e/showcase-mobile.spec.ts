@@ -25,8 +25,13 @@ test("touch scroll reaches the gallery footer and mobile examples have a return 
   test.skip(browserName !== "chromium", "Uses CDP touch gestures");
   await page.goto("/?memory#showcase");
   await expect(page.locator(".showcase-open")).toHaveCount(10);
+  const main = page.locator('main[data-page="showcase"]');
+  await expect(main).toBeVisible();
+  // Commit the first painted frame before sending a compositor touch gesture.
+  await page.screenshot({ path: info.outputPath("gallery-top.png") });
+  const bounds = (await main.boundingBox())!;
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Input.synthesizeScrollGesture", { x: 200, y: 600, yDistance: -700, speed: 900, gestureSourceType: "touch" });
+  await cdp.send("Input.synthesizeScrollGesture", { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2, yDistance: -700, speed: 900, gestureSourceType: "touch", preventFling: true });
   await expect.poll(() => page.locator('main[data-page="showcase"]').evaluate(element => element.scrollTop)).toBeGreaterThan(200);
   await page.locator('main[data-page="showcase"]').press("Control+End");
   const backHome = page.getByRole("link", { name: "Back to Home", exact: true });

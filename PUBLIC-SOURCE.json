@@ -7,11 +7,11 @@
     },
     {
       "path": ".github/workflows/check.yml",
-      "sha256": "c9bd9fdda8bb074d8abd2d825dabcb373a751c985822f75f156bf526d1980f0c"
+      "sha256": "0d4350419531644493f0abfb07c98697492cb83b9fb9fc61a8f64840b8e59ab1"
     },
     {
       "path": ".github/workflows/publish.yml",
-      "sha256": "c2282cf67491fb0020c1078374f203a17be6280b797ea75544b6ea8db6809058"
+      "sha256": "f519f9b44bc3609555118d9d1e75cb0d6940927b541233b4f913a41a4a943c7e"
     },
     {
       "path": ".gitignore",
@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "d8a4344b811f6eda0a52f8a81366eff32fe57a10f597a33214cff788ff271efc"
+      "sha256": "1cb3ae0c7cf44aff95d12f73a367a8a51aedeb2a2a4deb4f0c4cb72d5845d2f5"
     },
     {
       "path": "LICENSE",
@@ -39,7 +39,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "fdba8a2bc64f9ead2b45a1d29b059550d22de42ae5772da1401d35df08be4d19"
+      "sha256": "58f8b36ddcd8dbbd14d22c3e6491df3967066eacef9e0e4ae07dae6f6b29a817"
     },
     {
       "path": "apps/docs/README.md",
@@ -439,7 +439,7 @@
     },
     {
       "path": "apps/showcase/src/examples/mail/mail.css",
-      "sha256": "3165fdbc3636a53d64205b3540b659fd66b6ab6fb54bdcd908ec2fbb7207e7ac"
+      "sha256": "ed9c086e04e21bb20e971e5456a6f69845d182fb663e872e0f8c7485f3b3b779"
     },
     {
       "path": "apps/showcase/src/examples/mail/mail.html",
@@ -2123,7 +2123,7 @@
     },
     {
       "path": "tests/e2e/showcase-mobile.spec.ts",
-      "sha256": "55ebeb189707cdde64bbf3dc0d2caf8fee85d93c7bff7672225ef72e3cd092ed"
+      "sha256": "68ca4367cd9dd0ae1e3affc65ed39e44bbf44c2bb5b3ee43764d79662d600f7f"
     },
     {
       "path": "tests/e2e/showcase.spec.ts",
