@@ -1887,7 +1887,7 @@
     },
     {
       "path": "tests/e2e/tree.spec.ts",
-      "sha256": "56ddd648bd803897d915b637a28af0c096c763e356cd49a492c50fb20d1d24e8"
+      "sha256": "f9cc95d32228950aa048b349cbce6f75278e465ea730caf9bd8924898b3950dd"
     },
     {
       "path": "tests/e2e/visual.spec.ts",

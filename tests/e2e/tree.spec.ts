@@ -102,8 +102,12 @@ for (const scheme of ["light", "dark"] as const) {
   test(`axe: the tree grid with a level open, ${scheme}`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme });
     await tasks(page);
-    await page.locator(".aster-grid-row[data-key] button.aster-grid-opener").first().click();
-    await expect(page.locator(".aster-grid-row[aria-level='2']").first()).toBeVisible();
+    const data = await all(page);
+    // Unknown child counts temporarily give leaves an opener too.
+    const parent = data.find(t => t.parentId === null && data.some(c => c.parentId === t.id))!;
+    const child = data.find(t => t.parentId === parent.id)!;
+    await row(page, parent.id).locator("button.aster-grid-opener").click();
+    await expect(row(page, child.id)).toHaveAttribute("aria-level", "2");
     const { violations } = await new AxeBuilder({ page }).analyze();
     expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(" ")}`)).toEqual([]);
   });
