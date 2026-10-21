@@ -145,7 +145,8 @@ test("resize anchors logical position, keeps focused tile and accommodates enlar
   });
   await expect.poll(firstVisible).toBeGreaterThan(0);
   const anchor = await firstVisible();
-  await page.setViewportSize({ width: 650, height: 820 });
+  // Leave room for classic scrollbars as well as overlay scrollbars.
+  await page.setViewportSize({ width: 700, height: 820 });
   await expect(grid(page)).toHaveAttribute("aria-colcount", "2");
   await expect.poll(firstVisible).toBe(Math.floor(anchor / 2) * 2);
   await page.evaluate(() => (globalThis as any).tileDemo.fleet.grid.focusIndex(500));

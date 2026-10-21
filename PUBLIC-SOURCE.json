@@ -919,7 +919,7 @@
     },
     {
       "path": "packages/elements/src/styles/base.css",
-      "sha256": "5608abb3db8a816f6bd8a13a2f5dc92ce0ae842376380692de2c782065ab24c7"
+      "sha256": "41659704b517486d84cf3c6fd4b66e133ff47f493cee97db4e2a1245152f10c6"
     },
     {
       "path": "packages/elements/src/styles/contract.ts",
@@ -1771,7 +1771,7 @@
     },
     {
       "path": "tests/e2e/embedded-explorer.spec.ts",
-      "sha256": "0acb3c031d2c9a1c36c5e35c45801639e247187c8990e309f2bb74d9dcf9251d"
+      "sha256": "f693feb3d67f127a7c38d49035b87100dbc865084f09a92bbf24f728a16a66df"
     },
     {
       "path": "tests/e2e/explorer.spec.ts",
@@ -1875,7 +1875,7 @@
     },
     {
       "path": "tests/e2e/tiles-paging.spec.ts",
-      "sha256": "6958176dc57ce91b46eb2f821bdc76af33e96fbbe8b487350a8bae03b07685bb"
+      "sha256": "bbabc443d52548fa4f288f53a87cbaf671d0df320adb81d948039cafa687f29a"
     },
     {
       "path": "tests/e2e/tiles.spec.ts",

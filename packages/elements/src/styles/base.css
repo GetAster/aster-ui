@@ -34,6 +34,8 @@
     mix-blend-mode: var(--aster-texture-blend, normal);
   }
   button, input, select, textarea { font: inherit; color: inherit; }
+  /* Native controls inherit ink, so their surfaces must follow the same theme. */
+  select, option, optgroup { background-color: var(--aster-sunk); }
   button { background: none; border: 0; padding: 0; margin: 0; text-align: inherit; }
   h1, h2, h3 { text-wrap: balance; }
   p { text-wrap: pretty; }

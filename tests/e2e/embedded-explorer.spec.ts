@@ -90,15 +90,15 @@ test("all embedded examples expose source, guide and valid API links", async ({ 
   }
 });
 
-test("embedded themes, mobile geometry and accessibility remain coherent", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  const errors: string[] = [];
-  page.on("pageerror", error => errors.push(error.message));
-  for (const [id, ready] of [["composition", "#workspace .aster-grid-row[data-index]"], ["tabs", "#devices [role=tab]"], ["windows", "#open-notes"], ["dashboard", '[data-widget="summary-1"] output'], ["charts", "#platforms svg"]]) {
+for (const [id, ready] of [["composition", "#workspace .aster-grid-row[data-index]"], ["tabs", "#devices [role=tab]"], ["windows", "#open-notes"], ["dashboard", '[data-widget="summary-1"] output'], ["charts", "#platforms svg"]] as const) {
+  test(`embedded ${id} themes, mobile geometry and accessibility remain coherent`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page.goto(`/examples/${id}.html`);
     const frame = page.frameLocator("iframe");
-    await expect(frame.locator(ready!).first()).toBeVisible();
+    await expect(frame.locator(ready).first()).toBeVisible();
     await expect(frame.locator(".showcase-nav")).toHaveCount(0);
     for (const scheme of ["light", "dark"]) {
       await page.getByRole("combobox", { name: "Colour scheme", exact: true }).selectOption(scheme);
@@ -110,9 +110,9 @@ test("embedded themes, mobile geometry and accessibility remain coherent", async
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(await frame.locator("html").evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  }
-  expect(errors).toEqual([]);
-});
+    expect(errors).toEqual([]);
+  });
+}
 
 
 test("every explorer leads with capability code, including the vendor lifecycle", async ({ page, request }) => {
