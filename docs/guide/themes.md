@@ -69,7 +69,7 @@ was written from this guide alone. The guide is enough to write another.
 A theme is one CSS file the page links. In this repository the themes live
 in `packages/elements/src/styles/`; `bun run site` copies them to
 `lib/themes/` beside `aster-ui.css`, and the demo imports them in
-`apps/aster/src/styles.css` and lists them in `apps/aster/src/themes.ts`
+`apps/showcase/src/workspace/styles.css` and lists them in `apps/showcase/src/workspace/themes.ts`
 for its theme menu.
 
 ## Loading a theme

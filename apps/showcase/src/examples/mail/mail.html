@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Example: Webmail with sign in — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css"><link rel="stylesheet" href="../../shared/navigation/showcase.css"><link rel="stylesheet" href="./mail.css">
+</head><body><main>
+<header class="mail-intro"><div><p class="mail-eyebrow">APPLICATION EXAMPLE</p><h1>Aster Mail</h1><p>Read, compose and keep your drafts when your session expires.</p></div><div class="mail-appearance"><div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div><div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div></div></header>
+<details class="mail-lab"><summary>Demo controls</summary><div class="mail-demo-controls"><span>Local simulation · No real mail or sign-in requests</span><button class="aster-button" id="expire">Expire session & refresh</button><button class="aster-button" id="expire-only">Expire session</button><button class="aster-button" id="arrival">Receive sample mail</button><label><input type="checkbox" id="background"> Refresh every 30 seconds</label></div></details>
+<div class="mail-top"><strong><img src="../docs-assets/aster-logo.svg" alt="" width="28" height="28"> Mail</strong><label class="mail-search"><span>Search subjects</span><input id="search" type="search" placeholder="Search this folder…"></label><span>Alex Morgan <small>alex@example.test</small></span></div>
+<section id="feedback" class="mail-feedback" aria-label="Mail notification" hidden><div role="status" aria-atomic="true"><h2 id="feedback-title"></h2><p id="feedback-detail"></p></div><div class="mail-feedback-actions"><button class="aster-button" id="retry">Try again</button><button class="aster-button" id="dismiss">Dismiss</button></div></section>
+<section id="mail" aria-label="Mail workspace"></section>
+<p id="notice" role="status"></p>
+<aster-progress-status id="auth-progress"></aster-progress-status>
+<p class="mail-resources"><a href="../guide/keyed-sessions.html">Panel lifetimes & background work →</a> · <a href="../guide/authentication.html">How authentication recovery works →</a> · <a href="./mail.ui.yaml">Workspace YAML</a> · <a href="./mail.js">Application source</a> · <a href="./mail-model.js">Model source</a></p>
+<aster-dialog id="login"></aster-dialog><aster-dialog id="discard"></aster-dialog>
+</main><script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./mail.js"></script></body></html>

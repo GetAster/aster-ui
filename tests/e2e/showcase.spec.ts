@@ -23,7 +23,7 @@ test("the published build exposes working examples and keeps internal docs out",
 
 test("all examples preserve appearance and return to the gallery", async ({ page }) => {
   const errors: string[] = [];
-  page.on("pageerror", error => errors.push(error.message));
+  page.on("pageerror", error => errors.push(`${page.url()}: ${error.message}`));
   const examples = [
     ["Explore fields and layouts", "Fields and layouts"],
     ["Explore tile grids", "TileGrid"],

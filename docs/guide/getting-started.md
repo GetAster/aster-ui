@@ -42,7 +42,7 @@ The grid names an entity set and a view. The view describes columns, sorting and
 
 <!--first-grid-js-->
 
-The `html` template’s dot syntax binds JavaScript properties: `.ctx=${ctx}` passes an object to the element. It does not serialize that object into an HTML attribute. Import `html` and the reactive helpers from Aster so the controls and your application use the same runtime.
+The `html` template’s dot syntax binds JavaScript properties: `.ctx=${ctx}` passes an object to the element. It does not serialize that object into an HTML attribute. The source imports `html` from `lit-html` and data APIs from `@getaster/data`; importing `@getaster/elements` registers the controls. The standalone HTML includes an import map that points those names to the shared browser distribution. In an npm application, your bundler resolves the same package imports. Keep one copy of Lit and signals so the controls and your application share their runtime.
 
 ## What this example establishes
 

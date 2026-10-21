@@ -69,7 +69,7 @@ These are the same operations a custom adapter would implement for another visua
 
 `aster-component` is a `ComponentHost`. It owns a stable surface for vendor content and calls the adapter’s mount, reactive update, resize, visibility and disposal hooks. Let the adapter own its vendor instance, and keep application data in public Aster models.
 
-The example sets `host.adapter = echartsAdapter(...)` with a lazy `load` function. The optional vendor chunk is built from `scripts/site/vendors/echarts.ts`; it is not part of the core Aster UI module. The source selector includes the application integration, vendor entry, Aster adapter implementation, HTML and shared presentation files. The optional ECharts package itself is a separate dependency.
+The example sets `host.adapter = echartsAdapter(...)` with a lazy `load` function. The optional vendor chunk is built from `apps/showcase/src/examples/charts/vendor/echarts.ts`; it is not part of the core Aster UI module. The source selector includes the application integration, vendor entry, Aster adapter implementation, HTML and shared presentation files. The optional ECharts package itself is a separate dependency.
 
 ## Make query scope explicit
 

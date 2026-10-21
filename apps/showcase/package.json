@@ -1,0 +1,16 @@
+{
+  "name": "@getaster/showcase",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@getaster/data": "workspace:*",
+    "@getaster/elements": "workspace:*",
+    "@getaster/mock": "workspace:*",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@getaster/elements-preview": "workspace:*",
+    "@preact/signals-core": "1.14.4",
+    "lit-html": "3.3.3"
+  }
+}

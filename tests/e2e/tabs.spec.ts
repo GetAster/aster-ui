@@ -131,3 +131,26 @@ test.describe("touch", () => {
     await close.tap(); await expect(first).toHaveCount(0);
   });
 });
+
+
+test("revealing an overflowing tab strip below the fold never scrolls the page", async ({ page }) => {
+  await page.goto("/playground/tabs.html");
+  await expect(page.getByRole("heading", { name: "Tabs", exact: true })).toBeVisible();
+  await page.evaluate(async () => {
+    await customElements.whenDefined("aster-tabs");
+    const host = document.createElement("div");
+    host.style.cssText = "margin-top:2000px;width:220px";
+    const tabs = document.createElement("aster-tabs") as HTMLElement & { items: { value: string; label: string }[]; value: string };
+    tabs.id = "offscreen-tabs";
+    tabs.items = Array.from({ length: 20 }, (_, i) => ({ value: String(i), label: `Workspace ${i}` }));
+    tabs.value = "19";
+    host.append(tabs);
+    window.scrollTo(0, 0);
+    document.body.append(host);
+  });
+  await expect.poll(() => page.locator("#offscreen-tabs .aster-tabs-viewport").evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await page.setViewportSize({ width: 360, height: 700 });
+  await expect.poll(() => page.locator("#offscreen-tabs .aster-tabs-viewport").evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+});

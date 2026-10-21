@@ -1,8 +1,10 @@
+import { productLinks, introduction, capabilities, docsHome } from "../apps/docs/src/templates/product.ts";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { createHash } from "node:crypto";
-import { shell } from "./docs/shell.ts";
+import { shell } from "../apps/docs/src/templates/shell.ts";
 import { checkPublicLinks } from "./docs/check-links.ts";
+import { agentIndex, mapMarkdownLinks } from "../apps/docs/build/agent-docs.ts";
 
 export const siteOrigin = "https://ui.getaster.now";
 
@@ -30,14 +32,6 @@ function* files(root: string): Generator<string> {
   }
 }
 
-function productLinks(): string {
-  return `<details class="product-switcher"><summary>Aster products</summary><ul><li><a href="https://getaster.now/">Aster product site</a></li><li><a href="/" aria-current="true">Aster UI</a></li><li><a href="https://sdk.getaster.now/docs/">Aster SDK</a></li><li>Aster WebData <small>Coming soon</small></li><li>Aster Exec <small>Coming soon</small></li><li>AgentXchange <small>Coming soon</small></li></ul></details>`;
-}
-
-const introduction = `<p class="eyebrow">Aster UI</p><h1>Keep your data and interface in sync</h1><p class="lead">A form saves a record. The grid, detail panel and chart should reflect that change. Aster UI provides a shared data model and browser-native controls to coordinate those interactions as your application grows.</p><div class="doc-actions"><a class="doc-action primary" href="../#showcase">Explore the showcase →</a><a class="doc-action" href="../guide/getting-started.html">Get started</a></div>`;
-const capabilities = `<div class="doc-cards"><a class="doc-card" href="../examples/grid.html"><span class="card-index">COLLECTIONS</span><strong>Query and edit connected data</strong><span>Filter, sort, group, page and select records. Switch between tables and tiles using the same collection.</span></a><a class="doc-card" href="../examples/composition.html"><span class="card-index">COMPOSITION</span><strong>Declare how a workspace fits together</strong><span>Compose layouts with JavaScript or YAML. Connect controls through shared state and typed handlers.</span></a><a class="doc-card" href="../examples/mail.html"><span class="card-index">WORKFLOWS</span><strong>Preserve work through interruptions</strong><span>Retain drafts, selection and views. Try a mock mail application with authentication recovery.</span></a><a class="doc-card" href="../guide/themes.html"><span class="card-index">PRESENTATION</span><strong>Adapt controls to your application</strong><span>Use themes, keyboard interaction and reduced motion support across forms, navigation and data views.</span></a></div>`;
-const docsHome = `<p class="eyebrow">Aster UI documentation</p><h1>Build connected interfaces</h1><p class="lead">Start with the data model, explore working examples, then compose the workflows your application needs.</p><div class="doc-cards"><a class="doc-card" href="../guide/why-aster.html"><strong>Why use Aster UI?</strong><span>Understand the coordination work that grows around a grid, form and detail view.</span></a><a class="doc-card" href="../guide/getting-started.html"><strong>Get started</strong><span>Run a complete example, then connect your own data.</span></a><a class="doc-card" href="../examples/"><strong>Learn from live examples</strong><span>Try the controls and inspect the code behind each behaviour.</span></a><a class="doc-card" href="../reference/"><strong>Browse the API reference</strong><span>Find typed properties, methods, events and source links.</span></a></div><h2>Develop a workspace</h2><p>Connect a <a href="../guide/connected-views.html">grid and form</a>, <a href="../guide/declarative-workspace.html">declare a layout</a>, or integrate <a href="../examples/charts.html">a chart with shared data</a>.</p>`;
-
 export function stageProductSite(source: string, destination: string, version: string, revision: string): void {
   if (!/^(?:development|\d+\.\d+\.\d+(?:-[\w.-]+)?)$/.test(version)) throw new Error("Invalid site release version");
   if (revision !== "working-tree" && !/^[a-f0-9]{40}$/.test(revision)) throw new Error("Use the public source commit SHA or working-tree");
@@ -49,6 +43,23 @@ export function stageProductSite(source: string, destination: string, version: s
   const metadata = `<meta name="aster-site-layout" content="product"><meta name="aster-reference-root" content="docs/reference/"><meta name="aster-release-version" content="${version}"><meta name="aster-release-revision" content="${revision}">`;
   const decorate = (html: string, path: string) => html.replace("</head>", `${metadata}<link rel="canonical" href="${siteOrigin}${path}"></head>`);
   for (const path of files(destination)) {
+    if (path.endsWith(".md") && /\/docs\/(guide|reference)\//.test(path)) {
+      const original = "/" + relative(destination, path).replace(/^docs\//, "");
+      writeFileSync(path, mapMarkdownLinks(readFileSync(path, "utf8"), href => {
+        if (!href || href.startsWith("#") || /^(?:[a-z][\w+.-]*:|\/\/)/i.test(href)) return href;
+        const url = new URL(href, siteOrigin + original);
+        return publishedPath(url.pathname) + url.search + url.hash;
+      }));
+      continue;
+    }
+    if (path === join(destination, "docs/guide/search.json")) {
+      const index = JSON.parse(readFileSync(path, "utf8")) as { href: string }[];
+      writeFileSync(path, JSON.stringify(index.map(item => {
+        const url = new URL(item.href, `${siteOrigin}/guide/search.json`);
+        return { ...item, href: publishedPath(url.pathname) + url.search + url.hash };
+      })));
+      continue;
+    }
     if (!path.endsWith(".html")) continue;
     const name = "/" + relative(destination, path).replaceAll("\\", "/");
     if (name.startsWith("/showcase/")) {
@@ -72,6 +83,8 @@ export function stageProductSite(source: string, destination: string, version: s
   }
   writeFileSync(join(destination, "404.html"), '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Page not found · Aster UI</title><h1>Page not found</h1><p><a href="/docs/">Open Aster UI documentation</a> or <a href="/showcase/">explore the showcase</a>.</p></html>');
   writeFileSync(join(destination, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${siteOrigin}/sitemap.xml\n`);
+  writeFileSync(join(destination, "llms.txt"), agentIndex("docs/"));
+  writeFileSync(join(destination, "docs/llms.txt"), agentIndex("", "../"));
   const pages = [...files(destination)].filter(path => path.endsWith(".html") && !path.endsWith("404.html")).map(path => siteOrigin + "/" + relative(destination, path).replace(/index\.html$/, ""));
   writeFileSync(join(destination, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${pages.map(url => `<url><loc>${url}</loc></url>`).join("")}</urlset>`);
   const hashes = Object.fromEntries([...files(destination)].map(path => [relative(destination, path), createHash("sha256").update(readFileSync(path)).digest("hex")]));

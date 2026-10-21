@@ -30,7 +30,7 @@ once (`:53`), so an element has its content as soon as it's attached.
 `updated()` runs after each commit and is where geometry reads belong (`:44`).
 
 **Lazy upgrade.** The project, People, Tasks, Model, Time and Reports pages are separate chunks,
-loaded on first visit (`apps/aster/src/app.ts:42`). lit-html may set `.setup` or
+loaded on first visit (`apps/showcase/src/workspace/app.ts:42`). lit-html may set `.setup` or
 `.projectId` on the element before its class is defined, which leaves a plain
 own property shadowing the class's setter. On first connect,
 `#upgradeProperties` deletes each such property and sets it again through the
@@ -336,7 +336,7 @@ it (`date-field.ts:58`).
 
 `setClock(fn)` sets where "today" comes from, in UTC (`dates.ts:79`). The demo
 gives it its own clock, so `?now=` freezes the calendar's today along with
-everything else (`apps/aster/src/main.ts:15`). The grid's filter row uses
+everything else (`apps/showcase/src/workspace/main.ts:15`). The grid's filter row uses
 the same calendar and parser for date columns.
 
 ### `aster-form` (`form/form.ts`)
@@ -440,7 +440,7 @@ values of the row's `op` field, or shown as the bare value without one
 (`opLabel`, `:307`); the demo's `Clauses` name the groups "All of", "Any of"
 and "None of". The demo's field editor has a Visibility
 editor and a Messages editor over the same `Clauses`
-(`apps/aster/src/pages/field-editor.ts:242–247`).
+(`apps/showcase/src/workspace/features/model/field-editor.ts:242–247`).
 
 **What a condition can test.** `describe(fieldRef)` returns a signal of a
 `RuleField` for the field a condition names, or `undefined` (`:12–19`):
@@ -978,7 +978,7 @@ stand in, and a swipe is the `pointercancel` a browser sends when it scrolls.
 ## How the demo uses them
 
 **Projects list.** The list publishes the shared project selection as
-`projects` (`apps/aster/src/app.ts:260`); the app provides the root scope
+`projects` (`apps/showcase/src/workspace/app.ts:260`); the app provides the root scope
 (`:85`), and each page publishes into a child of it.
 
 ```ts
@@ -993,7 +993,7 @@ A row's menu (right-click, Shift+F10 or the Menu key) is an `aster-menu` opened
 at the pointer: Open, Rename, Pause or Archive or Resume, Pin (`app.ts:485`).
 Each move has an Undo toast.
 
-**Project page** (`#project/<id>`, `apps/aster/src/pages/project.ts`). The
+**Project page** (`#project/<id>`, `apps/showcase/src/workspace/features/projects/project.ts`). The
 header has Revert and Save buttons. Save's `reason` comes from a scope rule:
 it's enabled while the project or its tasks have changes, and pressing it
 with errors shows them (`:118–128`, `:241`). The Details tab is one form over
@@ -1025,7 +1025,7 @@ Client is a picker over 100,000 clients, so it searches on the server. The
 drop-down has City and Industry columns that sort, a heading per country, and
 "Create …" for a client that isn't there yet (`:252–259`).
 
-**People page** (`#people/<id>`, `apps/aster/src/pages/people.ts`). An
+**People page** (`#people/<id>`, `apps/showcase/src/workspace/features/people/people.ts`). An
 `aster-split` with the people listbox on the left, publishing `people`, and
 the selected person's detail on the right (`:89–103`). The detail's form is
 the person's own edit model, kept per person, so unsaved changes stay with
@@ -1034,7 +1034,7 @@ person's projects and open tasks are collections whose queries follow
 `people.selected.id` (`:154–167`). At phone width the split stacks and the
 URL decides which view shows (`:214`).
 
-**Time page** (`#time`, `apps/aster/src/pages/time.ts`). One `aster-grid` over
+**Time page** (`#time`, `apps/showcase/src/workspace/features/time/time.ts`). One `aster-grid` over
 every time entry, 100,000 by default, with `?time=<n>` for fewer. The page
 gives a view (newest first, the date and person columns frozen), two lookups
 (person and project, so those columns show names and sort by them), and
@@ -1049,7 +1049,7 @@ a row changes nothing, and unticking or ticking it yourself sticks
 Approve, Back to draft and Reopen, or deletes it, each with an Undo toast
 (`:49`). At phone width the grid is a list of cards.
 
-**Tasks page** (`#tasks`, `apps/aster/src/pages/tasks.ts`). Every project's
+**Tasks page** (`#tasks`, `apps/showcase/src/workspace/features/tasks/tasks.ts`). Every project's
 tasks as a tree grid over `parentId`, `draggable`, with levels loading as they
 open. Each row has floating controls: Edit, Add subtask, Move to… and Remove,
 or Save and Cancel while open (`:99`). Edit expands the row into the task
@@ -1069,7 +1069,7 @@ editor and choose the tab, and choosing a tab pushes a history entry, so Back
 returns to the tab before. At phone width the page is a navigator over all
 tasks, and choosing one opens its editor beneath it (`:286`).
 
-**Model page** (`#model`, `apps/aster/src/pages/infomodel.ts`; the Model item
+**Model page** (`#model`, `apps/showcase/src/workspace/features/model/infomodel.ts`; the Model item
 in the sidebar, `app.ts:162`, and on the phone's tab bar). An information model editor: a 462-field intake
 questionnaire as a tree grid of fields (groups, then questions under them),
 with a Change log tab beside it (`infomodel.ts:454–481`). It is the elements
@@ -1110,7 +1110,7 @@ together:
   and Remove, and makes every tab read-only with a reason
   (`field-editor.ts:28`, `:235`).
 
-**Reports page** (`#reports`, `apps/aster/src/pages/reports.ts`). Time
+**Reports page** (`#reports`, `apps/showcase/src/workspace/features/reports/reports.ts`). Time
 across every project, through one shared filter. The page makes a
 `SharedFilters` and publishes it as `filters` in its child scope (`:70`).
 Three kinds of control contribute to it (`#toggles`, `:142`): the Period
@@ -1139,7 +1139,7 @@ per browser, comfortable at first on a touch screen), a theme menu (an
 Model and Time, then the theme menu and the lamp (`:184–201`). `?debug` shows a Simulate button that toggles an
 `aster-window`, so the panel sits beside the page while you edit. The panel
 shows the rules behind the focused field's state from `model.explain(field)`
-(`apps/aster/src/debug.ts:25`), and can make another user's edit arrive or the
+(`apps/showcase/src/workspace/debug.ts:25`), and can make another user's edit arrive or the
 next save fail.
 
 ## Implementation boundaries

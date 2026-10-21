@@ -1,0 +1,33 @@
+main a { color:var(--aster-accent); text-underline-offset:4px; }
+.showcase-nav { display: grid; gap: 4px; padding-bottom: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--aster-rule); min-width:0; }
+.showcase-nav-links { display:flex; flex-wrap:wrap; gap:4px 16px; min-width:0; }
+.showcase-nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--aster-accent); text-underline-offset: 4px; }
+.showcase-nav > a:first-child { margin-right: auto; }
+.showcase-nav [aria-current] { font-weight: var(--aster-weight-strong); text-decoration-thickness: 2px; }
+.showcase-appearance { display: inline-flex; align-items: center; gap: 8px; }
+.showcase-appearance > span { color: var(--aster-text-2); font-weight: var(--aster-weight-label); }
+.showcase-appearance aster-choice { width: 9rem; }
+.showcase-appearance #scheme { width: 7rem; }
+.showcase-grouping aster-choice { width: min(17rem, 65vw); }
+@media (pointer: coarse) {
+  .showcase-appearance .aster-field, .showcase-appearance .aster-option { min-height: 44px; }
+}
+/* Match the canvas to the page, including browser rubber-band overscroll. */
+html, body { background:var(--showcase-canvas, var(--aster-surface)); }
+body { transition:color 300ms ease; }
+html:has(.mail-intro) { --showcase-canvas:var(--aster-sunk); }
+@media (max-width: 720px), (pointer: coarse) and (max-width: 1024px) {
+  .showcase-nav-links { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+  .showcase-nav-links::-webkit-scrollbar { display:none; }
+  .showcase-nav-links a { flex:none; white-space:nowrap; }
+  .showcase-nav [aria-current] { scroll-margin-inline:16px; }
+}
+
+html[data-embedded] body { height:auto; min-height:0!important; padding:20px; }
+html[data-embedded] .showcase-appearance:has(#scheme) { display:none; }
+html[data-embedded] main > p:last-child:has(a[href="./"]) { display:none; }
+html[data-embedded][data-demo="windows"] body { min-height:820px!important; }
+@media(max-width:600px) { html[data-embedded] body { padding:12px; } }
+
+.bar select { min-height:var(--aster-ctl); max-width:100%; padding:6px 10px; border:1px solid var(--aster-rule); border-radius:var(--aster-r-ctl); background:var(--aster-sunk); color:var(--aster-text); }
+@media(pointer:coarse) { .bar select { min-height:44px; } }

@@ -33,6 +33,40 @@ For local development, the examples use an optional WebAssembly service with
 the same transport interface. Replace its transport with your service connection
 when ready. See [installation and distribution](library.md) for the files involved.
 
+## Connect different backends through virtual data sources
+
+The OData service can be the integration layer for systems that do not expose
+OData themselves. Aster WebData, the server engine, supports developer-defined
+**virtual data sources**: code supplies records and implements the write
+operations that a source supports. A handler can adapt a REST API, invoke a CLI,
+or call a legacy API and expose the result as a typed entity set with metadata.
+The adapter owns those backend calls and their mapping to the declared schema.
+
+This makes the combination useful for data integration applications. For example,
+a device workspace can bring together inventory from a database, status from a
+management API and administrative commands from a legacy tool. Aster UI consumes
+the service contract for those sources through its existing collections, forms
+and grids; each view does not need its own backend-specific integration.
+
+Virtual sources can also participate in workflows that read or write other data
+sources. Server-side handlers and operations can call the engine to fetch,
+insert, update or delete records in another set, subject to access policy and
+the execution context. This goes beyond displaying several APIs on one page:
+the integration logic can live behind the shared service contract.
+
+The distinction between a workflow and a transaction matters. Cross-source
+engine calls do not imply automatic joins across arbitrary backends or an atomic
+transaction covering a database, REST service and CLI. The current server refuses
+atomic groups containing virtual-source writes and groups spanning transactional
+backends. Design partial-failure handling for external effects and check the
+server release's supported query and write operations.
+
+Virtual-source adapters run on the server; they are not bundled into the UI
+packages. Query pushdown depends on what the adapter declares and implements.
+Without pushdown, the engine filters, sorts and pages the returned records within
+its configured limits; this is not a substitute for an efficient adapter over a
+large remote dataset.
+
 ## A collection is a query and its loaded pages
 
 The record store holds shared records. A `Collection` holds a query and the keys

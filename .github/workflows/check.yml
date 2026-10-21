@@ -32,6 +32,6 @@ jobs:
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run verify:wasm
       - run: bun run check
-      - run: bun run packages:build --version 0.0.0-ci
+      - run: bun run packages:build
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e --project chromium --ignore-snapshots

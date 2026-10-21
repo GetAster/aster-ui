@@ -42,13 +42,33 @@ transport direction is WebTransport with SSE fallback. See
 
 The benefit is a consistent foundation for these interactions. Your application still decides its workflows, permissions, server policy and presentation.
 
+## Build applications across existing systems
+
+The data does not have to originate in an OData backend. With Aster WebData on
+the server, you can write virtual data sources that adapt REST APIs, CLIs or
+legacy services and expose them through the OData layer. Handlers can read and
+write other data sources through the engine, so a workflow can coordinate data
+from several systems behind a common service contract.
+
+For a device portal, that could mean database inventory, live status from a
+management API and a legacy administrative tool in one workspace. Aster UI uses
+the resulting metadata and shared data model for its grids, forms and queries.
+The backend adapters belong to the server integration; the UI uses their common
+contract.
+
+This is a strong reason to consider the wider platform for data integration
+projects. Cross-source workflows still need explicit failure handling: they do
+not guarantee arbitrary federated joins or distributed transactions. See
+[virtual data sources](data-model.md#connect-different-backends-through-virtual-data-sources)
+for the responsibilities and current boundaries.
+
 ## When a simple table is sufficient
 
 For a small, read-only list with a few links, native HTML and a little application code may be all you need. Aster introduces concepts worth learning: a data context, collections, edit models and metadata.
 
 It becomes more useful when several views share editable data, results are paged, or the screen needs the enterprise interactions above. Evaluate it against those requirements and the cost of maintaining their combinations.
 
-Aster is built around an OData service with metadata. An arbitrary REST endpoint is not a drop-in replacement for that contract. Third-party visualizations can use Aster’s public data and component-host APIs, but integration still needs an explicit owner and lifecycle.
+Aster UI consumes an OData service with metadata. For other backends, a virtual data source in Aster WebData can provide that contract; the integration needs an adapter, rather than a different URL alone. Third-party visualizations can use Aster’s public data and component-host APIs, but integration still needs an explicit owner and lifecycle.
 
 ## See the model at work
 

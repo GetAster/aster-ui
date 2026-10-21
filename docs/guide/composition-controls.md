@@ -94,22 +94,21 @@ enabled controls. No animation is required for navigation.
 
 ## Explore the composed showcase
 
-The [component showcase](../#showcase) uses Sidebar and Composite together. Its
-model owns the current category and guarded navigation commands. Choosing a
-category activates its preview through a deck; the preview module loads on first
-use. Returning to **All examples** restores the gallery. Only the active preview
-has an iframe, so inactive demos release their browsing contexts and data work.
-Previews restart when you switch categories; use **Open full example** for a
-separate working page.
+The [component showcase](../#showcase) declares its Sidebar, gallery and lazy
+preview in YAML. Its catalogue supplies the categories once; the model derives
+the preview's file and title from the current route. Choosing a category activates
+the preview through a deck. Returning to **All examples** releases its iframe and
+restores the gallery. Use **Open full example** for a separate working page.
 
-This exercises a different composition shape from the device editor: navigation,
-lazy content and borrowed appearance signals. It does not demonstrate persistent
-editing sessions or a background-data policy. The implementation is in
-`apps/aster/src/pages/showcase.ts` and `showcase-preview.ts` in the repository.
-The complete implementation below is read directly from those files at build time.
+The source lives in `apps/showcase/src/app/`. Read `showcase.ui.yaml` for the
+structure, `model.ts` for derived state, `registry.ts` for component registration,
+and `routing.ts` for browser history and mobile navigation. `main.ts` mounts the
+composition and owns its lifetime. `views/` contains the gallery and lazy preview.
+The examples themselves live in feature folders under `apps/showcase/src/examples/`.
+See [Organize an application](application-structure.md) for the folder conventions.
 
 <details class="example-source">
-<summary>Showcase model, registry, definition and host</summary>
+<summary>Showcase YAML definition</summary>
 
 <!--showcase-composition-source-->
 

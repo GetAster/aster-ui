@@ -1,13 +1,14 @@
 import ts from "typescript";
+import { buildVersion } from "./version.ts";
 import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { verifyWasm } from "./verify-wasm.ts";
 
 const root = resolve(import.meta.dir, "..");
 const versionIndex = process.argv.indexOf("--version");
-const version = versionIndex < 0 ? undefined : process.argv[versionIndex + 1];
+const version = versionIndex < 0 ? buildVersion(root) : process.argv[versionIndex + 1];
 if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/.test(version)) {
-  throw new Error("Supply a release version: bun run packages:build --version 0.1.0-preview.0");
+  throw new Error("Invalid package version");
 }
 verifyWasm(root);
 const out = join(root, "dist-release");

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Third-party components — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css">
+<style>
+body { height:auto; min-height:100dvh; padding:24px; background:var(--aster-surface); } main { max-width:1160px; margin:auto; }
+.bar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-block:16px; }
+.charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-block:16px; }
+.component-data-state { display:block; min-block-size:1.5em; }
+.data-playground { padding:16px; margin-block:20px; background:var(--aster-sunk); border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); }
+.data-playground h2 { margin:0 0 8px; } .data-playground p { margin:8px 0; color:var(--aster-text-2); }
+#devices { display:flex; height:28rem; min-width:0; flex-direction:column; }
+a { color:var(--aster-accent); } .aster-component-alternative button { width:100%; text-align:start; }
+.aster-component-alternative button[aria-pressed=true] { border-color:var(--aster-accent); background:var(--aster-accent-soft); }
+@media(max-width:760px) { .charts { grid-template-columns:minmax(0,1fr); } body { padding:12px; } }
+@media(pointer:coarse) { .aster-component-alternative button { min-height:44px; } }
+</style><link rel="stylesheet" href="../../shared/navigation/showcase.css"></head><body><main>
+<h1>Third-party components</h1>
+<p>Optional ECharts components use the public data layer. Platform totals cover every matching device; the cost chart explicitly shows loaded records. Both have the same actions in the HTML data views.</p>
+<div class="bar">
+<div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div>
+<div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div>
+<label><input id="online" type="checkbox"> Online only</label>
+<button type="button" class="aster-button" id="hide">Hide charts</button>
+<button type="button" class="aster-button" id="reload">Remount charts</button>
+</div>
+<section class="data-playground" aria-labelledby="data-title">
+<h2 id="data-title">Make the data move</h2>
+<p>Change the fleet and watch the charts and grid respond together. Cost and status actions use your selection, or the displayed devices when nothing is selected. You can also double-click a grid cell to edit it.</p>
+<div class="bar">
+<button type="button" class="aster-button" id="raise-costs">Raise displayed costs</button>
+<button type="button" class="aster-button" id="toggle-status">Toggle displayed status</button>
+<button type="button" class="aster-button" id="add-linux">Add Linux device</button>
+<button type="button" class="aster-button" id="add-windows">Add Windows device</button>
+</div>
+<p id="data-status" role="status" aria-live="polite">Ready to try. Select devices in either view to target your changes.</p>
+</section>
+<aster-slicer id="filters"></aster-slicer>
+<h2>Charts</h2>
+<div class="charts" id="charts"><aster-component id="platforms"></aster-component><aster-component id="costs"></aster-component></div>
+<h2>Devices</h2><aster-grid id="devices"></aster-grid>
+<p><a href="./">Back to the playground</a></p>
+</main><script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./components.js"></script></body></html>

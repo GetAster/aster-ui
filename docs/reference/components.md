@@ -6,7 +6,7 @@ Data remains in public Aster models; adapters translate their signals and action
 to a vendor API. No vendor dependency is required by `@getaster/data` or
 `@getaster/elements`. The ECharts module is supplied by the application loader.
 
-The [component playground](../../scripts/site/playground/components.html) has two
+The [component playground](../../apps/showcase/src/examples/charts/components.html) has two
 examples: server platform totals sharing filters with a paged grid, and loaded
 device costs sharing the grid's selection. The first follows the grid's published
 advanced/column refinements while excluding its own platform contribution. Grid

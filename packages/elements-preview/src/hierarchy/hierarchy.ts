@@ -1,4 +1,4 @@
-import { AsterElement, compositeTypes as t, define, each, type View } from "@getaster/elements";
+import { AsterElement, compositeTypes as t, define, each, uid, type View } from "@getaster/elements";
 import { html, nothing } from "lit-html";
 
 export interface HierarchyLevel {
@@ -28,7 +28,7 @@ export class ContextualHierarchy extends AsterElement {
   readonly #navigationVisible = this.prop(true);
   readonly #motion = this.prop<"none" | "slide">("none");
   readonly #direction = this.prop<"forward" | "back">("forward");
-  readonly #id = `aster-hierarchy-${crypto.randomUUID()}`;
+  readonly #id = uid("aster-hierarchy");
   readonly #positions = new Map<string, { top: number; focus: HTMLElement | null }>();
   #opener: HTMLElement | null = null;
   #transition: { back: boolean; id: string } | undefined;

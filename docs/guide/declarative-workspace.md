@@ -175,7 +175,7 @@ const workspace = new Composite(definition, registry, {
 
 `ctx` is the data context created by your application. The registry connects
 names such as `Grid` and `device-workspace` to their implementations. See the
-[host registration source](../playground/composition.js) for the running example’s
+[host registration source](../playground/composition-registry.js) for the running example’s
 component adapters, tile renderer and lazy editor loader.
 
 For a JavaScript definition, pass `defineComposite({ ... })` to the same
@@ -201,7 +201,7 @@ is built. Expand them to follow the full wiring and application functions.
 
 </details>
 
-The [host registrations](../playground/composition.js) connect these names to
+The [host registrations](../playground/composition-registry.js) connect these names to
 code. The [editor implementation](../playground/composition-details.js) shows
 how the lazy component creates a Form and binds its editing model.
 

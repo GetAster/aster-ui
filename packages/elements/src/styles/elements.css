@@ -373,6 +373,10 @@
   .aster-window-bar button:hover { background: var(--aster-accent-soft); color: var(--aster-text); }
   .aster-window-bar button:focus-visible { outline: 2px solid var(--aster-focus); outline-offset: -2px; }
   .aster-window-bar svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+  @media (max-width: 600px), (pointer: coarse) and (max-height: 500px) {
+    .aster-window { left:8px; top:8px; width:calc(100vw - 16px) !important; height:min(420px, calc(100dvh - 16px)) !important; resize:none; }
+    .aster-window-bar .aster-window-move, .aster-window-bar button[aria-describedby$="-resize-help"] { display:none; }
+  }
   .aster-window-body { flex: 1; min-height: 0; overflow: auto; padding: var(--aster-pad) 14px; }
   /* Dashboard geometry stays in CSS; stored sizes are column/row intent. */
   aster-dashboard { display: block; min-width: 0; container-type: inline-size; }

@@ -119,11 +119,23 @@ export class Tabs extends AsterElement {
   }
 
   #revealSelected(): void {
-    this.querySelector(".aster-tabs")?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
+    const tab = this.querySelector(".aster-tabs")?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (tab) this.#reveal(tab);
+  }
+
+  /** Reveal within the strip without scrolling the containing page or panel. */
+  #reveal(tab: HTMLElement): void {
+    const viewport = this.querySelector<HTMLElement>(".aster-tabs-viewport");
+    if (!viewport) return;
+    const visible = viewport.getBoundingClientRect();
+    const target = tab.getBoundingClientRect();
+    const left = target.left < visible.left ? target.left - visible.left : Math.max(0, target.right - visible.right);
+    if (left) viewport.scrollBy({ left, behavior: "instant" });
   }
 
   #focusSelected(): void {
-    this.querySelector(".aster-tabs")?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus();
+    this.querySelector(".aster-tabs")?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus({ preventScroll: true });
+    this.#revealSelected();
   }
 
   /** Stable for a value while the element lives; encoded so any value is a valid single id token. */
@@ -191,8 +203,8 @@ export class Tabs extends AsterElement {
     }
     e.preventDefault();
     tabs.forEach((tab, index) => { tab.tabIndex = index === n ? 0 : -1; });
-    tabs[n]!.focus();
-    tabs[n]!.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
+    tabs[n]!.focus({ preventScroll: true });
+    this.#reveal(tabs[n]!);
     if (this.#activation.peek() === "automatic") this.#choose(tabs[n]!.dataset.value!);
   }
 }

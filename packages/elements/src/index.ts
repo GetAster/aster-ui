@@ -2,7 +2,7 @@ export { ProgressStatus } from "./progress/status.ts";
 export { provideProgressPolicy, progressPolicyOf } from "./progress/policy.ts";
 export { asterComponents } from "./composition/builtins.ts";
 export { Sidebar, sidebarItems, type SidebarItem } from "./sidebar/sidebar.ts";
-export { AsterElement, define, each, provideScope, read, scopeOf, type Bindable, type View } from "./base/element.ts";
+export { AsterElement, define, each, uid, provideScope, read, scopeOf, type Bindable, type View } from "./base/element.ts";
 export { Composite, compositeComponent, type CompositeOptions, type CompositeChildHandle, type CompositePlacement } from "./composition/composite.ts";
 export { CommandBar } from "./composition/command-bar.ts";
 export { defineCompositeRegistry, defineCompositeRenderer, CompositeAuthoring, type RegistryCatalog, type CompositeDiagnostic, type CompositeCompletion } from "./composition/authoring.ts";

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid summaries and export — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css">
+<style>
+  body { min-height: 100dvh; height: auto; padding: 24px; }
+  main { max-width: 1100px; margin: auto; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 16px; }
+  #report { display: flex; flex-direction: column; height: 34rem; min-width: 0; }
+  .intro { color: var(--aster-text-2); } a { color: var(--aster-accent); }
+  @media (max-width: 500px) { body { padding: 12px; } }
+</style><link rel="stylesheet" href="../../shared/navigation/showcase.css"></head><body><main>
+<h1>Grid summaries and export</h1>
+<p class="intro">240 paged mock devices. Summaries cover every filtered record, including unloaded pages. Select devices in order, or group by platform, online state and site. Right opens a level; Left closes it or returns to its parent. CSV exports the visible columns as server values.</p>
+<div class="bar">
+  <div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div>
+  <div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div>
+  <label><input id="online" type="checkbox"> Online only</label>
+  <div class="showcase-appearance showcase-grouping"><span>Grouping</span><aster-choice id="levels"></aster-choice></div>
+  <button type="button" class="aster-button" id="change">Change first device cost</button>
+  <button type="button" class="aster-button" id="fail">Fail next summary</button>
+</div>
+<div id="out"></div>
+<div class="bar" aria-label="CSV export">
+  <label>Export rows <select id="scope"><option value="query">Filtered result</option><option value="selection">Selected, in pick order</option></select></label>
+  <label>Maximum rows <input id="limit" type="number" min="0" max="100000" value="1000"></label>
+  <button type="button" class="aster-button" id="export">Download CSV</button>
+  <button type="button" class="aster-button" id="cancel" disabled>Cancel export</button>
+  <button type="button" class="aster-button" id="fail-export">Fail next export</button>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+<a href="./">Back to the playground</a>
+</main><script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./reporting.js"></script></body></html>

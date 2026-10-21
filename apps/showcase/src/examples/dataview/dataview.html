@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DataView — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css">
+<style>
+body { height:auto; min-height:100dvh; padding:24px; background:var(--aster-surface); } main { max-width:1280px; margin:auto; }
+.bar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-block:18px; }
+.directory-toolbar { padding:16px; background:var(--aster-sunk); border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); }
+.directory-toolbar .bar { margin:0; } .directory-toolbar p { margin:12px 0 0; color:var(--aster-text-2); }
+.search-field { display:flex; flex-direction:column; gap:4px; flex:1; min-width:min(220px,100%); }
+.search-field .aster-field, .profile-form .aster-field { flex:none; }
+.search-field .aster-field input { width:100%; min-width:0; }
+.directory-choice { display:flex; flex-direction:column; gap:4px; } .directory-choice aster-choice { width:12rem; }
+#people { display:block; margin-block:20px; --tile-min-width:280px; --tile-height:280px; --tile-viewport-height:min(42rem,75dvh); }
+.directory-card { display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center; min-width:0; }
+.directory-portrait { width:76px; height:76px; flex:none; border-radius:50%; overflow:hidden; background:var(--aster-accent-soft); }
+.directory-portrait img { display:block; width:100%; height:100%; object-fit:cover; }
+.directory-name { font-size:16px; line-height:1.3; overflow-wrap:anywhere; }
+.directory-role, .directory-location { color:var(--aster-text-2); font-size:12px; }
+.directory-team { color:var(--aster-text-2); font-size:12px; padding:2px 8px; background:var(--aster-sunk); border-radius:var(--aster-r-ctl); }
+.directory-availability { display:inline-flex; gap:6px; align-items:center; font-size:12px; }
+.directory-dot { width:7px; height:7px; border-radius:50%; background:var(--aster-text-2); }
+.directory-dot[data-available=true] { background:var(--aster-positive); }
+#people[data-template=compact] { --tile-min-width:320px; --tile-height:220px; }
+#people[data-template=compact] .directory-card { display:grid; grid-template-columns:56px minmax(0,1fr); grid-template-rows:auto auto auto auto; gap:4px 12px; text-align:start; align-items:center; }
+#people[data-template=compact] .directory-portrait { grid-row:1 / span 4; width:56px; height:56px; }
+#people[data-template=compact] .directory-name { font-size:14px; } #people[data-template=compact] .directory-team { justify-self:start; }
+#people[data-template=compact] .directory-location { display:none; }
+.profile-form { display:grid; gap:16px; min-width:min(300px,70vw); } .profile-form h2, .profile-form p { margin:0; }
+.profile-form label { display:flex; flex-direction:column; gap:6px; } .profile-form .aster-field input { width:100%; }
+.profile-form footer { display:flex; gap:12px; }
+a { color:var(--aster-accent); }
+@media(pointer:coarse) { #people { --tile-height:300px; } .search-field .aster-field, .profile-form .aster-field { min-height:44px; } }
+@media(max-width:760px) { body { padding:12px; } .directory-choice { flex:1; min-width:140px; } .directory-choice aster-choice { width:100%; } }
+</style><link rel="stylesheet" href="../../shared/navigation/showcase.css"></head><body><main>
+<h1>DataView</h1>
+<p>A team directory with custom image cards, live sorting, search and selection.</p>
+<div class="bar">
+<div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div>
+<div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div>
+<button type="button" class="aster-button" id="add-person">Add colleague</button>
+<button type="button" class="aster-button" id="toggle-availability">Toggle selected availability</button>
+<button type="button" class="aster-button" id="clear-selection">Clear selection</button>
+</div>
+<section class="directory-toolbar" aria-label="Directory controls"><div class="bar">
+<label class="search-field">Search people<span class="aster-field"><input id="search" type="search" placeholder="Name, role or team" autocomplete="off"></span></label>
+<div class="directory-choice"><span>Team</span><aster-choice id="team"></aster-choice></div>
+<div class="directory-choice"><span>Sort by</span><aster-choice id="sort"></aster-choice></div>
+<div class="directory-choice"><span>Presentation</span><aster-choice id="presentation"></aster-choice></div>
+</div><p id="directory-status" role="status" aria-live="polite">Loading the directory…</p></section>
+<p>Arrow keys browse · Space selects · Enter opens · F2 enters card actions. Use Open to edit a profile.</p>
+<aster-tile-grid id="people" data-template="cards"></aster-tile-grid>
+<p id="directory-action" role="status" aria-live="polite">Changes in this demo stay in this visit.</p>
+<aster-dialog id="profile"></aster-dialog>
+<p><a href="./">Back to the playground</a></p>
+</main><script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./dataview.js"></script></body></html>

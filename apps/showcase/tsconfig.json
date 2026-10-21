@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "../..",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src",
+    "build",
+    "serve.ts"
+  ]
+}

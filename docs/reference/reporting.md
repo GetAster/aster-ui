@@ -2,7 +2,7 @@
 
 Server summaries and CSV export use a query independently of a collection's
 loaded pages. Neither loads the entire collection into the record store or moves
-its virtual viewport. The [reporting playground](../../scripts/site/playground/reporting.html)
+its virtual viewport. The [reporting playground](../../apps/showcase/src/examples/reporting/reporting.html)
 demonstrates filtering, ordered picks, group totals, retries and downloads.
 
 ```ts

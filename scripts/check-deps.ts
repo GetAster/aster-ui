@@ -10,7 +10,8 @@ const ALLOWED: Record<string, readonly string[]> = {
   elements: ["data"],
   "elements-preview": ["data", "elements"],
   react: ["data", "elements"],
-  "app:aster": ["data", "elements", "elements-preview", "mock"],
+  "app:docs": [],
+  "app:showcase": ["data", "elements", "elements-preview", "mock"],
 };
 
 const IMPORT = /(?:import|export)\s[^'"]*?from\s*["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)/g;
@@ -19,7 +20,7 @@ function files(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return files(path);
-    return /\.tsx?$/.test(name) ? [path] : [];
+    return /\.[jt]sx?$/.test(name) ? [path] : [];
   });
 }
 

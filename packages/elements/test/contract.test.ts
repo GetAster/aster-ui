@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { DENSITIES, DENSITY_NAMES, TOKEN_NAMES } from "../src/styles/contract.ts";
 
 const styles = join(import.meta.dir, "../src/styles");
-const app = join(import.meta.dir, "../../../apps/aster/src");
+const app = join(import.meta.dir, "../../../apps/showcase/src/workspace");
+const appSheets = [app, join(app, "../app")].flatMap(dir => readdirSync(dir).filter(file => file.endsWith(".css")).map(file => ({ file, dir })));
 const read = (dir: string, name: string) => readFileSync(join(dir, name), "utf8");
 
 /** Custom properties declared in the first rule whose selector matches. */
@@ -31,7 +32,7 @@ for (const [file, selector] of identities) {
 test("elements and the app use only contract tokens", () => {
   const sheets = [
     ...["base.css", "elements.css"].map((f) => read(styles, f)),
-    ...readdirSync(app).filter((f) => f.endsWith(".css")).map((f) => read(app, f)),
+    ...appSheets.map(({ dir, file }) => read(dir, file)),
   ];
   const used = new Set(sheets.flatMap((css) => [...css.matchAll(/var\((--aster-[\w-]+)/g)].map((m) => m[1]!)));
   expect([...used].filter((t) => !TOKEN_NAMES.includes(t) && !DENSITY_NAMES.includes(t))).toEqual([]);
@@ -48,7 +49,7 @@ test("base.css defines every density token for every density", () => {
 test("colours come from tokens: no literal colour outside the themes", () => {
   const sheets: [string, string][] = [
     ...["base.css", "elements.css"].map((f): [string, string] => [f, read(styles, f)]),
-    ...readdirSync(app).filter((f) => f.endsWith(".css")).map((f): [string, string] => [f, read(app, f)]),
+    ...appSheets.map(({ dir, file }): [string, string] => [file, read(dir, file)]),
   ];
   // oklch(from var(…)) and oklch(var(…)) build on tokens.
   const literal = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|lab|lch|oklab|color)\(|oklch\((?!from |var\()/gi;

@@ -498,7 +498,7 @@ chosen.selected.value?.name; // live from the store: an edit to person 4 shows a
 | option `fallback` | On by default for single selection |
 
 The collection can be a signal (`:45`). The app's project selection follows
-the current tab's collection (`apps/aster/src/model.ts:120`).
+the current tab's collection (`apps/showcase/src/workspace/model.ts:120`).
 
 **Invariants.**
 
@@ -539,7 +539,7 @@ edit.dispose();
 ```
 
 An app rule is a function from values to messages by field, as the project
-page's "Spent can't be more than the budget" (`apps/aster/src/pages/project.ts:203`).
+page's "Spent can't be more than the budget" (`apps/showcase/src/workspace/features/projects/project.ts:203`).
 
 **Field state** (`state(name)`, `:349`). A `FieldState` signal: `visible`,
 `enabled`, `readOnly`, `required` and a reason for each that isn't the
@@ -620,7 +620,7 @@ followed where nothing was edited here, rebased under the edits when the
 other change touched other fields, a `conflict` when it touched the same
 ones (`:204–206`, `#theirs`, `:560`). A draft survives `JSON.stringify`, so
 storing it is the app's to do; the demo keeps them in IndexedDB
-(`apps/aster/src/drafts.ts:14`).
+(`apps/showcase/src/workspace/drafts.ts:14`).
 
 **Replay.** `EditModel.replay(ctx, set, before, after, forced?)` shows a past
 change: `before` is the baseline and `after` the values, so `pending` marks
@@ -690,7 +690,7 @@ kind the same names:
 | `inputPublication` (`:72`) | A page's input: `key`, plain text, and `record`, looked up from it and typed |
 | `valuesPublication` (`:77`) | App signals under names the app chooses |
 
-**The project page's rules** (`apps/aster/src/pages/project.ts:34–36`,
+**The project page's rules** (`apps/showcase/src/workspace/features/projects/project.ts:34–36`,
 `:216–241`): Days behind shows and is required while Status is Behind; an
 archived project is read-only, with its reason; Save is enabled while the
 project or its tasks have changes.
@@ -716,7 +716,7 @@ const save = scope.state("save", {
 doesn't unlock the other fields until the change is saved. `scope.explain("project.behindDays")`
 returns each rule with `holds` and `reads` such as
 `{ "project.values.health": "onTrack" }`; the demo's `?debug` panel shows it
-for the focused field (`apps/aster/src/debug.ts:25`).
+for the focused field (`apps/showcase/src/workspace/debug.ts:25`).
 
 **Invariants.**
 
@@ -866,7 +866,7 @@ On an edit-model field, `derived` in `applyRules` takes cases or a signal
   started it (`#write`, `:329`). Ones that agree settle.
 
 The demo's Time grid suggests billable from the entry's project
-(`apps/aster/src/pages/time.ts:37`):
+(`apps/showcase/src/workspace/features/time/time.ts:37`):
 
 ```ts
 billable: { derived: [{ when: { op: "eq", field: "row.values.project.clientId", value: null }, value: false }, { value: true }] },
@@ -1044,9 +1044,9 @@ create shows only the values (`:123–126`). `save()` on a replay returns
 or becomes a conflict, as in `EditModel.resume` (`:296–305`).
 
 **The model screen** uses it for a field: Definition, Answers, Visibility and
-Messages are one `RecordEdit` (`apps/aster/src/pages/field-editor.ts:119`).
+Messages are one `RecordEdit` (`apps/showcase/src/workspace/features/model/field-editor.ts:119`).
 It logs a save only when `ok` is true, with `before` and `change` as JSON
-(`apps/aster/src/pages/infomodel.ts:213`); the log's replay is `RecordEdit.replay`
+(`apps/showcase/src/workspace/features/model/infomodel.ts:213`); the log's replay is `RecordEdit.replay`
 (`:485–489`).
 
 **Invariants.**
@@ -1073,7 +1073,7 @@ the collection had loaded (`collection/collection.ts:89`). The People page
 calls `loadAll()` again when the selection changes.
 
 The People page's detail lists follow the selection through the scope
-(`apps/aster/src/pages/people.ts:154–167`):
+(`apps/showcase/src/workspace/features/people/people.ts:154–167`):
 
 ```ts
 const personId = scope.value("people.selected.id");
@@ -1398,7 +1398,7 @@ as it talks to the mock through the mock's transport; nothing else changes.
 - `bun scripts/demo-server.ts [--port 8080]` serves the demo's whole seed
   (`fixtures/aster/demo.ts`) from aster-server in memory, with CORS open and
   `Reseed`. The demo opened with `?server=http://127.0.0.1:8080/odata` then
-  uses it instead of the mock (`apps/aster/src/remote.ts`). This remote demo
+  uses it instead of the mock (`apps/showcase/src/workspace/remote.ts`). This remote demo
   adapter does not subscribe to a production realtime channel: only the debug
   panel's "another user" writes are announced, and its faults do nothing.
   WebTransport with SSE fallback is the agreed direction; client integration
@@ -1443,14 +1443,14 @@ They are not a roadmap for the server:
 - **Atomic writes beyond a record and what it owns.** `RecordEdit` saves one
   record with its owned collections in one request. The client sends no
   `$batch`, so `ListEdit.save` on its own and the model screen's cascading
-  remove (`apps/aster/src/pages/infomodel.ts:311`) write one record at a time.
+  remove (`apps/showcase/src/workspace/features/model/infomodel.ts:311`) write one record at a time.
   Unbound actions (spike scope).
 - **Undo for owned changes.** `invert` of an update with `owned` throws, and
   `DataContext.run` ignores `owned` (`changes/changeset.ts:60`,
   `context.ts:161`).
 - **A drafts store in the library.** `draft()` and `resume()` are in the edit
   models; where a draft lives is the app's (the demo uses IndexedDB,
-  `apps/aster/src/drafts.ts`). The change log is the demo's `Changes` set.
+  `apps/showcase/src/workspace/drafts.ts`). The change log is the demo's `Changes` set.
 - **Server-enforced rules** (v1): required, read-only and visibility as
   annotation expressions in `$metadata`, enforced by aster-odata, translated
   to criteria on load (decision 3). Today rules are client-side only.

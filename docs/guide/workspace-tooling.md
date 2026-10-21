@@ -132,7 +132,7 @@ children:
 This is an excerpt, not a complete YAML document. See the
 [complete device definition](../playground/composition.ui.yaml) and the
 [build-time compilation instructions](declarative-workspace.md#load-and-mount-the-workspace).
-Use the registrations in the [device host module](../playground/composition.js)
+Use the registrations in the [device registry module](../playground/composition-registry.js)
 for that full definition; it also uses grids, renderers and a lazy inspector.
 
 After compiling your YAML to JSON, replace the JavaScript `authoring.define(...)`
@@ -197,5 +197,5 @@ work; the available editor setup uses schema association.
 control adapters and the composed showcase. The [workspace patterns guide](workspace-patterns.md) covers public command and
 publication contracts, reusable variants, lazy children, command aliases and
 placing existing children inside semantic HTML. The
-[complete device host](../playground/composition.js) shows the grid adapters,
+[complete device registry](../playground/composition-registry.js) shows the grid adapters,
 renderer function bodies, validation and mounting together.

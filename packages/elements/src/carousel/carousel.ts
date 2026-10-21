@@ -22,6 +22,7 @@ export class Carousel extends AsterElement {
   /** The slides don't all fit: only then are there places to move to. */
   readonly #overflows = this.prop(false);
   #resize: ResizeObserver | undefined;
+  #resizeFrame = 0;
   readonly #id = uid("aster-carousel");
   #observer: IntersectionObserver | undefined;
   /** Rebuilt when descriptors change or the element reconnects. */
@@ -68,6 +69,8 @@ export class Carousel extends AsterElement {
   override disconnectedCallback(): void {
     this.#observer?.disconnect();
     this.#resize?.disconnect();
+    cancelAnimationFrame(this.#resizeFrame);
+    this.#resizeFrame = 0;
     this.#observed = undefined;
     super.disconnectedCallback();
   }
@@ -129,7 +132,14 @@ export class Carousel extends AsterElement {
     );
     for (const el of this.#slideEls()) this.#observer.observe(el);
     this.#resize?.disconnect();
-    this.#resize = new ResizeObserver(() => (this.#overflows.value = rail.scrollWidth > rail.clientWidth + 1));
+    this.#resize = new ResizeObserver(() => {
+      // Adding navigation changes the rail's layout; commit outside observer delivery.
+      if (this.#resizeFrame) return;
+      this.#resizeFrame = requestAnimationFrame(() => {
+        this.#resizeFrame = 0;
+        this.#overflows.value = rail.scrollWidth > rail.clientWidth + 1;
+      });
+    });
     this.#resize.observe(rail);
     for (const el of this.#slideEls()) this.#resize.observe(el);
   }

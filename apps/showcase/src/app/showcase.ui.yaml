@@ -1,0 +1,39 @@
+version: 1
+name: ShowcaseBrowser
+model:
+  type: showcase
+  inputs:
+    active: { ref: inputs.active }
+    theme: { ref: inputs.theme }
+    scheme: { ref: inputs.scheme }
+children:
+  navigation:
+    type: Sidebar
+    props:
+      label: Showcase categories
+      items: { ref: model.navigation }
+      renderIcon: { renderer: categoryIcon }
+      value: { bind: model.active }
+  gallery:
+    type: Gallery
+    props:
+      theme: { bind: model.theme }
+      scheme: { bind: model.scheme }
+  preview:
+    type: Preview
+    create: on-demand
+    retain: false
+    props:
+      file: { bind: model.file }
+      title: { bind: model.title }
+      theme: { bind: model.theme }
+      scheme: { bind: model.scheme }
+layout:
+  type: stack
+  items:
+    - { child: navigation }
+    - type: deck
+      active: { bind: model.surface }
+      items:
+        gallery: { child: gallery }
+        preview: { child: preview }

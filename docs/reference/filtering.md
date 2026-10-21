@@ -1,6 +1,6 @@
 # Advanced filtering
 
-The [playground](../../scripts/site/playground/filtering.html) combines a paged
+The [playground](../../apps/showcase/src/examples/filtering/filtering.html) combines a paged
 shared table/tile collection, saved views, summaries and a standalone editor.
 The query editor and persisted-record RuleEditor have different data models.
 They share the scalar input and finite multi-choice renderers, select controls,

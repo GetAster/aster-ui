@@ -8,11 +8,12 @@
     "apps/*"
   ],
   "scripts": {
+    "version:build": "bun scripts/version.ts",
     "test": "bun test ./packages ./tests/integration",
-    "typecheck": "tsc -p packages/data && tsc -p packages/mock && tsc -p packages/elements && tsc -p packages/elements-preview && tsc -p apps/aster && tsc -p tests && tsc -p scripts && tsc -p scripts/lib --noEmit",
+    "typecheck": "tsc -p packages/data && tsc -p packages/mock && tsc -p packages/elements && tsc -p packages/elements-preview && tsc -p apps/showcase && tsc -p apps/docs && tsc -p tests && tsc -p scripts && tsc -p scripts/lib --noEmit",
     "check:deps": "bun scripts/check-deps.ts",
     "check": "bun run typecheck && bun run check:deps && bun run test",
-    "dev": "bun --hot apps/aster/serve.ts",
+    "dev": "bun --hot apps/showcase/serve.ts",
     "test:e2e": "playwright test",
     "site": "bun scripts/build-site.ts",
     "docs": "bun scripts/docs/build.ts",

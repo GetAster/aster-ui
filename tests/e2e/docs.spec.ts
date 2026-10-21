@@ -193,3 +193,32 @@ for (const width of [1280, 390]) {
     await expect.poll(() => nav.evaluate(element => element.scrollTop)).toBeCloseTo(atApiLink, 0);
   });
 }
+
+
+test("task search accepts separate words, typos and Enter, and stays closed after Escape", async ({ page }) => {
+  await page.goto("/reference/");
+  const input = page.getByRole("searchbox", { name: "Search documentation" });
+  await input.fill("connect form grid");
+  await expect(page.locator("#results a").first()).toContainText("Connect a grid and form");
+  await expect(page.locator(".search-result-excerpt").first()).not.toBeEmpty();
+  await input.press("Enter");
+  await expect(page.locator("main h1")).toHaveText("Connect a grid and form");
+  await input.fill("authentcation");
+  await expect(page.locator("#results a").first()).toContainText("Authentication");
+  await input.press("Escape");
+  await expect(page.locator("#results")).toBeHidden();
+  await input.fill("TileGrid");
+  await expect(page.locator("#results a").first()).toContainText("TileGrid");
+});
+
+test("search finds the Webmail example using mail and related terms", async ({ page }) => {
+  await page.goto("/reference/");
+  const input = page.getByRole("searchbox", { name: "Search documentation" });
+  for (const query of ["mail", "email", "inbox"]) {
+    await input.fill(query);
+    await expect(page.locator("#results a").first()).toContainText("Example: Webmail with sign in");
+    await expect(page.locator("#results a").first()).toHaveAttribute("href", /\/examples\/mail\.html$/);
+  }
+  await input.press("Enter");
+  await expect(page.locator("main h1")).toHaveText("Example: Webmail with sign in");
+});

@@ -1,0 +1,10 @@
+export const metadata = { $Version: "4.01", $EntityContainer: "Mail.Container", $Reference: { "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.json": { $Include: [{ $Namespace: "Org.OData.Core.V1", $Alias: "Core" }] } }, Mail: {
+  Message: { $Kind: "EntityType", $Key: ["id"], id: { $Type: "Edm.Int32" }, senderAddress: {}, sender: { "@Org.OData.Core.V1.Description": "From" }, recipient: { "@Org.OData.Core.V1.Description": "To" }, subject: { "@Org.OData.Core.V1.Description": "Subject" }, body: { "@Org.OData.Core.V1.Description": "Message" }, folder: { "@Org.OData.Core.V1.Description": "Folder" }, unread: { $Type: "Edm.Boolean", "@Org.OData.Core.V1.Description": "Unread" }, date: { $Type: "Edm.DateTimeOffset", "@Org.OData.Core.V1.Description": "Received" } },
+  Container: { $Kind: "EntityContainer", Messages: { $Collection: true, $Type: "Mail.Message" } },
+} };
+const subjects = ["Friday's launch checklist", "Design review — reading pane", "A few notes from our customer call", "Team lunch next week", "Updated project timeline", "Welcome to the workspace"];
+const senders = ["Priya Shah", "James Chen", "Maya Wilson", "Oliver Brown", "Sofia Patel", "Aster team"];
+export const data = { Messages: Array.from({ length: 64 }, (_, i) => ({ id: i + 1, sender: senders[i % 6], senderAddress: `${senders[i % 6].toLowerCase().replaceAll(" ", ".")}@example.test`, recipient: "alex@example.test", subject: subjects[i % 6] + (i > 5 ? ` · ${Math.floor(i / 6) + 1}` : ""),
+  body: `Hi Alex,\n\n${["The checklist is ready for your review. Could you take a look at the final items before Friday?", "I've attached my thoughts on the new reading pane. Keeping drafts open while switching folders makes this much easier to use.", "We had a useful conversation about how the team works. I'll share a summary at our next meeting."][i % 3]}\n\nThanks,\n${senders[i % 6]}`,
+  folder: i < 48 ? "Inbox" : i < 56 ? "Sent" : "Archive", unread: i % 3 === 0 && i < 48, date: new Date(Date.now() - (63 - i) * 2 * 60 * 60 * 1000).toISOString() })) };
+

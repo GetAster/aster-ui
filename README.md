@@ -35,7 +35,7 @@ platform, `bun run test:e2e --ignore-snapshots` runs behavioural assertions.
 - `@getaster/elements-preview`: experimental controls with evolving APIs.
 - `@getaster/mock`: the optional OData mock wrapper and engine binary.
 
-The initial npm release is `0.1.0-preview.0`, available under the `next` tag:
+Prereleases are available under the `next` tag:
 
 ```sh
 npm install @getaster/data@next @getaster/elements@next
@@ -46,8 +46,16 @@ prereleases; the preview package also has intentionally experimental APIs.
 To produce compiled ESM packages, declarations, styles and local tarballs:
 
 ```sh
-bun run packages:build --version 0.1.0-preview.0
+bun run version:build
+bun run packages:build
 ```
+
+Versions follow `<major.minor>.<commit-count - offset>` using `VERSION`.
+Public source snapshots include `BUILD_NUMBER` from the originating repository,
+so a shallow checkout or downloaded archive derives the same version. Local
+source checkouts without `BUILD_NUMBER` need full Git history. CI adds
+`-preview.<run-number>` for preview releases; stable releases use the base version.
+The release workflow derives one version for all four packages and the website.
 
 Outputs go to `dist-release/`; this command does not publish anything. See the
 [package guide](docs/guide/library.md) for browser usage and component setup.
@@ -68,3 +76,15 @@ the showcase, guides and API reference. Serve it locally with
 Release builds accept `--version <version> --revision <public-commit-sha>` so
 the website identifies the matching npm packages and public source.
 `bun run test:site` checks the published routes on desktop and mobile.
+
+## Reference applications
+
+The [showcase](apps/showcase/README.md) is organised by feature. Its shell is
+[declared in YAML](apps/showcase/src/app/showcase.ui.yaml), with ordinary
+TypeScript for the model, registry and routing. Independent examples keep their
+entry, model, definition, mock data and styles in the same feature folder.
+
+The [documentation site](apps/docs/README.md) separates content, templates,
+navigation, search, API rendering and live example/source browsing. Read
+[Organize an application](docs/guide/application-structure.md) for the conventions
+used by both sites. These application sources are separate from the npm packages.

@@ -11,6 +11,7 @@ export function stageSite(source: string, destination: string): void {
   writeFileSync(index, readFileSync(index, "utf8").replace(/(name=["']?aster-library-root["']?\s+content=["']?)\.\.\//, "$1./"));
   for (const directory of ["lib", "playground", "reference", "guide", "docs-assets", "examples"]) cpSync(join(source, directory), join(destination, directory), { recursive: true });
   cpSync(join(source, "site.css"), join(destination, "site.css"));
+  cpSync(join(source, "llms.txt"), join(destination, "llms.txt"));
 }
 
 if (import.meta.main) stageSite(resolve(process.argv[2] ?? "dist-local"), resolve(process.argv[3] ?? "dist-local/showcase"));

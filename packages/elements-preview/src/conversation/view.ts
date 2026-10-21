@@ -1,4 +1,4 @@
-import { AsterElement, Menu, compositeTypes as t, define, each, type View } from "@getaster/elements";
+import { AsterElement, Menu, compositeTypes as t, define, each, uid, type View } from "@getaster/elements";
 import type { Command } from "@getaster/data";
 import { html, svg, nothing } from "lit-html";
 import { ConversationSession, type ConversationEntry, type ConversationSessionOptions } from "./session.ts";
@@ -315,7 +315,7 @@ export class ConversationReader extends AsterElement {
   readonly #readerActions = this.prop<ConversationReaderActions | undefined>(undefined);
   readonly #readerSession = this.prop<ConversationSession | undefined>(undefined);
   readonly #readerOpen = this.prop(false);
-  readonly #readerTitleId = `ac-reader-${crypto.randomUUID()}`;
+  readonly #readerTitleId = uid("ac-reader");
   readonly #readerLocations = new Map<string, ConversationReadingLocation>();
   #readerOrigin: { pane: ConversationPane; location: ConversationReadingLocation; opener: HTMLElement | null } | undefined;
   #focusGeneration = 0;
