@@ -155,7 +155,7 @@
     },
     {
       "path": "cloudflare.config.ts",
-      "sha256": "19b68f72785255a2e85642be88b5d842892e368a3eb375858fe747db2f33db1a"
+      "sha256": "336631355a78716c6cc29dc90e2c1c95b9d16c53b4d9643ea4be3bf5ba1e1442"
     },
     {
       "path": "docs/guide/authentication.md",
@@ -1443,7 +1443,7 @@
     },
     {
       "path": "scripts/prepare-cloudflare.mjs",
-      "sha256": "e4daefb5daf56e0d2dbcdef327146951d54a73ae37a75a9e79e489031d4793e3"
+      "sha256": "661a30cbf5ab04d4260d25347a85c4ca0e71ab1c31ba17d723e7b81949be251d"
     },
     {
       "path": "scripts/publish-packages.mjs",
@@ -2107,7 +2107,7 @@
     },
     {
       "path": "tests/integration/product-site.test.ts",
-      "sha256": "ddf9d32b141700d3353ec56ea6f0718bb9552d92a9d234ec8b5a406f9d78fd8a"
+      "sha256": "fe5f86947e2412318f8a2e4a894ee5dfb323e4149040d383f29a476d0072fb43"
     },
     {
       "path": "tests/integration/record-edit.test.ts",

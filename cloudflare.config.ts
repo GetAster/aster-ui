@@ -5,6 +5,7 @@ export default {
     workersDev: false,
     previewUrls: false,
     domains: ["ui.getaster.now"],
+    // Preserve explicit HTML URLs; the preparer maps declared directory indexes.
     assets: { htmlHandling: "none", notFoundHandling: "404-page" },
     observability: { enabled: false },
   },
