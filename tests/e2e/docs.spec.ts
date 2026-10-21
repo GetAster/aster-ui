@@ -145,7 +145,7 @@ test("task navigation exposes layouts and query-wide reporting", async ({ page, 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("first-visit data guidance separates implementation details and npm prereleases", async ({ page }) => {
+test("first-visit data guidance separates implementation details and npm installation", async ({ page }) => {
   await page.goto("/reference/");
   const nav = page.getByRole("navigation", { name: "Documentation", exact: true });
   await nav.getByRole("link", { name: "The shared data model", exact: true }).click();
@@ -154,8 +154,8 @@ test("first-visit data guidance separates implementation details and npm prerele
   await expect(page.locator("main")).toContainText("WebTransport with SSE fallback");
   await nav.getByRole("link", { name: "Installation & distribution", exact: true }).click();
   await expect(page.locator("main")).toContainText("@getaster");
-  await expect(page.locator("main")).toContainText("0.1.0-preview.0");
-  await expect(page.locator("main")).toContainText("npm install @getaster/data@next @getaster/elements@next");
+  await expect(page.locator("main")).toContainText("0.2 release line");
+  await expect(page.locator("main")).toContainText("npm install @getaster/data @getaster/elements");
   await nav.getByRole("link", { name: "Data core internals", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Data core internals");
   await page.goto("/guide/");
@@ -221,4 +221,35 @@ test("search finds the Webmail example using mail and related terms", async ({ p
   }
   await input.press("Enter");
   await expect(page.locator("main h1")).toHaveText("Example: Webmail with sign in");
+});
+
+test("a slow heading font does not resize text after it is visible", async ({ page }) => {
+  let resumeFonts!: () => void;
+  const fontsReady = new Promise<void>(resolve => { resumeFonts = resolve; });
+  const fontRequests: string[] = [];
+  await page.route(/\.ttf$/, async route => {
+    if (route.request().url().includes("Geist")) fontRequests.push(route.request().url());
+    await fontsReady;
+    await route.continue();
+  });
+  try {
+    await page.goto("/guide/why-aster.html", { waitUntil: "domcontentloaded" });
+    const heading = page.locator("main h1");
+    await expect(heading).toBeVisible();
+    // Observe visible text after the browser's short optional-font block period.
+    await page.evaluate(async () => { for (let i = 0; i < 15; i++) await new Promise(requestAnimationFrame); });
+    const textWidth = () => heading.evaluate(element => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return range.getBoundingClientRect().width;
+    });
+    const before = await textWidth();
+    expect(before).toBeGreaterThan(0);
+    resumeFonts();
+    await page.evaluate(() => document.fonts.ready);
+    expect(await textWidth()).toBeCloseTo(before, 1);
+    expect(fontRequests).toHaveLength(1);
+  } finally {
+    resumeFonts();
+  }
 });

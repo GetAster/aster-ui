@@ -35,14 +35,14 @@ platform, `bun run test:e2e --ignore-snapshots` runs behavioural assertions.
 - `@getaster/elements-preview`: experimental controls with evolving APIs.
 - `@getaster/mock`: the optional OData mock wrapper and engine binary.
 
-Prereleases are available under the `next` tag:
+Install the current release:
 
 ```sh
-npm install @getaster/data@next @getaster/elements@next
+npm install @getaster/data @getaster/elements
 ```
 
-Add the mock or preview controls separately when needed. These releases are
-prereleases; the preview package also has intentionally experimental APIs.
+Add the mock or preview controls separately when needed. Aster is pre-1.0 and
+its APIs may evolve; the preview package has intentionally experimental APIs.
 To produce compiled ESM packages, declarations, styles and local tarballs:
 
 ```sh

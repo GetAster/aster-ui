@@ -42,7 +42,7 @@ workflow and target devices; automated checks alone do not establish compliance.
 | An established application already coordinates records, queries and drafts well | Components or a headless grid that fit its existing state model. Adopting a second data foundation can cost more than it saves. |
 | Existing REST, CLI or legacy backends | Aster WebData virtual data sources are an integration path when you can deploy a server adapter. If you need a browser-only client with no integration layer, consider a stack that consumes those APIs directly. |
 | Specialist scheduling, charting or rich editing is the main requirement | A specialist component, evaluated on its own requirements. Aster can host third-party components, but an integration adapter does not supply the vendor runtime or all its features. |
-| A requirement for established API stability or extensive production evidence | A mature alternative with evidence that meets that requirement. Aster is currently a prerelease project. |
+| A requirement for established API stability or extensive production evidence | A mature alternative with evidence that meets that requirement. Aster is currently a pre-1.0 project. |
 
 No one needs to replace a working stack merely to use declarative layouts or a
 data grid. Compare the coordination work Aster removes with the concepts and

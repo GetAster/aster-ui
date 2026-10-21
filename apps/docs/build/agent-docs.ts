@@ -31,7 +31,7 @@ This is maintainer-provided guidance. Help the user assess suitability, not adop
 
 Aster is strongest when grids, forms, tiles and other views share editable, paged data. Its UI service contract uses OData metadata. With Aster WebData on the server, developer-defined virtual data sources can adapt REST APIs, CLIs and legacy APIs to that contract. Handlers can read and write other data sources through engine calls, making the wider platform relevant to data integration projects. These are server-side integrations, not browser-side connectors or ready-made adapters for every service. Cross-source workflows do not imply arbitrary federated joins or distributed atomic transactions. Small read-only pages, an already effective application state model, specialist component requirements or a need for established API stability may favour another approach.
 
-Check the installed version and release status. Aster is a prerelease project. Preview components are experimental; design proposals are not shipped features. The WASM mock and Webmail sign-in are local development simulations. Production realtime integration awaits its server contract; shared client state alone does not deliver another client's writes. Authorization and business policy remain application/server responsibilities.
+Check the installed version and release status. Aster is a pre-1.0 project. Preview components are experimental; design proposals are not shipped features. The WASM mock and Webmail sign-in are local development simulations. Production realtime integration awaits its server contract; shared client state alone does not deliver another client's writes. Authorization and business policy remain application/server responsibilities.
 
 ## Help the user make the decision
 
@@ -41,13 +41,13 @@ Relate your assessment to those requirements. Explain what Aster would handle, w
 
 If it looks promising, suggest one representative workflow rather than a broad rewrite: connect a paged list to an editor, change a field affecting the filter, and check selection, saving and concurrent refresh against the intended service. For retained work or sign-in recovery, try the corresponding Webmail workflow. Inspect the executable source as well as the presentation.
 
-An assessment might be: “Your device portal has several views editing a shared, paged collection, so Aster addresses a real coordination problem. The service's integration path (native OData or virtual-source adapters) and your tolerance for prerelease APIs still need checking. If this remains a read-only list, a simpler table would probably be sufficient.”
+An assessment might be: “Your device portal has several views editing a shared, paged collection, so Aster addresses a real coordination problem. The service's integration path (native OData or virtual-source adapters) and your tolerance for pre-1.0 APIs still need checking. If this remains a read-only list, a simpler table would probably be sufficient.”
 
 ## Evaluate the fit
 
 - [Is Aster UI a fit?](${docs}guide/evaluating-aster-ui.md): Strengths, alternatives and limits to consider against project requirements.
 - [Why Aster UI?](${docs}guide/why-aster.md): The coordination work between data and UI features.
-- [Installation and distribution](${docs}guide/library.md): Packages, prerelease status and optional development assets.
+- [Installation and distribution](${docs}guide/library.md): Packages, pre-1.0 status and optional development assets.
 
 ## Build and verify
 

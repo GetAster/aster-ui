@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "d02a3f2daec501e6412cdc42d097fbc5872af291de64b22f59b9116abe7f5047"
+      "sha256": "d8a4344b811f6eda0a52f8a81366eff32fe57a10f597a33214cff788ff271efc"
     },
     {
       "path": "LICENSE",
@@ -35,11 +35,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "30eb4ecba7ba47ba48cb6782e257f26d573801baaf1ed4d47139faa1b210fc26"
+      "sha256": "6ab21e0813acdc09ff13cf770edb835163e673b819206bdda6c22d5c7ce9c394"
     },
     {
       "path": "VERSION",
-      "sha256": "241f4315e2ab06dcf9fff46329c0f71dd08c66aa106e53b41c82de6db3d4bbb3"
+      "sha256": "fdba8a2bc64f9ead2b45a1d29b059550d22de42ae5772da1401d35df08be4d19"
     },
     {
       "path": "apps/docs/README.md",
@@ -47,7 +47,7 @@
     },
     {
       "path": "apps/docs/build/agent-docs.ts",
-      "sha256": "29b67be796498327ee5fae559679ebaf7554304ba44a8e204246ed96bdea1b94"
+      "sha256": "45f38b65882cfea9547f0a72d865875b8393e2379fcf39709d6768a6eedd05dc"
     },
     {
       "path": "apps/docs/build/examples.ts",
@@ -59,7 +59,7 @@
     },
     {
       "path": "apps/docs/build/runtime.ts",
-      "sha256": "9b7d49c71151f874bd126775061e66523717f2d6fb6ca749ccfec98adb792039"
+      "sha256": "1049af77753020945ba2418fc1ba32770e4500d329fab130aa3f71472e7cb6a1"
     },
     {
       "path": "apps/docs/build/search.ts",
@@ -183,7 +183,7 @@
     },
     {
       "path": "apps/docs/src/styles/docs.css",
-      "sha256": "a31a9986ba885129362e66b4627c8e9cc5b57086b1046da6877d0a1c12460f04"
+      "sha256": "766fc05bd51ee1fb99bdb081444d8f9b4b4a1947505aff9e6f2f0f0508678715"
     },
     {
       "path": "apps/docs/src/templates/navigation.ts",
@@ -195,7 +195,7 @@
     },
     {
       "path": "apps/docs/src/templates/shell.ts",
-      "sha256": "d86418c90210780854c4d304315674d6517ac61f97e05b36e53dc0589eecf678"
+      "sha256": "41f0eb951e0a2adb7d21b79034b2c29b13ebd574e3353791eac711a54295b618"
     },
     {
       "path": "apps/docs/tsconfig.json",
@@ -679,7 +679,7 @@
     },
     {
       "path": "docs/guide/evaluating-aster-ui.md",
-      "sha256": "c70fe7e8a46ac1656bdc23f42bb7ed5bb840fac77d5d10273117ef6c9003cf8a"
+      "sha256": "c9907b443ce16a45c786703492384ee3f8ddc5deec7b634f89e7b88373fb8b23"
     },
     {
       "path": "docs/guide/fields-and-layouts.md",
@@ -703,7 +703,7 @@
     },
     {
       "path": "docs/guide/library.md",
-      "sha256": "775ba3f97cdc0ac65d43b13091df6d3645b408ff65b1cd3eab6fd6c64ff54e7e"
+      "sha256": "34c7cb77da36591733ffd5dc294ab69db5daeb0b1ce4853a0073050ca123e3e8"
     },
     {
       "path": "docs/guide/managed-workspace.md",
@@ -2023,7 +2023,7 @@
     },
     {
       "path": "tests/e2e/docs.spec.ts",
-      "sha256": "01825b4f8ab2b6b017a88a9cc30ca95516b06d3098daec39888502dc94743c68"
+      "sha256": "2211b1b932cc1f227379fb3fe04c42647e3916373f23907deaa75feec7636844"
     },
     {
       "path": "tests/e2e/embedded-explorer.spec.ts",

@@ -1,22 +1,21 @@
 # Installation and distribution
 
-Aster UI is available on npm under the **`@getaster` organization**. The initial
-release is **`0.1.0-preview.0`**, published under the `next` tag. These are
-prereleases; production API stability is not yet promised.
+Aster UI is available on npm under the **`@getaster` organization**. The **0.2 release line** is published under the default `latest` tag. Aster is
+still pre-1.0; production API stability is not yet promised.
 
 ## Install the npm packages
 
 For the data core and UI controls:
 
 ```sh
-npm install @getaster/data@next @getaster/elements@next
+npm install @getaster/data @getaster/elements
 ```
 
 Add the optional experimental controls or mock service when needed:
 
 ```sh
-npm install @getaster/elements-preview@next
-npm install --save-dev @getaster/mock@next
+npm install @getaster/elements-preview
+npm install --save-dev @getaster/mock
 ```
 
 The mock includes the WASM binary and license notices; no Rust compiler is

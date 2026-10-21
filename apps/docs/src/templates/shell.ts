@@ -6,6 +6,7 @@ export function shell(title: string, body: string, script = "../docs-assets/docs
  <link rel="describedby" href="../llms.txt" type="text/plain">
  <title>${title.replaceAll("&", "&amp;").replaceAll("<", "&lt;")} · Aster UI</title>
  <script>try{const s=localStorage.getItem('aster-docs-scheme')||'system';document.documentElement.dataset.scheme=s==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s}catch{}</script>
+ <link rel="preload" href="../docs-assets/brand/geist/Geist-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin>
  <link rel="icon" href="../docs-assets/aster-logo.svg" type="image/svg+xml"><link rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../docs-assets/docs.css"></head>
  <body class="doc ref"><a class="skip" href="#content">Skip to content</a>
  <header class="ref-head"><a class="ref-home" href="../reference/" aria-label="Aster UI documentation"><img class="brand-mark" src="../docs-assets/aster-logo.svg" alt="" width="30" height="30"><span class="brand-wordmark">aster<span class="brand-period">.</span></span><span class="brand-sub">UI / Docs</span></a>
