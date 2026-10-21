@@ -1703,7 +1703,7 @@
     },
     {
       "path": "scripts/verify-package-registry.mjs",
-      "sha256": "2da1586627c51e3d7fff59034b520293c5b8166dc7741db3d17f589847dbcd65"
+      "sha256": "8919e492c00085986c431898ee2565a14c821305cd68dcb7854395a7f3f8c9a5"
     },
     {
       "path": "scripts/verify-wasm.ts",
