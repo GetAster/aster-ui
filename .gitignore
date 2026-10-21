@@ -3,6 +3,8 @@ target/
 dist/
 *.tsbuildinfo
 .DS_Store
+.env
+.env.*
 packages/mock/wasm/*.wasm
 test-results/
 playwright-report/
