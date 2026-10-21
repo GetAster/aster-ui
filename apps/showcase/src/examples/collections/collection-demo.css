@@ -1,4 +1,4 @@
-@import "../docs-assets/docs.css";
+@import "../docs-assets/fonts.css";
 body { margin:0; padding:20px; height:auto; min-height:0; background:var(--aster-surface); color:var(--aster-text); font:14px/1.5 Geist,system-ui,sans-serif; }
 main { min-width:0; }
 .demo-controls { display:flex; align-items:end; flex-wrap:wrap; gap:12px; padding-bottom:16px; border-bottom:1px solid var(--aster-rule); }
@@ -6,7 +6,7 @@ main { min-width:0; }
 .control aster-choice { color:var(--aster-text); }
 .search-control { flex-basis:190px; max-width:240px; }
 .control input { height:34px; width:100%; border:1px solid var(--aster-rule); border-radius:var(--aster-r-ctl); background:var(--aster-sunk); color:var(--aster-text); font:inherit; padding:6px 10px; }
-input:focus-visible { outline:2px solid var(--aster-accent); outline-offset:2px; }
+.control > input:focus-visible, .online-control > input:focus-visible { outline:2px solid var(--aster-accent); outline-offset:2px; }
 .online-control { display:flex; gap:6px; align-items:center; min-height:34px; font-size:13px; }
 input[type=checkbox] { accent-color:var(--aster-accent); }
 .demo-stage { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:20px; }

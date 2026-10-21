@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "1cb3ae0c7cf44aff95d12f73a367a8a51aedeb2a2a4deb4f0c4cb72d5845d2f5"
+      "sha256": "ed0f61e6f6796d3d9f1ec1eb3851c8743e8b78c793741b0b4ba541e9e8a0313c"
     },
     {
       "path": "LICENSE",
@@ -59,7 +59,7 @@
     },
     {
       "path": "apps/docs/build/runtime.ts",
-      "sha256": "1049af77753020945ba2418fc1ba32770e4500d329fab130aa3f71472e7cb6a1"
+      "sha256": "37e82bbdf9628d4dc6a53f9a792e96e2e271e05884d431133e39e778f024b218"
     },
     {
       "path": "apps/docs/build/search.ts",
@@ -183,7 +183,11 @@
     },
     {
       "path": "apps/docs/src/styles/docs.css",
-      "sha256": "766fc05bd51ee1fb99bdb081444d8f9b4b4a1947505aff9e6f2f0f0508678715"
+      "sha256": "d967a9b53916bfa028b823627773e296a66dfa4f8d427d69fd8e280994cdadeb"
+    },
+    {
+      "path": "apps/docs/src/styles/fonts.css",
+      "sha256": "6dff47b0fd8fbcc96a5c7ebf781b95d3cf9a93454e7d73b7559d1f5f115dbe1e"
     },
     {
       "path": "apps/docs/src/templates/navigation.ts",
@@ -295,11 +299,11 @@
     },
     {
       "path": "apps/showcase/src/examples/collections/collection-demo.css",
-      "sha256": "44fe2759e4994585bc797314da769486f2301158116f0429c21abd08411673ca"
+      "sha256": "4fed10e8549b5bbb411be7b1ab1b04ba3df7e2e4bb0984817810b9f2082f2232"
     },
     {
       "path": "apps/showcase/src/examples/collections/collection-demo.html",
-      "sha256": "26e2673e95f0f58fa89c33738aad848744dfe491d84142893b8a83024eac93fa"
+      "sha256": "4e226a6f9b1609b40deb98dce530469835e50848d4992f6a4a105485e5bb5548"
     },
     {
       "path": "apps/showcase/src/examples/collections/collection-demo.js",
@@ -1980,6 +1984,10 @@
     {
       "path": "tests/e2e/carousel.spec.ts",
       "sha256": "5632d7c1e80ba448f35681e12e63727ee0e910acaec1c758a33bf71261f565df"
+    },
+    {
+      "path": "tests/e2e/collection-focus.spec.ts",
+      "sha256": "dc5d9d88093ef8ab49fd97efc7aa7ed4e23254a9d8d48278d7d7b7b9a07eab64"
     },
     {
       "path": "tests/e2e/components.spec.ts",
