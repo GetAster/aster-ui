@@ -253,3 +253,18 @@ test("a slow heading font does not resize text after it is visible", async ({ pa
     resumeFonts();
   }
 });
+
+
+test("search keeps text entered before the article scripts initialize", async ({ page }) => {
+  let release!: () => void;
+  const ready = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/docs-assets/*.js', async route => { await ready; await route.continue(); });
+  try {
+    await page.goto('/guide/why-aster.html', { waitUntil: 'commit' });
+    await page.getByRole('searchbox', { name: 'Search documentation' }).fill('Grid.view');
+  } finally {
+    release();
+  }
+  await expect(page.locator('#results a').first()).toContainText('Grid.view');
+  await expect(page.locator('#results')).toBeVisible();
+});

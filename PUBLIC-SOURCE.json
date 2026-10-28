@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "05fdcee1d28b6de465bc9558c7062b665bf78b7b7805a65ce492a4ee09298bf0"
+      "sha256": "167918ace289465acd4dd6ab6587fe10bfe54bc475ad8074b049ac358f98f9e2"
     },
     {
       "path": "LICENSE",
@@ -1151,7 +1151,7 @@
     },
     {
       "path": "packages/docs/src/features/search/search.ts",
-      "sha256": "0a4b9d479ad72496362efc09c82cc33d539232a514b263f4849396420e06ff9e"
+      "sha256": "46c0119aab29cc0812059b5b8978eb61f3f9c1691b9e5c39e26195ceb72082a0"
     },
     {
       "path": "packages/docs/src/shared/dom.ts",
@@ -2163,7 +2163,7 @@
     },
     {
       "path": "tests/e2e/docs.spec.ts",
-      "sha256": "2211b1b932cc1f227379fb3fe04c42647e3916373f23907deaa75feec7636844"
+      "sha256": "123e6a2c33c54d6011a2c8cd2c4a2e9eccda79c61b61fc446940813d7eff039b"
     },
     {
       "path": "tests/e2e/embedded-explorer.spec.ts",

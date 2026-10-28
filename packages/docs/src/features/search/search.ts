@@ -47,4 +47,6 @@ export function initSearch(): void {
   });
   $(".ref-search").addEventListener("focusout", e => { if (!(e.currentTarget as Element).contains(e.relatedTarget as Node)) close(); });
   document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); input.focus(); input.select(); } });
+  // Static HTML accepts input before the deferred module has loaded.
+  if (document.activeElement === input && input.value.trim()) { open = true; update(); }
 }
