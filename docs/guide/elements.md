@@ -571,7 +571,9 @@ the value ARIA gives for an unknown total (`atLeast`, `grid.ts:154`). When a
 short page shows the end, both give the real count. The flat and the tree
 layouts do this; a grouped grid gets its counts from `Groups`.
 
-**When the count is an estimate.** A server may estimate the count instead
+**When the count is an estimate.** Current Web Data returns exact counts when
+requested. Other compatible services, or the mock’s explicit test simulation,
+may estimate the count instead
 (`Collection.estimated`). The toolbar then reads "About 12,000 rows", the
 estimate to two significant figures (`roughly`, `grid.ts:164`), the table's
 `aria-rowcount` is -1, and the table is described by the total, so a screen

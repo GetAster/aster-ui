@@ -6,11 +6,12 @@ const ROOT = resolve(import.meta.dir, "..");
 /** A package may import only the packages listed for it. */
 const ALLOWED: Record<string, readonly string[]> = {
   data: [],
+  docs: [],
   mock: ["data"],
   elements: ["data"],
   "elements-preview": ["data", "elements"],
   react: ["data", "elements"],
-  "app:docs": [],
+  "app:docs": ["docs"],
   "app:showcase": ["data", "elements", "elements-preview", "mock"],
 };
 

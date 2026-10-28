@@ -33,7 +33,7 @@ test("$filter, $orderby, $top and $count", async () => {
   );
   expect(r["@odata.count"]).toBe(3);
   expect(r.value.map((p: { name: string }) => p.name)).toEqual(["Spring launch", "Brand refresh"]);
-  expect(r.value[0]["@odata.etag"]).toMatch(/^W\/"[0-9a-f]{16}"$/);
+  expect(r.value[0]["@odata.etag"]).toMatch(/^W\/"[^"\\]+"$/);
 
   const week = json(
     await get(s, "Tasks?$filter=due ge 2026-10-05 and due le 2026-10-11 and done eq false and parentId eq null&$orderby=due,id"),

@@ -1,5 +1,5 @@
 import { marked } from "marked";
-import { esc } from "../../shared/dom.ts";
+import { esc } from "@getaster/docs/html";
 import type { Entry } from "./types.ts";
 
 const KIND_TITLES: Readonly<Record<string, string>> = {

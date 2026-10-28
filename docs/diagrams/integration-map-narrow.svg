@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 690">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0L10 5L0 10Z"/></marker></defs>
+<rect class="panel" x="5" y="5" width="270" height="165" rx="6"/>
+<text class="label" x="140" y="31" text-anchor="middle">Browser</text>
+<rect class="step" x="18" y="47" width="244" height="64" rx="6"/>
+<text class="label" x="140.0" y="72" text-anchor="middle">Your application + Aster UI</text>
+<text class="note" x="140.0" y="92" text-anchor="middle">Views and shared data context</text>
+<path class="arrow" d="M140 111V208" marker-end="url(#arrow)"/>
+<text class="note" x="165" y="192" text-anchor="start">OData</text>
+<rect class="panel" x="5" y="210" width="270" height="275" rx="6"/>
+<text class="label" x="140" y="235" text-anchor="middle">Server</text>
+<rect class="step" x="18" y="250" width="244" height="84" rx="6"/>
+<text class="label" x="140.0" y="275" text-anchor="middle">Aster WebData</text>
+<text class="note" x="140.0" y="295" text-anchor="middle">Metadata, access policy</text>
+<text class="note" x="140.0" y="315" text-anchor="middle">and query processing</text>
+<path class="arrow" d="M140 334V378" marker-end="url(#arrow)"/>
+<rect class="step" x="18" y="380" width="244" height="64" rx="6"/>
+<text class="label" x="140.0" y="405" text-anchor="middle">Your virtual-source handler</text>
+<text class="note" x="140.0" y="425" text-anchor="middle">Backend calls and mapping</text>
+<path class="arrow" d="M18 292H10V540H77V546" marker-end="url(#arrow)"/>
+<path class="arrow" d="M220 444V546" marker-end="url(#arrow)"/>
+<rect class="panel" x="5" y="510" width="270" height="118" rx="6"/>
+<text class="label" x="140" y="535" text-anchor="middle">Existing systems</text>
+<rect class="step" x="20" y="548" width="115" height="64" rx="6"/>
+<text class="label" x="77.5" y="573" text-anchor="middle">SQL</text>
+<text class="note" x="77.5" y="593" text-anchor="middle">Database</text>
+<rect class="step" x="160" y="548" width="100" height="64" rx="6"/>
+<text class="label" x="210.0" y="573" text-anchor="middle">API / CLI</text>
+<text class="note" x="210.0" y="593" text-anchor="middle">Legacy</text>
+<text class="note" x="140" y="655" text-anchor="middle">Your handler owns any matching</text>
+<text class="note" x="140" y="675" text-anchor="middle">of SQL and API records.</text>
+</svg>

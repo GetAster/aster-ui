@@ -246,7 +246,8 @@ the `DeltaEntry`s of that collection (`:180`). Each becomes an entry of
 - A count marked `@AsterData.CountEstimated` comes back as `estimated` beside
   `count` (`:55`). `query(q, { count: true, exact: true })` sends
   `Prefer: aster.count=exact`, for an exact count where the server would
-  estimate it or leave it out (`:52`).
+  estimate it or leave it out (`:52`). This preference is a compatibility
+  extension; current Web Data returns exact requested counts without it.
 - A record's `@AsterData.Hidden` (the fields the server hides from this caller
   on this record; they arrive as `null`) becomes its `hidden` set, on reads and
   on a write's answer alike (`toRecord`, `:219`).
@@ -1374,6 +1375,15 @@ sees them.
   a change someone made since is a 412, not overwritten
   (`data-core.test.ts:311`).
 
+The mock uses a private, server-maintained revision counter for sets declaring
+`Core.OptimisticConcurrency`, combined with the entity key in an opaque ETag.
+It changes even when the test clock is frozen. The counter is not exposed as a
+field in metadata or entity payloads. Persist the whole mock dump, including its
+optional `revisions` map, to preserve ETags on reload. Older dumps containing only
+`data` still load, with fresh revision counters. This simulates row-level concurrency;
+it does not model a real backend's named concurrency columns. Applications must
+retain and return the ETag unchanged, without interpreting its format.
+
 ## Against aster-server
 
 The data core talks to aster-odata's HTTP server through `fetchTransport`,
@@ -1390,11 +1400,13 @@ as it talks to the mock through the mock's transport; nothing else changes.
   `ASTER_SERVER_MARIADB_URL`, scratch databases only: the run drops and
   creates its tables. `OUT` gets `test.log`, `summary.txt`, every request and
   response in `requests.jsonl`, and `server.log`. The harness converts
-  `ViewableWhen` into server rules and `CountThreshold` into per-set
-  thresholds. `countEstimate` selects a test-only server estimate factor;
-  the marker tests run over HTTP too. The client accepts exact, omitted and
-  explicitly marked estimated counts; the production service controls which
-  it returns.
+  `ViewableWhen` into server rules. Current Web Data returns an exact count
+  for `$count=true`; it does not implement count thresholds, estimates or
+  `Prefer: aster.count=exact`. The client's estimate support also serves other
+  compatible services. The mock's `countEstimate` option simulates that
+  extension for top-level reads; it is not a Web Data server capability.
+  Estimated-count scenarios belong to mock/client tests, not the current HTTP
+  server contract.
 - `bun scripts/demo-server.ts [--port 8080]` serves the demo's whole seed
   (`fixtures/aster/demo.ts`) from aster-server in memory, with CORS open and
   `Reseed`. The demo opened with `?server=http://127.0.0.1:8080/odata` then
@@ -1464,7 +1476,8 @@ They are not a roadmap for the server:
   not supplied by the current client. Production realtime integration awaits
   the server contract; the mock demo reloads on its simulated notice. A general
   criteria editor is available as FilterBuilder and through Grid Advanced filter.
-- **Server capabilities:** estimated-count and hidden-field markers are
-  implemented. `AsterData.CascadeDelete` describes cascade policy, with client
+- **Server capabilities:** current Web Data returns exact requested counts
+  and supports hidden-field markers. Estimated counts are a client extension,
+  exercised by an explicit mock simulation. `AsterData.CascadeDelete` describes cascade policy, with client
   preview/delete adoption still pending. The integration suite and demo can
   run over HTTP as described above.

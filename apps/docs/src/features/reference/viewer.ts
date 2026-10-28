@@ -1,8 +1,7 @@
 import { documentationRoot, referenceArticleLinks } from "../../shared/paths.ts";
-import { $, esc } from "../../shared/dom.ts";
+import { $, esc } from "@getaster/docs/html";
 import { initDocs } from "../../app/main.ts";
-import { enhanceArticle } from "../article/article.ts";
-import { restoreNavigationScroll } from "../navigation/navigation.ts";
+import { enhanceArticle, restoreNavigationScroll } from "@getaster/docs/browser";
 import { referencePages, label } from "./render.ts";
 import type { Entry } from "./types.ts";
 

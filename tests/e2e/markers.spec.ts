@@ -1,4 +1,4 @@
-// aster-odata's markers in the UI: an estimated count says it's an estimate,
+// Service markers in the UI (count estimates use mock simulation): an estimated count says it's an estimate,
 // and a value hidden from the person on one record says so instead of
 // showing as empty.
 import { readFileSync } from "node:fs";

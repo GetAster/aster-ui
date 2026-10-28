@@ -21,10 +21,10 @@ export function enhanceArticle(): void {
     heading.append(anchor);
   }
   outline.innerHTML = headings.map(h => `<li class="level-${h.tagName.toLowerCase()}"><a href="#${esc(h.id)}">${esc(h.textContent!.replace(/#$/, ""))}</a></li>`).join("");
-  // Reference hashes identify API entries; section jumps preserve that route.
+  // Routed articles keep their route while scrolling to a section.
   for (const link of [...outline.querySelectorAll<HTMLAnchorElement>("a"), ...main.querySelectorAll<HTMLAnchorElement>(".heading-anchor")]) {
     link.addEventListener("click", event => {
-      if (!document.body.hasAttribute("data-api")) return;
+      if (!document.body.hasAttribute("data-docs-routed")) return;
       event.preventDefault();
       document.getElementById(decodeURIComponent(link.hash.slice(1)))?.scrollIntoView({ block: "start" });
     });
@@ -40,7 +40,7 @@ export function enhanceArticle(): void {
   headings.forEach(h => observer!.observe(h));
   enhanceCode(main);
   for (const a of document.querySelectorAll<HTMLAnchorElement>("#nav a")) {
-    if (a.href === location.href || (!a.hash && a.pathname === location.pathname && (!document.body.hasAttribute("data-api") || !location.hash))) a.setAttribute("aria-current", "page");
+    if (a.href === location.href || (!a.hash && a.pathname === location.pathname && (!document.body.hasAttribute("data-docs-routed") || !location.hash))) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   }
 }

@@ -14,7 +14,7 @@ export interface WorkerOptions {
   readonly frozen: boolean;
   readonly memory: boolean;
   readonly wasm: string;
-  /** Counts become the server's estimates, this many times the real count (`MockServiceOptions.countEstimate`). */
+  /** Test-only simulated counts, this many times the real count (`MockServiceOptions.countEstimate`). */
   readonly countEstimate?: number;
 }
 
@@ -27,7 +27,7 @@ addEventListener(
       metadata: o.metadata ?? metadata,
       data: demoData({ clientCount: o.clientCount, timeCount: o.timeCount, today: SEED_NOW.slice(0, 10) }),
       wasm: new URL(o.wasm),
-      ...(o.countEstimate ? { countEstimate: o.countEstimate } : {}),
+      ...(o.countEstimate !== undefined ? { countEstimate: o.countEstimate } : {}),
       now: () => new Date(clock.now()).toISOString(),
       // The name changes when the seed's shape does, so stored data never lacks a set.
       ...(o.memory ? {} : { storage: indexedDbStorage("aster-demo-4") }),

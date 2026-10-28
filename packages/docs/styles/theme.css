@@ -1,0 +1,36 @@
+:root {
+  --aster-page: oklch(95.2% .006 75);
+  --aster-surface: oklch(98.8% .004 80);
+  --aster-sunk: oklch(96.6% .006 76);
+  --aster-pane: oklch(93.6% .008 74);
+  --aster-text: oklch(25% .018 60);
+  --aster-text-2: oklch(46% .016 62);
+  --aster-rule: oklch(32% .025 60 / .15);
+  --aster-rule-2: oklch(32% .025 60 / .08);
+  --aster-accent: oklch(47% .095 168);
+  --aster-accent-soft: oklch(47% .095 168 / .085);
+  --aster-on-accent: oklch(98% .01 160);
+  --aster-shadow: oklch(28% .05 265);
+  --aster-ring: 0 0 0 .5px var(--aster-rule);
+  --aster-highlight: inset 0 1px 0 oklch(100% 0 0 / .1);
+  --aster-e3: var(--aster-ring), var(--aster-highlight), 2px 4px 10px oklch(from var(--aster-shadow) l c h / .09), 6px 16px 36px oklch(from var(--aster-shadow) l c h / .11), 12px 32px 64px oklch(from var(--aster-shadow) l c h / .11);
+  color-scheme: light;
+}
+:root[data-scheme="dark"] {
+  --aster-page: oklch(19.5% .009 70);
+  --aster-surface: oklch(24.5% .01 72);
+  --aster-sunk: oklch(21.8% .009 70);
+  --aster-pane: oklch(21.5% .009 70);
+  --aster-text: oklch(92.5% .012 85);
+  --aster-text-2: oklch(72% .012 80);
+  --aster-rule: oklch(95% .02 85 / .1);
+  --aster-rule-2: oklch(95% .02 85 / .055);
+  --aster-accent: oklch(76% .1 168);
+  --aster-accent-soft: oklch(76% .1 168 / .12);
+  --aster-on-accent: oklch(20% .03 168);
+  --aster-shadow: oklch(6% .03 265);
+  --aster-ring: 0 0 0 .5px var(--aster-rule);
+  --aster-highlight: inset 0 1px 0 oklch(100% 0 0 / .1);
+  --aster-e3: var(--aster-ring), var(--aster-highlight), 2px 4px 10px oklch(from var(--aster-shadow) l c h / .45), 6px 16px 36px oklch(from var(--aster-shadow) l c h / .45), 12px 32px 64px oklch(from var(--aster-shadow) l c h / .4);
+  color-scheme: dark;
+}

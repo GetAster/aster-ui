@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 440">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0L10 5L0 10Z"/></marker></defs>
+<rect class="step" x="10" y="45" width="240" height="84" rx="6"/>
+<text class="label" x="130.0" y="70" text-anchor="middle">Selected view</text>
+<text class="note" x="130.0" y="90" text-anchor="middle">Retained component</text>
+<text class="note" x="130.0" y="110" text-anchor="middle">Registered work runs</text>
+<rect class="step" x="450" y="45" width="240" height="84" rx="6"/>
+<text class="label" x="570.0" y="70" text-anchor="middle">Inactive view</text>
+<text class="note" x="570.0" y="90" text-anchor="middle">Same component and draft</text>
+<text class="note" x="570.0" y="110" text-anchor="middle">Work pauses by default</text>
+<text class="note" x="350" y="51" text-anchor="middle">Switch away</text>
+<path class="arrow" d="M250 65H448" marker-end="url(#arrow)"/>
+<text class="note" x="350" y="120" text-anchor="middle">Select again</text>
+<path class="arrow" d="M450 98H252" marker-end="url(#arrow)"/>
+<path class="arrow" d="M130 129V198H350V223" marker-end="url(#arrow)"/>
+<path class="arrow" d="M570 129V198H350"/>
+<text class="note" x="350" y="177" text-anchor="middle">User closes → close guard</text>
+<rect class="step" x="230" y="225" width="240" height="64" rx="6"/>
+<text class="label" x="350.0" y="250" text-anchor="middle">Disposed</text>
+<text class="note" x="350.0" y="270" text-anchor="middle">Owned resources released</text>
+<text class="note" x="350" y="315" text-anchor="middle">Only an accepted close reaches disposal; refusal retains the view.</text>
+<text class="note" x="350" y="360" text-anchor="middle">“continue” permits inactive work; a paused ancestor still pauses it.</text>
+<text class="note" x="350" y="391" text-anchor="middle">Removal or owner disposal releases resources without the close guard.</text>
+<text class="note" x="350" y="419" text-anchor="middle">Borrowed resources remain with their owner.</text>
+</svg>

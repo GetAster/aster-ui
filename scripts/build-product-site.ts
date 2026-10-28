@@ -41,7 +41,7 @@ export function stageProductSite(source: string, destination: string, version: s
   for (const [from, to] of areas) cpSync(join(source, from!), join(destination, to!), { recursive: true });
   cpSync(join(source, "site.css"), join(destination, "site.css"));
   const metadata = `<meta name="aster-site-layout" content="product"><meta name="aster-reference-root" content="docs/reference/"><meta name="aster-release-version" content="${version}"><meta name="aster-release-revision" content="${revision}">`;
-  const decorate = (html: string, path: string) => html.replace("</head>", `${metadata}<link rel="canonical" href="${siteOrigin}${path}"></head>`);
+  const decorate = (html: string, path: string) => html.replace(/(<meta name="aster-docs-root" content=")[^"]*/, '$1/docs/').replace(/(<meta name="aster-docs-search" content=")[^"]*/, '$1/docs/guide/search.json').replace("</head>", `${metadata}<link rel="canonical" href="${siteOrigin}${path}"></head>`);
   for (const path of files(destination)) {
     if (path.endsWith(".md") && /\/docs\/(guide|reference)\//.test(path)) {
       const original = "/" + relative(destination, path).replace(/^docs\//, "");

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createSearchIndex, searchExcerpt } from "../../apps/docs/src/features/search/index.ts";
+import { createSearchIndex, searchExcerpt } from "../../packages/docs/src/features/search/index.ts";
 
 import { exampleSearchItems, searchItems } from "../../apps/docs/build/search.ts";
 import { examples } from "../../apps/docs/build/examples.ts";

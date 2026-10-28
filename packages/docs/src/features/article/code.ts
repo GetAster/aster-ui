@@ -5,8 +5,10 @@ import xml from "highlight.js/lib/languages/xml";
 import css from "highlight.js/lib/languages/css";
 import json from "highlight.js/lib/languages/json";
 import bash from "highlight.js/lib/languages/bash";
+import rust from "highlight.js/lib/languages/rust";
+import powershell from "highlight.js/lib/languages/powershell";
 import yaml from "highlight.js/lib/languages/yaml";
-for (const [name, language] of Object.entries({ javascript, typescript, xml, css, json, bash, yaml })) hljs.registerLanguage(name, language);
+for (const [name, language] of Object.entries({ javascript, typescript, xml, css, json, bash, yaml, rust, powershell })) hljs.registerLanguage(name, language);
 
 import { $ } from "../../shared/dom.ts";
 

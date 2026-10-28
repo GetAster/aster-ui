@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 490">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0L10 5L0 10Z"/></marker></defs>
+<rect class="step" x="5" y="5" width="150" height="44" rx="6"/>
+<text class="label" x="80.0" y="30" text-anchor="middle">Requests</text>
+<path class="arrow" stroke-dasharray="4 5" d="M80.0 49V389"/>
+<rect class="step" x="245" y="5" width="200" height="44" rx="6"/>
+<text class="label" x="345.0" y="30" text-anchor="middle">Authentication</text>
+<path class="arrow" stroke-dasharray="4 5" d="M345.0 49V389"/>
+<rect class="step" x="535" y="5" width="160" height="44" rx="6"/>
+<text class="label" x="615.0" y="30" text-anchor="middle">Your sign-in</text>
+<path class="arrow" stroke-dasharray="4 5" d="M615.0 49V389"/>
+<text class="note" x="207" y="89" text-anchor="middle">401 challenges</text>
+<path class="arrow" d="M80 100H343" marker-end="url(#arrow)"/>
+<text class="note" x="480" y="139" text-anchor="middle">One recovery</text>
+<path class="arrow" d="M345 150H613" marker-end="url(#arrow)"/>
+<text class="note" x="210" y="209" text-anchor="middle">Other requests wait</text>
+<path class="arrow" d="M80 220H343" marker-end="url(#arrow)"/>
+<text class="note" x="480" y="279" text-anchor="middle">Fresh credentials</text>
+<path class="arrow" d="M615 290H347" marker-end="url(#arrow)"/>
+<text class="note" x="210" y="339" text-anchor="middle">Replay once per operation</text>
+<path class="arrow" d="M345 350H82" marker-end="url(#arrow)"/>
+<rect class="panel" x="5" y="400" width="690" height="84" rx="6"/>
+<text class="label" x="350.0" y="425" text-anchor="middle">Replay policy comes first</text>
+<text class="note" x="350.0" y="445" text-anchor="middle">GET is eligible by default; blocked writes fail before opening sign-in.</text>
+<text class="note" x="350.0" y="465" text-anchor="middle">403 is access denied, not a recovery trigger.</text>
+</svg>

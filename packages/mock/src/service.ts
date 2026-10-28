@@ -23,11 +23,11 @@ export interface MockServiceOptions {
   /** How long a save waits for more writes to share it; 200 ms by default. */
   saveDelayMs?: number;
   /**
-   * Counts become estimates, as a database planner's would: the exact count
-   * times this factor, rounded up, marked `@AsterData.CountEstimated`. A
-   * set's `AsterData.CountThreshold` then makes its count exact below the
-   * threshold and leaves it out at or above it, as aster-server does.
-   * `Prefer: aster.count=exact` still gets the exact count.
+   * Test-only simulation for top-level entity-set reads: multiply the exact
+   * count by this positive factor, round up and mark CountEstimated.
+   * CountThreshold makes it exact below the threshold and absent at or above.
+   * Prefer: aster.count=exact bypasses simulation. Web Data itself returns
+   * exact counts; this option exercises clients of services with estimates.
    */
   countEstimate?: number;
 }
@@ -63,17 +63,21 @@ interface Handled extends ODataResponse {
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export async function createMockService(options: MockServiceOptions): Promise<MockService> {
+  if (options.countEstimate !== undefined && (!Number.isFinite(options.countEstimate) || options.countEstimate <= 0)) {
+    throw new RangeError("countEstimate must be a positive finite factor");
+  }
   const now = options.now ?? (() => new Date().toISOString());
   const engine = await instantiate(await loadWasmBytes(options.wasm ?? DEFAULT_WASM), () => Date.parse(now()));
   const { storage } = options;
 
-  const init = (from: { data: Record<string, unknown[]> }) =>
+  const init = (from: Dump) =>
     engine.init({
       serviceRoot: options.serviceRoot,
       metadata: options.metadata,
       maxPageSize: options.maxPageSize,
       countEstimate: options.countEstimate,
       data: from.data,
+      revisions: from.revisions,
     });
 
   init((await storage?.load()) ?? { data: options.data });

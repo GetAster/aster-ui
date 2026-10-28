@@ -1,5 +1,7 @@
 export interface Dump {
   data: Record<string, unknown[]>;
+  /** Internal concurrency counters, keyed by set and key predicate. Keep with data when persisting. */
+  revisions?: Record<string, Record<string, string>>;
 }
 
 export interface MockStorage {

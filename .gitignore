@@ -18,3 +18,4 @@ dist-public/
 dist-security/
 dist-site/
 .cloudflare/
+dist-docs/

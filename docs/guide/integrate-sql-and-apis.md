@@ -12,6 +12,20 @@ REST API, CLI or legacy service keeps its native interface.
 
 ## What you implement and what Aster provides
 
+```diagram
+{
+  "source": "docs/diagrams/integration-map.svg",
+  "narrow": "docs/diagrams/integration-map-narrow.svg",
+  "description": "Aster UI uses OData to reach WebData on the server, which connects SQL sources and your virtual-source handlers to existing systems."
+}
+```
+
+The browser sees one service contract. Your backend-specific calls stay in the
+server-side handler; when SQL and API records need matching, that handler owns
+the matching logic.
+
+
+
 | Part | Responsibility |
 |---|---|
 | Your virtual-source handler | Call the backend, map its values to the declared fields, and implement the reads and writes the source supports. |

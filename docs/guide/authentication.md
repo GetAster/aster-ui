@@ -11,6 +11,21 @@ the local mock service. Cancelling sign-in leaves the draft available for retry.
 
 ## Connect your authentication mechanism
 
+```diagram
+{
+  "source": "docs/diagrams/authentication-recovery.svg",
+  "narrow": "docs/diagrams/authentication-recovery-narrow.svg",
+  "description": "Eligible requests challenged with 401 share one recovery, wait for fresh credentials, and replay at most once per challenged operation."
+}
+```
+
+Read this sequence from top to bottom. It shows successful recovery for replayable
+operations; a blocked write fails before sign-in starts. Requests arriving during
+recovery wait before sending. Recovery cancellation or failure leaves the
+application to show the error and preserve the draft.
+
+
+
 ```typescript
 import { Authentication, DataContext, fetchTransport } from '@getaster/data';
 

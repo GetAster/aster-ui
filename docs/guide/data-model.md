@@ -9,6 +9,15 @@ If you have not run a page yet, start with [Get started](getting-started.md).
 This guide explains the pieces you will use when adding a second view or an
 editing workflow.
 
+
+```diagram
+{
+  "source": "docs/diagrams/shared-views.svg",
+  "narrow": "docs/diagrams/shared-views-narrow.svg",
+  "description": "A Grid and TileGrid share one collection and selection over the same DataContext record store."
+}
+```
+
 ## Connect once for the views that share data
 
 A `DataContext` connects a transport to an OData service. It loads the service's
@@ -116,6 +125,15 @@ present selection; the application chooses its policy. The
 and ordered selection, including an optional ordered-selection limit.
 
 ## Edit a draft, then save it
+
+```diagram
+{
+  "source": "docs/diagrams/save-draft.svg",
+  "narrow": "docs/diagrams/save-draft-narrow.svg",
+  "description": "A form edits a separate draft; after a successful save, the service response updates the shared store and its views."
+}
+```
+
 
 An `EditModel` holds a record's uncommitted values, validation state and baseline.
 A form writes into that draft. Saving sends changes to the service; a successful

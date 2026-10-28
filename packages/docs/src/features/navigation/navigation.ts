@@ -22,7 +22,7 @@ export function initNavigation(): void {
     catch { /* Storage is optional. */ }
   };
   addEventListener("pagehide", rememberNavigationScroll);
-  if (!document.body.hasAttribute("data-api")) restoreNavigationScroll();
+  if (!document.body.hasAttribute("data-docs-routed")) restoreNavigationScroll();
   const closeMenu = () => { rememberNavigationScroll(); menu.setAttribute("aria-expanded", "false"); document.body.classList.remove("nav-open"); };
   menu.addEventListener("click", () => {
     const open = menu.getAttribute("aria-expanded") !== "true";

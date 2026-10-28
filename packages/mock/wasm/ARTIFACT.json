@@ -1,7 +1,7 @@
 {
   "license": "Apache-2.0",
-  "sha256": "cbdab46f22434ac0a8caf59d089eb6f6c53a4fc677914cb7005696a5e95d738d",
-  "bytes": 4631621,
+  "sha256": "8aa8844f481eb34e4cdfe313bd62e3601333e61cb4e535100f9f52774e73ec6b",
+  "bytes": 5129972,
   "compiler": "rustc 1.96.0 (ac68faa20 2026-05-25)",
   "format": "wasm32-wasip1",
   "dependencies": [
@@ -740,6 +740,14 @@
       "license": "MIT",
       "notices": [
         "licenses/cb5aedb296c5246d-LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "xxhash-rust",
+      "version": "0.8.19",
+      "license": "BSL-1.0",
+      "notices": [
+        "licenses/c9bff75738922193-LICENSE"
       ]
     },
     {

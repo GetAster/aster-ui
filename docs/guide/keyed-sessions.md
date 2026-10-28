@@ -37,6 +37,21 @@ receives the inherited activity as the optional third factory argument.
 
 ## Open, select and close
 
+```diagram
+{
+  "source": "docs/diagrams/retained-view-lifecycle.svg",
+  "narrow": "docs/diagrams/retained-view-lifecycle-narrow.svg",
+  "description": "Switching views retains the component while its work pauses by default; an accepted user close disposes its owned resources."
+}
+```
+
+These are view and resource states, not the handle’s `status` values. Returning
+to a retained view reuses its component. The diagram assumes an active ancestor;
+activity policy determines whether registered work may run. User close asks the
+guard, while removal and owner disposal release resources unconditionally.
+
+
+
 ```ts
 const sessions = lifetime.own(new CompositeSessions(catalog));
 sessions.reconcile([

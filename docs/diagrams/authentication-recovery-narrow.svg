@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 610">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0L10 5L0 10Z"/></marker></defs>
+<rect class="step" x="5" y="5" width="270" height="84" rx="6"/>
+<text class="label" x="140.0" y="30" text-anchor="middle">1. Requests receive 401</text>
+<text class="note" x="140.0" y="50" text-anchor="middle">Replay policy is checked first</text>
+<path class="arrow" d="M140 89V113" marker-end="url(#arrow)"/>
+<rect class="step" x="5" y="115" width="270" height="84" rx="6"/>
+<text class="label" x="140.0" y="140" text-anchor="middle">2. One shared recovery</text>
+<text class="note" x="140.0" y="160" text-anchor="middle">Your sign-in restores credentials</text>
+<path class="arrow" d="M140 199V223" marker-end="url(#arrow)"/>
+<rect class="step" x="5" y="225" width="270" height="84" rx="6"/>
+<text class="label" x="140.0" y="250" text-anchor="middle">3. Other requests wait</text>
+<text class="note" x="140.0" y="270" text-anchor="middle">They share the same recovery</text>
+<path class="arrow" d="M140 309V333" marker-end="url(#arrow)"/>
+<rect class="step" x="5" y="335" width="270" height="84" rx="6"/>
+<text class="label" x="140.0" y="360" text-anchor="middle">4. Credentials are ready</text>
+<text class="note" x="140.0" y="380" text-anchor="middle">Replay each challenged</text>
+<text class="note" x="140.0" y="400" text-anchor="middle">eligible operation once</text>
+<rect class="panel" x="5" y="455" width="270" height="110" rx="6"/>
+<text class="label" x="140.0" y="480" text-anchor="middle">Replay policy</text>
+<text class="note" x="140.0" y="500" text-anchor="middle">GET is eligible by default.</text>
+<text class="note" x="140.0" y="520" text-anchor="middle">Blocked writes fail before login.</text>
+<text class="note" x="140.0" y="540" text-anchor="middle">403 does not trigger recovery.</text>
+<text class="note" x="140" y="594" text-anchor="middle">Time runs from top to bottom.</text>
+</svg>

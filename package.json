@@ -10,7 +10,7 @@
   "scripts": {
     "version:build": "bun scripts/version.ts",
     "test": "bun test ./packages ./tests/integration",
-    "typecheck": "tsc -p packages/data && tsc -p packages/mock && tsc -p packages/elements && tsc -p packages/elements-preview && tsc -p apps/showcase && tsc -p apps/docs && tsc -p tests && tsc -p scripts && tsc -p scripts/lib --noEmit",
+    "typecheck": "tsc -p packages/docs && tsc -p packages/data && tsc -p packages/mock && tsc -p packages/elements && tsc -p packages/elements-preview && tsc -p apps/showcase && tsc -p apps/docs && tsc -p tests && tsc -p scripts && tsc -p scripts/lib --noEmit",
     "check:deps": "bun scripts/check-deps.ts",
     "check": "bun run typecheck && bun run check:deps && bun run test",
     "dev": "bun --hot apps/showcase/serve.ts",
@@ -22,7 +22,9 @@
     "verify:wasm": "bun scripts/verify-wasm.ts",
     "site:release": "bun scripts/build-product-site.ts",
     "site:prepare": "node scripts/prepare-cloudflare.mjs",
-    "test:site": "playwright test --config playwright.release.config.ts"
+    "test:site": "playwright test --config playwright.release.config.ts",
+    "docs:package": "bun packages/docs/scripts/package.ts",
+    "docs:verify": "bun run docs:package && bun scripts/test-docs-package.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

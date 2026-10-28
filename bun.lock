@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "aster-ui",
@@ -19,7 +18,7 @@
       "name": "@getaster/docs-site",
       "version": "0.0.0",
       "dependencies": {
-        "highlight.js": "11.12.0",
+        "@getaster/docs": "workspace:*",
         "marked": "15.0.12",
       },
     },
@@ -42,6 +41,14 @@
       "version": "0.0.0",
       "dependencies": {
         "@preact/signals-core": "1.14.4",
+      },
+    },
+    "packages/docs": {
+      "name": "@getaster/docs",
+      "version": "0.1.0",
+      "dependencies": {
+        "highlight.js": "11.12.0",
+        "marked": "15.0.12",
       },
     },
     "packages/elements": {
@@ -82,6 +89,8 @@
     "@fontsource-variable/fraunces": ["@fontsource-variable/fraunces@5.3.0", "", {}, "sha512-9BYGySn4AHEJdgp9Z28tQ3X+laJMEOITXkQarZXeloWQZDq5oOvXJ3kDA8c7MGIfpogIaZfjrQBqmda8POOCKA=="],
 
     "@getaster/data": ["@getaster/data@workspace:packages/data"],
+
+    "@getaster/docs": ["@getaster/docs@workspace:packages/docs"],
 
     "@getaster/docs-site": ["@getaster/docs-site@workspace:apps/docs"],
 

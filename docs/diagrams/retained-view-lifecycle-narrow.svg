@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 730">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0L10 5L0 10Z"/></marker></defs>
+<rect class="step" x="20" y="5" width="240" height="64" rx="6"/>
+<text class="label" x="140.0" y="30" text-anchor="middle">Selected view</text>
+<text class="note" x="140.0" y="50" text-anchor="middle">Registered work runs</text>
+<path class="arrow" d="M80 69V148" marker-end="url(#arrow)"/>
+<text class="note" x="98" y="105" text-anchor="start">Switch away</text>
+<path class="arrow" d="M220 150V71" marker-end="url(#arrow)"/>
+<text class="note" x="215" y="133" text-anchor="end">Select again</text>
+<rect class="step" x="20" y="150" width="240" height="84" rx="6"/>
+<text class="label" x="140.0" y="175" text-anchor="middle">Inactive view</text>
+<text class="note" x="140.0" y="195" text-anchor="middle">Same component and draft</text>
+<text class="note" x="140.0" y="215" text-anchor="middle">Work pauses by default</text>
+<text class="note" x="140" y="264" text-anchor="middle">Either view: user requests close</text>
+<path class="arrow" d="M140 234V244"/>
+<path class="arrow" d="M140 274V283" marker-end="url(#arrow)"/>
+<rect class="step" x="20" y="285" width="240" height="84" rx="6"/>
+<text class="label" x="140.0" y="310" text-anchor="middle">Close guard</text>
+<text class="note" x="140.0" y="330" text-anchor="middle">Refused: retain the view</text>
+<text class="note" x="140.0" y="350" text-anchor="middle">Accepted: dispose below</text>
+<path class="arrow" d="M140 369V408" marker-end="url(#arrow)"/>
+<rect class="step" x="20" y="410" width="240" height="64" rx="6"/>
+<text class="label" x="140.0" y="435" text-anchor="middle">Disposed</text>
+<text class="note" x="140.0" y="455" text-anchor="middle">Owned resources released</text>
+<rect class="panel" x="5" y="510" width="270" height="84" rx="6"/>
+<text class="label" x="140.0" y="535" text-anchor="middle">Activity policy</text>
+<text class="note" x="140.0" y="555" text-anchor="middle">“continue” permits inactive work.</text>
+<text class="note" x="140.0" y="575" text-anchor="middle">A paused ancestor still pauses it.</text>
+<text class="note" x="140" y="630" text-anchor="middle">Removal or owner disposal</text>
+<text class="note" x="140" y="650" text-anchor="middle">bypasses the close guard.</text>
+<text class="note" x="140" y="690" text-anchor="middle">Borrowed resources remain</text>
+<text class="note" x="140" y="710" text-anchor="middle">with their owner.</text>
+</svg>

@@ -36,7 +36,7 @@ async function startMock(): Promise<MockClient> {
     frozen: params.has("now"),
     memory: params.has("memory"),
     wasm: new URL("odata_mock.wasm", document.baseURI).href,
-    // `?estimate=<factor>` makes counts estimates, as a database's would be.
+    // `?estimate=<factor>` enables the mock's test-only count simulation.
     ...(params.has("estimate") ? { countEstimate: Number(params.get("estimate")) } : {}),
   };
   worker.postMessage({ options });

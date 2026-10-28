@@ -17,6 +17,7 @@
     "../../packages/*/src/**/*.ts"
   ],
   "exclude": [
-    "../../packages/**/*.test.ts"
+    "../../packages/**/*.test.ts",
+    "../../packages/docs/**"
   ]
 }

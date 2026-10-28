@@ -1,10 +1,8 @@
-export interface NavigationGroup {
-  readonly label: string;
-  readonly links: readonly { readonly href: string; readonly label: string }[];
-}
+import type { NavigationGroup } from "@getaster/docs";
 
 export const navigationGroups: readonly NavigationGroup[] = [
   { label: "Start here", links: [
+    { href: "../#showcase", label: "Explore the showcase ↗" },
     { href: "../guide/why-aster.html", label: "Why Aster UI?" },
     { href: "../guide/evaluating-aster-ui.html", label: "Is Aster UI a fit?" },
     { href: "../guide/integrate-sql-and-apis.html", label: "Integrate SQL & APIs" },
@@ -42,7 +40,6 @@ export const navigationGroups: readonly NavigationGroup[] = [
     { href: "../reference/#class:TileGrid", label: "TileGrid & DataView" },
     { href: "../reference/#class:Tabs", label: "Tabs" },
     { href: "../reference/#class:Dashboard", label: "Dashboards" },
-    { href: "../#showcase", label: "Component showcase ↗" },
   ] },
   { label: "Experimental components", links: [
     { href: "../guide/conversation-preview.html", label: "Conversation reader preview" },

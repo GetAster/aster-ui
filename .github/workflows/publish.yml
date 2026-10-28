@@ -56,8 +56,9 @@ jobs:
       - run: bun run verify:wasm
       - run: bun run typecheck
       - run: bun run check:deps
+      - run: bun run docs:package
       - name: Check versioning and publication paths
-        run: bun test ./tests/integration/version.test.ts ./tests/integration/agent-docs.test.ts ./tests/integration/product-site.test.ts
+        run: bun test ./packages/docs ./tests/integration/version.test.ts ./tests/integration/agent-docs.test.ts ./tests/integration/product-site.test.ts
       - name: Build release tarballs
         run: bun run packages:build --version "$RELEASE_VERSION"
         env:

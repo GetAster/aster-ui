@@ -1,7 +1,4 @@
-/** Published docs live below /docs; development keeps the flat site layout. */
-export function documentationRoot(): URL {
-  return new URL(document.querySelector('meta[name="aster-site-layout"]')?.getAttribute("content") === "product" ? "/docs/" : "../", location.href);
-}
+export { documentationRoot } from "@getaster/docs/browser-paths";
 
 export function referenceArticleLinks(main: HTMLElement): void {
   if (document.querySelector('meta[name="aster-site-layout"]')?.getAttribute("content") !== "product") return;

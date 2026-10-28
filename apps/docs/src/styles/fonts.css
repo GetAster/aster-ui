@@ -1,3 +1,1 @@
-@font-face { font-family:Geist; src:url("./brand/geist/Geist-VariableFont_wght.ttf") format("truetype"); font-weight:100 900; font-style:normal; font-display:optional; }
-@font-face { font-family:"IBM Plex Mono"; src:url("./brand/ibm-plex-mono/IBMPlexMono-Regular.ttf") format("truetype"); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:"IBM Plex Mono"; src:url("./brand/ibm-plex-mono/IBMPlexMono-Medium.ttf") format("truetype"); font-weight:500; font-style:normal; font-display:swap; }
+@import "@getaster/docs/styles/fonts.css";

@@ -1,12 +1,6 @@
-import type { SearchItem } from "../src/features/search/index.ts";
-
-/** Keep searchable prose and identifiers without downloading API signatures twice. */
-export function searchText(value: string): string {
-  return value.replace(/```[\s\S]*?```/g, " ").replace(/<[^>]*>/g, " ")
-    .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, "$1 $2")
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/[`#*_>|]/g, "").replace(/\s+/g, " ").trim();
-}
+import type { SearchItem } from "@getaster/docs/search";
+import { searchText } from "@getaster/docs";
+export { searchText } from "@getaster/docs";
 
 export function searchItems(guides: readonly SearchItem[], api: readonly { name: string; definingClass?: string; ref: string; description: string; kind: string }[]): SearchItem[] {
   return [...guides.map(item => ({ ...item, name: searchText(item.name), description: searchText(item.description) })), ...api.map(entry => ({

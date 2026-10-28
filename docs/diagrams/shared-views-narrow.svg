@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 350">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0L10 5L0 10Z"/></marker></defs>
+<rect class="step" x="10" y="10" width="260" height="64" rx="6"/>
+<text class="label" x="140" y="36" text-anchor="middle">DataContext</text>
+<text class="note" x="140" y="56" text-anchor="middle">Shared record store</text>
+<rect class="step" x="10" y="120" width="260" height="64" rx="6"/>
+<text class="label" x="140" y="146" text-anchor="middle">Collection + Selection</text>
+<text class="note" x="140" y="166" text-anchor="middle">Query and chosen keys</text>
+<rect class="step" x="10" y="260" width="120" height="64" rx="6"/>
+<text class="label" x="70" y="286" text-anchor="middle">Grid</text>
+<text class="note" x="70" y="306" text-anchor="middle">Rows</text>
+<rect class="step" x="150" y="260" width="120" height="64" rx="6"/>
+<text class="label" x="210" y="286" text-anchor="middle">TileGrid</text>
+<text class="note" x="210" y="306" text-anchor="middle">Tiles</text>
+<path class="arrow" d="M140 74V118" marker-end="url(#arrow)"/>
+<path class="arrow" d="M140 184V220H70V258" marker-end="url(#arrow)"/>
+<path class="arrow" d="M140 220H210V258" marker-end="url(#arrow)"/>
+</svg>

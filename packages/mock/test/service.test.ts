@@ -136,3 +136,36 @@ test("a failed save fails that flush only; the next write saves everything", asy
     process.off("unhandledRejection", onUnhandled);
   }
 });
+
+test("restored revisions reject pre-save ETags and old data-only dumps still load", async () => {
+  const a = await service();
+  const stale = (await get(a, "Projects(1)")).headers.etag!;
+  await send(a, "PATCH", "Projects(1)", { name: 'Persisted revision' }, { "If-Match": stale });
+  const saved = a.dump();
+  expect(JSON.stringify(saved.data)).not.toContain('__aster_mock_revision');
+  const storage: MockStorage = { load: async () => saved, save: async () => {} };
+  const b = await service({ storage });
+  expect((await send(b, "PATCH", "Projects(1)", { name: 'Stale write' }, { "If-Match": stale })).status).toBe(412);
+  const oldStorage: MockStorage = { load: async () => ({ data: saved.data }), save: async () => {} };
+  const c = await service({ storage: oldStorage });
+  expect(json(await get(c, "Projects(1)")).name).toBe('Persisted revision');
+});
+
+test("count thresholds do not affect exact engine counts without explicit simulation", async () => {
+  const schema = structuredClone(metadata) as any;
+  schema.AsterDemo.Container.People['@AsterData.CountThreshold'] = 1;
+  const s = await createMockService({ metadata: schema, data: seed });
+  const result = json(await get(s, 'People?$count=true&$top=1'));
+  expect(result['@odata.count']).toBe(seed.People!.length);
+  expect(result['@AsterData.CountEstimated']).toBeUndefined();
+});
+
+test("simulation accepts underestimates and rejects invalid factors", async () => {
+  const s = await service({ countEstimate: 0.5 });
+  const result = json(await get(s, 'People?$count=true&$top=1'));
+  expect(result['@odata.count']).toBe(Math.ceil(seed.People!.length / 2));
+  expect(result['@AsterData.CountEstimated']).toBe(true);
+  for (const factor of [0, -1, NaN, Infinity]) {
+    await expect(service({ countEstimate: factor })).rejects.toThrow('positive finite');
+  }
+});

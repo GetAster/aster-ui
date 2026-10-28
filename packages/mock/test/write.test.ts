@@ -13,7 +13,7 @@ const project = {
   hue: 10,
 };
 
-const ETAG = /^W\/"[0-9a-f]{16}"$/;
+const ETAG = /^W\/"[^"\\]+"$/;
 
 test("create, patch, put and delete with ETags", async () => {
   const s = await service();
@@ -156,4 +156,19 @@ test("$batch runs an atomicity group as one transaction", async () => {
     { set: "Projects", key: "1", kind: "update", external: false },
     { set: "Notes", key: "1", kind: "delete", external: false },
   ]);
+});
+
+test("opaque ETags survive projection and reject stale saves with a frozen clock", async () => {
+  const s = await service();
+  const original = await get(s, "Projects(1)");
+  const tag = original.headers.etag!;
+  const selected = await get(s, "Projects(1)?$select=name");
+  expect(selected.headers.etag).toBe(tag);
+  expect(selected.body).not.toContain('__aster_mock_revision');
+  const updated = await send(s, "PATCH", "Projects(1)", { name: "First revision" }, { "If-Match": tag, Prefer: 'return=representation' });
+  expect(updated.status).toBe(200);
+  expect(updated.headers.etag).not.toBe(tag);
+  expect(updated.body).not.toContain('__aster_mock_revision');
+  expect((await get(s, "Projects(1)?$select=id")).headers.etag).toBe(updated.headers.etag!);
+  expect((await send(s, "PATCH", "Projects(1)", { name: "Stale revision" }, { "If-Match": tag })).status).toBe(412);
 });

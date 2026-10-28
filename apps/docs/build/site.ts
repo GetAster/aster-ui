@@ -1,6 +1,7 @@
 import { exampleSearchItems, searchItems } from "./search.ts";
 import { buildAgentDocs } from "./agent-docs.ts";
 import { marked } from "marked";
+import { createDiagramRenderer, renderMarkdown } from "@getaster/docs";
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { build as buildReference } from "../../../scripts/docs/build.ts";
@@ -40,7 +41,7 @@ export async function buildDocumentation(ROOT: string, OUT: string, DOCS: readon
         .replace("<!--first-grid-html-->", () => "```html\n" + readFileSync(join(OUT, "playground/first-grid.html"), "utf8") + "\n```")
         .replace("<!--first-grid-js-->", () => "```javascript\n" + readFileSync(exampleSource(ROOT, "first-grid.js"), "utf8") + "\n```");
       const heading = /^# (.+)$/m.exec(md)?.[1] ?? file;
-      const body = (await marked.parse(md))
+      const body = (await renderMarkdown(md, { allowHtml: true, renderDiagram: createDiagramRenderer(ROOT) })).html
         .replace(/href="(\.\/)?([\w-]+)\.md(#[^"]*)?"/g, 'href="$2.html$3"')
         .replace(/href="\.\.\/([\w-]+)\/([\w-]+)\.md(#[^"]*)?"/g, (m, d, n, h = "") =>
           DOCS.includes(d) ? `href="${dir === "guide" && d !== "guide" ? `${REPO}${d}/${n}.md` : `../${d}/${n}.html`}${h}"` : m)
@@ -65,7 +66,7 @@ export async function buildDocumentation(ROOT: string, OUT: string, DOCS: readon
   const REF = join(OUT, "reference");
   await buildDocsRuntime(ROOT, OUT, production);
   mkdirSync(REF, { recursive: true });
-  writeFileSync(join(REF, "index.html"), shell("Documentation", "", "../docs-assets/viewer.js").replace('<body class="doc ref">', '<body class="doc ref" data-api>').replace("</head>", '<link rel="alternate" type="text/markdown" href="./index.md"></head>'));
+  writeFileSync(join(REF, "index.html"), shell("Documentation", "", "../docs-assets/viewer.js").replace('<body class="doc ref">', '<body class="doc ref" data-api data-docs-routed>').replace("</head>", '<link rel="alternate" type="text/markdown" href="./index.md"></head>'));
   writeFileSync(join(REF, "reference.json"), JSON.stringify(reference.entries));
   const guidePages = readdirSync(join(ROOT, "docs/guide")).filter(f => f.endsWith(".md")).sort((a, b) => {
     const order = ["why-aster.md", "getting-started.md", "data-model.md", "connected-views.md", "library.md", "themes.md"];
@@ -79,7 +80,7 @@ export async function buildDocumentation(ROOT: string, OUT: string, DOCS: readon
   writeFileSync(join(OUT, "guide/search.json"), JSON.stringify(searchItems([...guidePages, ...exampleSearchItems(examples)], reference.entries)));
   buildExamples(ROOT, OUT);
   buildAgentDocs(OUT, guideMarkdown, reference.entries);
-  writeFileSync(join(OUT, "guide/index.html"), shell("Guides", `<p class="eyebrow">Aster UI / Learn</p><h1>Build with Aster.</h1><p class="lead">Understand the model, run an example, then compose your own application.</p><div class="doc-cards">${guidePages.filter(p => !["../guide/data.html", "../guide/elements.html"].includes(p.href)).map(p => `<a class="doc-card" href="${p.href}"><strong>${p.name}</strong><span>Read the guide →</span></a>`).join("")}</div><h2>Implementation details</h2><p>Advanced guides explain how the data core and elements work internally.</p><div class="doc-cards">${guidePages.filter(p => ["../guide/data.html", "../guide/elements.html"].includes(p.href)).map(p => `<a class="doc-card" href="${p.href}"><strong>${p.name}</strong><span>Read the advanced guide →</span></a>`).join("")}</div>`));
+  writeFileSync(join(OUT, "guide/index.html"), shell("Guides", `<p class="eyebrow">Aster UI / Learn</p><h1>Build with Aster.</h1><p class="lead">Understand the model, run an example, then compose your own application.</p><div class="doc-actions"><a class="doc-action primary" href="../#showcase">Explore the showcase →</a><a class="doc-action" href="../examples/">Examples with source →</a></div><div class="doc-cards">${guidePages.filter(p => !["../guide/data.html", "../guide/elements.html"].includes(p.href)).map(p => `<a class="doc-card" href="${p.href}"><strong>${p.name}</strong><span>Read the guide →</span></a>`).join("")}</div><h2>Implementation details</h2><p>Advanced guides explain how the data core and elements work internally.</p><div class="doc-cards">${guidePages.filter(p => ["../guide/data.html", "../guide/elements.html"].includes(p.href)).map(p => `<a class="doc-card" href="${p.href}"><strong>${p.name}</strong><span>Read the advanced guide →</span></a>`).join("")}</div>`));
 
     return lists;
 }

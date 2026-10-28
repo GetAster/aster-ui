@@ -1,0 +1,34 @@
+{
+  "name": "@getaster/docs",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Shared static documentation shell, browser features and Markdown builds for Aster projects.",
+  "exports": {
+    ".": "./src/build/index.ts",
+    "./browser": "./src/browser/index.ts",
+    "./search": "./src/features/search/index.ts",
+    "./html": "./src/shared/dom.ts",
+    "./browser-paths": "./src/shared/paths.ts",
+    "./styles/*": "./styles/*"
+  },
+  "dependencies": {
+    "highlight.js": "11.12.0",
+    "marked": "15.0.12"
+  },
+  "engines": {
+    "bun": ">=1.2.15"
+  },
+  "files": [
+    "dist",
+    "styles",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetAster/aster-ui.git",
+    "directory": "packages/docs"
+  }
+}

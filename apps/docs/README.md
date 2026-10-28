@@ -1,6 +1,6 @@
 # Documentation site
 
-The site has three source areas, with separate responsibilities:
+The site separates project content and features from the shared docs package:
 
 ```text
 docs/guide/                       User guides written in Markdown
@@ -9,22 +9,20 @@ apps/docs/
   src/app/                       Runtime entry points and navigation descriptors
   src/templates/                 HTML shell, navigation and product landing pages
   src/features/
-    article/                     Headings, page outline, highlighting and copy
-    appearance/                  Colour preference and embedded preview appearance
-    navigation/                  Mobile menu and preserved sidebar position
-    search/                      Guide and API search, including keyboard controls
     examples/                    Live preview, source selection and return focus
     reference/                   API types, page rendering and hash navigation
-  src/shared/                    DOM helpers and published-path handling
-  src/styles/                    Site styling and licensed brand/font assets
+  src/shared/                    UI reference published-path handling
+  src/styles/                    Product and example styling
   build/                         Example pages, source excerpts and runtime bundling
+packages/docs/                   Shared shell, browser features, styles and brand assets
 scripts/docs/                    API extraction and public link validation
 scripts/build-site.ts             Local site assembly
 scripts/build-product-site.ts     Product URLs, deployment receipt and staging
 ```
 
 Static articles use `src/app/docs.ts`; the API reference uses `src/app/viewer.ts`.
-Both initialise the same shell. The docs use semantic HTML and static templates
+Both initialise the shell from `@getaster/docs`, a separately versioned package
+that also supports other Aster projects. The docs use semantic HTML and static templates
 for reading pages; embedded examples use the Aster application runtime. There is
 no duplicate framework or docs-specific composition engine.
 
@@ -44,7 +42,12 @@ no duplicate framework or docs-specific composition engine.
 Run `bun run site` from the root. The result includes the locally useful internal
 documentation in `dist-local/` and a filtered public site in `dist-local/showcase/`.
 Product staging generates `dist-site/`, with guides and reference below `/docs/`.
-Neither examples nor documentation runtime are part of the npm package bundles.
+The UI npm bundles exclude examples and documentation. The shared documentation
+runtime is distributed separately as `@getaster/docs`.
+
+The reusable package is documented in [packages/docs](../../packages/docs/README.md).
+Run `bun run docs:verify` to pack it, install it outside the workspace, and check
+its default runtime in a browser under a URL prefix.
 
 Browser checks cover search, API routes, colour preferences, mobile navigation,
 sidebar scroll retention, highlighted source, embedded examples and return focus.

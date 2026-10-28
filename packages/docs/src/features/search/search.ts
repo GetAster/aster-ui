@@ -1,5 +1,5 @@
 import { $, esc } from "../../shared/dom.ts";
-import { documentationRoot } from "../../shared/paths.ts";
+import { searchURL } from "../../shared/paths.ts";
 
 import { createSearchIndex, searchExcerpt, type SearchItem } from "./index.ts";
 
@@ -15,14 +15,14 @@ export function initSearch(): void {
     const q = input.value.trim();
     const found = q ? search(q) : [];
     results.hidden = !q || !open;
-    results.innerHTML = found.map(e => `<li><a href="${esc(e.href)}"><span class="search-result-copy"><strong>${esc(e.name)}</strong><span class="search-result-excerpt">${esc(searchExcerpt(e.description, q))}</span></span><small>${esc(e.kind)}</small></a></li>`).join("") || `<li class="search-empty">${indexFailed ? "Search unavailable. Browse using the sidebar." : loaded ? "No results. Try a component or task name." : "Loading search…"}</li>`;
+    results.innerHTML = found.map(e => `<li><a href="${esc(e.href)}"><span class="search-result-copy"><strong>${esc(e.name)}</strong><span class="search-result-excerpt">${esc(searchExcerpt(e.description, q))}</span></span><small>${esc(e.kind)}</small></a></li>`).join("") || `<li class="search-empty">${indexFailed ? "Search unavailable. Browse using the sidebar." : loaded ? "No results. Try another word or task name." : "Loading search…"}</li>`;
     status.textContent = !q || !open ? "" : indexFailed ? "Search unavailable" : !loaded ? "Loading search" : `${found.length} results`;
   };
-  fetch(new URL("guide/search.json", documentationRoot())).then(response => {
+  fetch(searchURL()).then(response => {
     if (!response.ok) throw new Error("Search unavailable");
     return response.json() as Promise<SearchItem[]>;
   }).then(items => {
-    search = createSearchIndex(items.map(item => ({ ...item, href: new URL(item.href, new URL("guide/search.json", documentationRoot())).href })));
+    search = createSearchIndex(items.map(item => ({ ...item, href: new URL(item.href, searchURL()).href })));
     loaded = true;
     if (open) update();
   }).catch(() => { indexFailed = true; if (open) update(); });

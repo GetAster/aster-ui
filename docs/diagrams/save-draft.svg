@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 270">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0L10 5L0 10Z"/></marker></defs>
+<rect class="step" x="10" y="20" width="200" height="64" rx="6"/>
+<text class="label" x="110" y="46" text-anchor="middle">Form → EditModel</text>
+<text class="note" x="110" y="66" text-anchor="middle">Unsaved draft</text>
+<rect class="step" x="240" y="20" width="200" height="64" rx="6"/>
+<text class="label" x="340" y="46" text-anchor="middle">Service</text>
+<text class="note" x="340" y="66" text-anchor="middle">Validate and save</text>
+<rect class="step" x="470" y="20" width="200" height="64" rx="6"/>
+<text class="label" x="570" y="46" text-anchor="middle">Shared store</text>
+<text class="note" x="570" y="66" text-anchor="middle">Confirmed response</text>
+<rect class="step" x="470" y="180" width="200" height="64" rx="6"/>
+<text class="label" x="570" y="206" text-anchor="middle">Grid and other views</text>
+<text class="note" x="570" y="226" text-anchor="middle">Read updated records</text>
+<path class="arrow" d="M210 52H238" marker-end="url(#arrow)"/>
+<path class="arrow" d="M440 52H468" marker-end="url(#arrow)"/>
+<path class="arrow" d="M570 84V178" marker-end="url(#arrow)"/>
+</svg>

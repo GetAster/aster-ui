@@ -1,7 +1,7 @@
-// aster-odata's markers end to end through the mock's engine: estimated
+// Service marker compatibility end to end through the mock's engine: estimated
 // counts (`@AsterData.CountEstimated`, `AsterData.CountThreshold`) and
 // fields hidden per record (`AsterData.ViewableWhen`, `@AsterData.Hidden`).
-// The HTTP harness maps the visibility rules, thresholds and test estimates.
+// Estimates exercise mock simulation; current Web Data returns exact counts.
 import { describe, expect, test } from "bun:test";
 import { DataContext, EditModel, PageScope, editPublication, keyText, selectionPublication, Selection, type ODataRequest } from "@getaster/data";
 import { createMockService, type MockService } from "@getaster/mock";
