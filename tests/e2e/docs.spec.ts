@@ -154,7 +154,7 @@ test("first-visit data guidance separates implementation details and npm install
   await expect(page.locator("main")).toContainText("WebTransport with SSE fallback");
   await nav.getByRole("link", { name: "Installation & distribution", exact: true }).click();
   await expect(page.locator("main")).toContainText("@getaster");
-  await expect(page.locator("main")).toContainText("0.2 release line");
+  await expect(page.locator("main")).toContainText("0.3 release line");
   await expect(page.locator("main")).toContainText("npm install @getaster/data @getaster/elements");
   await nav.getByRole("link", { name: "Data core internals", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Data core internals");
