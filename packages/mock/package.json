@@ -14,5 +14,17 @@
     "type": "git",
     "url": "git+https://github.com/GetAster/aster-ui.git",
     "directory": "packages/mock"
-  }
+  },
+  "description": "Local OData mock service powered by WebAssembly for Aster UI tests and demos.",
+  "homepage": "https://ui.getaster.now/docs/guide/library.html",
+  "bugs": {
+    "url": "https://github.com/GetAster/aster-ui/issues"
+  },
+  "keywords": [
+    "odata",
+    "mock",
+    "webassembly",
+    "testing",
+    "typescript"
+  ]
 }

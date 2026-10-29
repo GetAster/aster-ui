@@ -20,6 +20,21 @@ try {
   })));
   writeFileSync(join(directory, "package.json"), JSON.stringify({ private: true, type: "module", dependencies }));
   run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund"]);
+  const readmeExamples: string[] = [];
+  for (const name of ["data", "elements", "elements-preview", "mock"]) {
+    const installed = join(directory, "node_modules/@getaster", name);
+    for (const file of ["README.md", "NOTICE"]) {
+      if (!fromRegistry && readFileSync(join(installed, file), "utf8") !== readFileSync(join(root, "packages", name, file), "utf8")) {
+        throw new Error(`${name}: published ${file} differs from the maintained package file`);
+      }
+    }
+    const readme = readFileSync(join(installed, "README.md"), "utf8");
+    for (const [index, match] of [...readme.matchAll(/```ts\n([\s\S]*?)\n```/g)].entries()) {
+      const file = `readme-${name}-${index}.ts`;
+      writeFileSync(join(directory, file), match[1]!);
+      readmeExamples.push(file);
+    }
+  }
   writeFileSync(join(directory, "consumer.ts"), `import { Lifetime } from '@getaster/data';
 import { Grid } from '@getaster/elements';
 import { ConversationSession } from '@getaster/elements-preview/conversation';
@@ -29,7 +44,15 @@ void [selection, Grid, ConversationSession, createMockService];
 `);
   const bundled = await Bun.build({ entrypoints: [join(directory, "consumer.ts")], target: "browser" });
   if (!bundled.success) throw new AggregateError(bundled.logs, "Packaged browser modules did not bundle");
-  run([join(root, "node_modules/.bin/tsc"), "--noEmit", "--strict", "--skipLibCheck", "--module", "nodenext", "--target", "es2023", "consumer.ts"]);
+  const typecheck = [join(root, "node_modules/.bin/tsc"), "--noEmit", "--strict", "--skipLibCheck", "--module", "nodenext", "--target", "es2023"];
+  run([...typecheck, "consumer.ts"]);
+  if (readmeExamples.length) run([...typecheck, "--typeRoots", join(root, "node_modules/@types"), "--types", "node", ...readmeExamples]);
+  const mockExample = join(directory, "readme-mock-0.ts");
+  if (!fromRegistry) {
+    const code = new Bun.Transpiler({ loader: "ts" }).transformSync(readFileSync(mockExample, "utf8"));
+    writeFileSync(join(directory, "readme-mock.mjs"), code + '\nif (projects.items.value[0]?.name !== "First project") throw new Error("README example did not load its seed record");\n');
+    run(["node", "readme-mock.mjs"]);
+  }
   cpSync(join(root, "fixtures/aster/metadata.json"), join(directory, "metadata.json"));
   writeFileSync(join(directory, "runtime.mjs"), `import { readFileSync } from 'node:fs';
 import { Lifetime } from '@getaster/data';

@@ -5,5 +5,13 @@
   "description": "Isolated, locked Cloudflare CLI for deploying checked site artifacts",
   "devDependencies": {
     "cf": "1.0.0-beta.20"
+  },
+  "overrides": {
+    "@cloudflare/config": {
+      "zod": "4.6.7"
+    },
+    "miniflare": {
+      "undici": "7.30.1"
+    }
   }
 }

@@ -20,5 +20,17 @@
     "type": "git",
     "url": "git+https://github.com/GetAster/aster-ui.git",
     "directory": "packages/elements"
-  }
+  },
+  "description": "Browser-native grids, forms and workspace controls backed by shared Aster data models.",
+  "homepage": "https://ui.getaster.now/docs/guide/getting-started.html",
+  "bugs": {
+    "url": "https://github.com/GetAster/aster-ui/issues"
+  },
+  "keywords": [
+    "web-components",
+    "odata",
+    "grid",
+    "forms",
+    "typescript"
+  ]
 }

@@ -14,5 +14,17 @@
     "type": "git",
     "url": "git+https://github.com/GetAster/aster-ui.git",
     "directory": "packages/data"
-  }
+  },
+  "description": "DOM-free reactive data models for metadata-driven OData applications.",
+  "homepage": "https://ui.getaster.now/docs/guide/data-model.html",
+  "bugs": {
+    "url": "https://github.com/GetAster/aster-ui/issues"
+  },
+  "keywords": [
+    "odata",
+    "typescript",
+    "reactive",
+    "data-model",
+    "signals"
+  ]
 }

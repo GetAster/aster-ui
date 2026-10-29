@@ -19,5 +19,16 @@
     "type": "git",
     "url": "git+https://github.com/GetAster/aster-ui.git",
     "directory": "packages/elements-preview"
-  }
+  },
+  "description": "Experimental Aster UI controls, including a windowed conversation reader.",
+  "homepage": "https://ui.getaster.now/docs/guide/conversation-preview.html",
+  "bugs": {
+    "url": "https://github.com/GetAster/aster-ui/issues"
+  },
+  "keywords": [
+    "web-components",
+    "conversation",
+    "experimental",
+    "typescript"
+  ]
 }

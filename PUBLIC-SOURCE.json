@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "167918ace289465acd4dd6ab6587fe10bfe54bc475ad8074b049ac358f98f9e2"
+      "sha256": "87574c1abffa14d93d932b1f75f4360b83c6d1ccf3e514c6ca4de4081a9fbd31"
     },
     {
       "path": "LICENSE",
@@ -39,7 +39,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "58f8b36ddcd8dbbd14d22c3e6491df3967066eacef9e0e4ae07dae6f6b29a817"
+      "sha256": "afd7f3c06c7b34f46608a61e971300c7f33fb401e681807e095604ea15e98326"
     },
     {
       "path": "apps/docs/README.md",
@@ -695,7 +695,7 @@
     },
     {
       "path": "docs/guide/library.md",
-      "sha256": "34c7cb77da36591733ffd5dc294ab69db5daeb0b1ce4853a0073050ca123e3e8"
+      "sha256": "780d26ce59edc3dc50a2f1e3475cfb46767465f691cbdc109b56419d1e2ccfcc"
     },
     {
       "path": "docs/guide/managed-workspace.md",
@@ -874,8 +874,16 @@
       "sha256": "a43f7011abfdc6539869a84a862cf042b52d35c6131beaa24c37f4293eeef0c2"
     },
     {
+      "path": "packages/data/NOTICE",
+      "sha256": "eff322da176323d8276f30e73ea64cc5530dbdf9913d1c3bd8f8e279805301a8"
+    },
+    {
+      "path": "packages/data/README.md",
+      "sha256": "fd0404e81f2bd8591cf9ff4bc58419e39f846bd47ddb3badda207d5bf057a01e"
+    },
+    {
       "path": "packages/data/package.json",
-      "sha256": "35b42d52acff0d50f016e13efe3d45f3d02302748d4b5223038e209ad16c304d"
+      "sha256": "47b4fca218c567ac2e93a23e0345659f836866c0a0b599157daeaa32fd5308b1"
     },
     {
       "path": "packages/data/src/authentication.ts",
@@ -1218,12 +1226,16 @@
       "sha256": "3dc1ad3c848438ea30ac81d441bc2cfbd3573aa5be7240e051329d9efc45e3b7"
     },
     {
+      "path": "packages/elements-preview/NOTICE",
+      "sha256": "aa8840d4a322ba916c8a30bfe7c7336a3480a558f53419a04b51e20a5227bc6f"
+    },
+    {
       "path": "packages/elements-preview/README.md",
-      "sha256": "4872bd508d92dfdc86c23b41a3844e8756149026baae2c38cb7fd4362478e0d6"
+      "sha256": "f20ef76455cc1e981c6398b27fbdca34b7589b62802889cc0f7410039a0e8243"
     },
     {
       "path": "packages/elements-preview/package.json",
-      "sha256": "9d22d09d7215c09058cffd7dbee702226b86c2a3c00930c7a39f78561b94b856"
+      "sha256": "f7aba80d5a959eaccf73b8a14a93284e039309c025d49a9fcc901aaf5376e287"
     },
     {
       "path": "packages/elements-preview/src/conversation/session.ts",
@@ -1258,8 +1270,16 @@
       "sha256": "35adaabc5d3db46ae42cd600e2adb1bee9ce02a7e2f169229ad8b690c9e6856d"
     },
     {
+      "path": "packages/elements/NOTICE",
+      "sha256": "e3b0d2b2029ffea4308bff41c500ba2a47c2860921b1f39a18d3e85247bdef02"
+    },
+    {
+      "path": "packages/elements/README.md",
+      "sha256": "095a790f5abe6998ebcada703ab86315b064908df2c1907521466440eedf1b5d"
+    },
+    {
       "path": "packages/elements/package.json",
-      "sha256": "e8e3b25f42124c8a072728673815c3712290278d7d8ecfad78729e2a9d385f10"
+      "sha256": "39a271fb78e7072c507cce6d0a285f3b297bddc3d674705346095fb6b4b1b29e"
     },
     {
       "path": "packages/elements/src/base/drag.ts",
@@ -1654,8 +1674,16 @@
       "sha256": "d05f83889a4844ef11f56d1fb54b76856f889118a97f65b453196dc87238463f"
     },
     {
+      "path": "packages/mock/NOTICE",
+      "sha256": "79748ad4b74167569d9ca230ec20537d447019aeb6c0132714afb155b6bea9c9"
+    },
+    {
+      "path": "packages/mock/README.md",
+      "sha256": "cf7a94cd5867013dd840c7c74fc497676c3a33a238078e04c0f2815791b2030f"
+    },
+    {
       "path": "packages/mock/package.json",
-      "sha256": "15d546b3e0c283c7eaa9d3ca7ff5b310802640e89bb426a7b0b38a2b86b671fb"
+      "sha256": "40263ecc522869af5dd366e00d875bf11602fff80f743af6b753e71303dd9249"
     },
     {
       "path": "packages/mock/src/engine.ts",
@@ -1987,7 +2015,7 @@
     },
     {
       "path": "scripts/build-packages.ts",
-      "sha256": "0c1d7c6ab8cfbe86e3220a282b1412e13231d3664890fbcb0da9312f039c957e"
+      "sha256": "4dd3b6899d8eaf1c069ec56de76c1601f1ba015199b656cbdc41b0eee733ee4f"
     },
     {
       "path": "scripts/build-product-site.ts",
@@ -2003,15 +2031,15 @@
     },
     {
       "path": "scripts/check-package-consumer.ts",
-      "sha256": "e098e74dcddbadfbf9e2529c7f6cd4f81a63c3202ed491508e1743a584f34d19"
+      "sha256": "950b4a3365694ca0abdf794a89f963f1c3cfdd974694a5b31af361e7f25e59bc"
     },
     {
       "path": "scripts/cloudflare/package-lock.json",
-      "sha256": "6008f48adc86d0fa273896300508f4323359ae3ead71641e9ea00abb4b0b7a53"
+      "sha256": "06b335398cd8431c3c47b5a65871fe7c8478268e5fd086ff32b4079a8a0d9d80"
     },
     {
       "path": "scripts/cloudflare/package.json",
-      "sha256": "85b00cd9ce7fded2221c34fd050bee155698b79c92594d21fa6b8c1fd89a9523"
+      "sha256": "b26dee5643b256f7933704f747c36744856c70d63f3d5cdac999d0f88fc03fd2"
     },
     {
       "path": "scripts/composite-yaml-plugin.ts",
@@ -2059,7 +2087,7 @@
     },
     {
       "path": "scripts/scan-dependencies.sh",
-      "sha256": "99e73e8dd347c5f6123387518268f21de346a6e4ee789f9ada4398a142ba6470"
+      "sha256": "1995ff6f44d9b9ceccf243212040714105a0d778347e8ef540b5701f73a5a734"
     },
     {
       "path": "scripts/serve-static.ts",

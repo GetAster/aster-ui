@@ -1,6 +1,6 @@
 # Installation and distribution
 
-Aster UI is available on npm under the **`@getaster` organization**. The **0.2 release line** is published under the default `latest` tag. Aster is
+Aster UI is available on npm under the **`@getaster` organization**. The **0.3 release line** is published under the default `latest` tag. Aster is
 still pre-1.0; production API stability is not yet promised.
 
 ## Install the npm packages

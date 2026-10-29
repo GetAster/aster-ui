@@ -37,7 +37,8 @@ for (const name of packages) {
     writeFileSync(target, result.outputText);
   }
   cpSync(join(out, "types/packages", name, "src"), dist, { recursive: true });
-  for (const file of ["LICENSE", "NOTICE"]) cpSync(join(root, file), join(destination, file));
+  cpSync(join(root, "LICENSE"), join(destination, "LICENSE"));
+  for (const file of ["NOTICE", "README.md"]) cpSync(join(source, file), join(destination, file));
   const manifest = JSON.parse(readFileSync(join(source, "package.json"), "utf8"));
   delete manifest.private;
   manifest.version = version;
@@ -77,7 +78,6 @@ for (const name of packages) {
       break;
   }
   writeFileSync(join(destination, "package.json"), JSON.stringify(manifest, null, 2) + "\n");
-  writeFileSync(join(destination, "README.md"), `# ${manifest.name}\n\nAster UI ${name === "elements-preview" ? "experimental controls (API may change)" : name}.\n\nDocumentation: https://ui.getaster.now/docs/guide/library.html\n\nLicensed under Apache-2.0. See LICENSE and NOTICE.\n`);
   const packed = JSON.parse(run(["npm", "pack", "--json", "--ignore-scripts", "--pack-destination", out], destination))[0];
   for (const file of packed.files as { path: string }[]) {
     if (!/^(?:package\.json|LICENSE|NOTICE|README\.md|dist\/|styles\/|bin\/|wasm\/)/.test(file.path) || /\.(?:test|typecheck)\.[jt]s$|\.rs$|Cargo\.(?:toml|lock)$/.test(file.path)) throw new Error(`Unexpected package content: ${file.path}`);
