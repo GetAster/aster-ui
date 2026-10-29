@@ -84,7 +84,9 @@ behaviour. Optional storage supports persistence; `dump()`, `flush()` and
 
 ## License
 
-Aster UI code is Apache-2.0; see `LICENSE` and `NOTICE`. The bundled WebAssembly
-binary includes third-party components: their attribution inventory is in
-`wasm/NOTICE`, with license texts in `wasm/licenses/`. Preserve these files when
-redistributing the binary.
+Aster UI is licensed under Apache-2.0; see `LICENSE` and `NOTICE`. The optional
+mock engine is supplied as an Apache-2.0-licensed WebAssembly binary; its
+implementation source is not included. Bundled third-party components retain
+their respective licenses. Their attribution inventory is in `wasm/NOTICE`, with
+license texts in `wasm/licenses/`. Preserve these files when redistributing the
+binary.

@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "c02efad74c4db35b2450beec922eb590d202b34c5b436bff0b6acc15059f5d21"
+      "sha256": "1ee1c7eb8ed268e88ca294b11ff2463a7edf168833613d0f5a191877657ea752"
     },
     {
       "path": "LICENSE",
@@ -35,7 +35,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "6ab21e0813acdc09ff13cf770edb835163e673b819206bdda6c22d5c7ce9c394"
+      "sha256": "a5f0771a895d80d35afe8a188e92124108b2b9e7799d1930969d9df0b3879ea8"
     },
     {
       "path": "VERSION",
@@ -1679,7 +1679,7 @@
     },
     {
       "path": "packages/mock/README.md",
-      "sha256": "cf7a94cd5867013dd840c7c74fc497676c3a33a238078e04c0f2815791b2030f"
+      "sha256": "9235c5a4d2df1e0cf35fea88132ce867522a73f54bdd4e38fe510bc1d3c28a06"
     },
     {
       "path": "packages/mock/package.json",

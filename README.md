@@ -62,10 +62,11 @@ Outputs go to `dist-release/`; this command does not publish anything. See the
 
 ## License
 
-Source code and the supplied mock WebAssembly binary are licensed under
-[Apache-2.0](LICENSE). The engine's Rust source is not included. Third-party
-components retain their own licenses; see [NOTICE](NOTICE) and the binary's
-attribution inventory. ECharts is an optional, separately loaded runtime.
+Aster UI is licensed under [Apache-2.0](LICENSE). The optional mock engine is
+supplied as an Apache-2.0-licensed WebAssembly binary; its implementation source
+is not included. Bundled third-party components retain their respective licenses;
+see [NOTICE](NOTICE) and the binary's attribution inventory. ECharts is an
+optional, separately loaded runtime.
 
 ## Build the documentation and showcase
 
