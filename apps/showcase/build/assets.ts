@@ -16,6 +16,8 @@ export const exampleAssets: Readonly<Record<string, string>> = {
   "mail.ui.yaml": "src/examples/mail/mail.ui.yaml",
   "mail-model.js": "src/examples/mail/mail-model.js",
   "mail.css": "src/examples/mail/mail.css",
+  "control-states.html": "src/examples/foundations/control-states.html",
+  "control-states.js": "src/examples/foundations/control-states.js",
   "foundations.js": "src/examples/foundations/foundations.js",
   "foundations.html": "src/examples/foundations/foundations.html",
   "folder-picker.js": "src/examples/foundations/folder-picker.js",

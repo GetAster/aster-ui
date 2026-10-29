@@ -53,6 +53,7 @@
 
   ::selection { background: oklch(from var(--aster-accent) l c h / .2); }
   input, textarea { caret-color: var(--aster-accent); }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--aster-accent); }
 
   /* Cursor follows behaviour, by role. Passive rows keep the arrow. */
   button, label:not([data-ring-owner]), select, summary, a[href], [data-click], input[type="checkbox"],

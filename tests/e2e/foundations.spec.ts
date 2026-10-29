@@ -6,6 +6,33 @@ async function open(page: Page) {
   await expect(page.locator("#budget-group")).toBeVisible();
 }
 
+for (const theme of ["lamplight", "harbour"]) for (const scheme of ["light", "dark"]) {
+  test(`native checkboxes follow ${theme} ${scheme} and remain keyboard operable`, async ({ page }) => {
+    await page.goto(`/playground/foundations.html?theme=${theme}&scheme=${scheme}`);
+    await expect(page.locator("#budget-group")).toBeVisible();
+    const checkboxes = page.getByRole("checkbox");
+    await expect(checkboxes).toHaveCount(5);
+    for (const checkbox of await checkboxes.all()) {
+      const accent = await checkbox.evaluate(el => {
+        const probe = document.createElement("span");
+        probe.style.color = "var(--aster-accent)";
+        el.parentElement!.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      });
+      await expect(checkbox).toHaveCSS("accent-color", accent);
+    }
+    const disable = page.getByRole("checkbox", { name: "Disable group" });
+    await disable.focus();
+    await disable.press("Space");
+    await expect(disable).toBeChecked();
+    await expect(page.getByRole("textbox", { name: "Budget", exact: true })).toBeDisabled();
+    await disable.press("Space");
+    await expect(page.getByRole("textbox", { name: "Budget", exact: true })).toBeEnabled();
+  });
+}
+
 test("exact stepping, incomplete drafts, explicit step validation and bounds", async ({ page }) => {
   await open(page);
   const input = page.getByRole("textbox", { name: "Unit price", exact: true });

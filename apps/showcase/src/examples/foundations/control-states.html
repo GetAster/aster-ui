@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control states — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css">
+<link rel="stylesheet" href="../lib/aster-ui.css">
+<link rel="stylesheet" href="../../shared/navigation/showcase.css">
+<style>
+body { height: auto; min-height: 100dvh; padding: 24px; }
+main { max-width: 1000px; margin: auto; }
+.appearance, .samples { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+#controls { display: grid; gap: 24px; padding: 16px; }
+section { display: grid; gap: 12px; }
+h2 { margin: 0; font-size: 1.2rem; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+@media (max-width: 480px) { body { padding: 12px; } #controls { padding: 8px; } }
+</style></head><body><main>
+<h1>Control states</h1>
+<p>Compare native inputs and shared Aster controls. Tab through the examples to inspect keyboard focus.</p>
+<div class="appearance"><aster-choice id="theme"></aster-choice><aster-choice id="scheme"></aster-choice><a href="./foundations.html">Fields and layouts</a></div>
+<div id="controls">
+<section aria-labelledby="native-heading"><h2 id="native-heading">Native checkboxes</h2><div class="samples">
+<label><input id="focus-check" type="checkbox"> Unchecked</label>
+<label><input type="checkbox" checked> Checked</label>
+<label><input id="mixed" type="checkbox"> Mixed</label>
+<label><input type="checkbox" disabled> Disabled</label>
+<label><input type="checkbox" checked disabled> Disabled checked</label>
+</div></section>
+<section aria-labelledby="radio-heading"><h2 id="radio-heading">Native radios and select</h2><div class="samples">
+<label><input type="radio" name="delivery" checked> Standard</label>
+<label><input type="radio" name="delivery"> Express</label>
+<label><input type="radio" name="unavailable" checked disabled> Disabled selected</label>
+<label>Region <select><option>Europe</option><option>Americas</option></select></label>
+</div></section>
+<section aria-labelledby="check-heading"><h2 id="check-heading">Aster checkboxes</h2><div class="samples" id="checks"></div></section>
+<section aria-labelledby="field-heading"><h2 id="field-heading">Fields</h2><div class="fields" id="fields"></div></section>
+<section aria-labelledby="button-heading"><h2 id="button-heading">Buttons</h2><div class="samples" id="buttons"></div></section>
+</div>
+</main><script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./control-states.js"></script></body></html>
