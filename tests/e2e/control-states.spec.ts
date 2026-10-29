@@ -15,6 +15,11 @@ for (const theme of ["lamplight", "harbour"]) for (const scheme of ["light", "da
       await expect(page.getByRole("textbox", { name: "Invalid quantity", exact: true })).toHaveAttribute("aria-invalid", "true");
       await expect(page.getByRole("textbox", { name: "Read-only project", exact: true })).toHaveAttribute("readonly", "");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const region = page.getByRole("combobox", { name: "Region", exact: true });
+      await expect(region).toHaveCSS("min-height", "30px");
+      await region.selectOption({ label: "Americas" });
+      await expect(region).toHaveValue("Americas");
+      await expect(page.getByRole("combobox", { name: "Unavailable region", exact: true })).toBeDisabled();
       await page.locator("#focus-check").focus();
       await page.keyboard.press("Tab");
       await page.keyboard.press("Shift+Tab");

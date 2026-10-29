@@ -36,6 +36,27 @@
   button, input, select, textarea { font: inherit; color: inherit; }
   /* Native controls inherit ink, so their surfaces must follow the same theme. */
   select, option, optgroup { background-color: var(--aster-sunk); }
+  select {
+    min-height: var(--aster-ctl); max-width: 100%; padding: 0 10px;
+    border: 1px solid var(--aster-rule); border-radius: var(--aster-r-ctl);
+    box-shadow: var(--aster-well);
+  }
+  select:not([multiple]):not([size]) {
+    appearance: none; padding-inline-end: 28px;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: right 14px center, right 10px center;
+    background-size: 4px 4px; background-repeat: no-repeat;
+  }
+  select:not([multiple]):not([size]):dir(rtl) {
+    background-position: left 10px center, left 14px center;
+  }
+  select:disabled { opacity: .45; }
+  select[aria-invalid="true"] { border-color: var(--aster-negative); }
+  @media (forced-colors: active) {
+    select { border-color: ButtonText; }
+    select:not([multiple]):not([size]) { appearance: auto; background-image: none; }
+    select:disabled { color: GrayText; border-color: GrayText; opacity: 1; }
+  }
   button { background: none; border: 0; padding: 0; margin: 0; text-align: inherit; }
   h1, h2, h3 { text-wrap: balance; }
   p { text-wrap: pretty; }
