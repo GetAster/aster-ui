@@ -1,7 +1,7 @@
 {
   "license": "Apache-2.0",
-  "sha256": "8aa8844f481eb34e4cdfe313bd62e3601333e61cb4e535100f9f52774e73ec6b",
-  "bytes": 5129972,
+  "sha256": "59e71c28418c00925afc3d896fc5bfdf7a3bdc17ab49b311135a06f8237fe027",
+  "bytes": 5179274,
   "compiler": "rustc 1.96.0 (ac68faa20 2026-05-25)",
   "format": "wasm32-wasip1",
   "dependencies": [

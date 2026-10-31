@@ -66,6 +66,6 @@ Function bodies remain in JS/TS. YAML declares their connection to the control.
 
 The [mail workspace](../examples/mail.html) demonstrates sender-name sorting and
 real received timestamps displayed as times, “Yesterday” or calendar dates.
-The shared Sort menu remains available when a grid switches to narrow cards.
+The shared Sort panel remains available when a grid switches to narrow cards.
 See [Grid.formatters](../reference/#attr:Grid.formatters) and
 [GridColumn.sortField](../reference/#attr:GridColumn.sortField).

@@ -118,6 +118,14 @@ columns therefore never breaks a saved view.
   Descending, Not sorted, and "Add to the sort"), Group by, "Freeze up to"
   this column, Move and Width submenus, Hide, and Columns…. A column that
   can't sort or group doesn't offer it.
+- **Sort panel.** The toolbar's Sort button shows one row per sortable column.
+  Its direction button adds the column to the sort, then reverses that column's
+  direction; unsorted rows reveal it on hover (and always show it on touch). A ✕
+  removes just that column and appears on sorted rows (on touch it is always
+  present). Numbers beside the
+  toggle show each key's priority when more than one is active. Choosing
+  another column adds another key; Clear sorting starts over. Sorted columns
+  that are hidden still get a row so the panel always shows the sort in use.
 - **Move and resize.** Dragging a header moves its column; dragging its right
   edge resizes it (never under 48 px), and a double-click on the edge returns
   it to sharing the space.
@@ -1272,4 +1280,4 @@ layer's key tie-breakers for stable paging.
 
 For normalized/collated ordering, provide a server-computed sort key. A JavaScript
 callback over loaded rows cannot order unloaded pages correctly. The toolbar's
-Sort menu offers column ordering in both table and narrow card layouts.
+Sort panel offers column ordering in both table and narrow card layouts.

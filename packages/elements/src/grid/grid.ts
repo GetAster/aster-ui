@@ -99,7 +99,7 @@ export interface GridCsvOptions extends Omit<CsvOptions, "keys"> {
   readonly scope?: "query" | "selection";
 }
 
-type Panel = "columns" | "views";
+type Panel = "sort" | "columns" | "views";
 
 /** A row as row controls and expansion content see it; read inside a render, it updates them. */
 export interface RowState {
@@ -1058,10 +1058,6 @@ export class Grid extends AsterElement {
     const fmt = (n: number) => new Intl.NumberFormat("en-GB").format(n);
     const grouped = this.#treeOptions.value ? [] : groupFields(view);
     const groupTitle = (field: string) => this.#collection?.type.field(field)?.title ?? field;
-    const chooseSort = (field: string, descending: boolean) => {
-      this.querySelector<Menu>(".aster-grid-menu")?.close();
-      this.#setView(sortDirection(view, field, descending, false));
-    };
     const tool = (name: Panel, label: string) => html`<button type="button" class="aster-grid-tool"
       style=${anchorStyle(`${this.#id}-tool-${name}`)}
       aria-expanded=${panel === name ? "true" : "false"} aria-controls=${`${this.#id}-${name}`}
@@ -1075,17 +1071,7 @@ export class Grid extends AsterElement {
           : layout.atLeast !== undefined
             ? `${fmt(layout.atLeast)}+ rows`
             : `${fmt(count)} ${count === 1 ? "row" : "rows"}${layout.groups === undefined ? "" : ` in ${fmt(layout.groups)} ${layout.groups === 1 ? "group" : "groups"}`}`}</span>
-      <button type="button" class="aster-grid-tool" aria-haspopup="menu" @click=${(event: MouseEvent) => {
-        const items: MenuItem[] = view.columns.filter(column => !column.hidden && this.#sortable(column.field)).map(column => {
-          const sorted = view.sort.find(key => key.field === column.field);
-          return { kind: "group", label: groupTitle(column.field), items: [
-            { kind: "radio", label: "Ascending", checked: !!sorted && !sorted.descending, run: () => chooseSort(column.field, false) },
-            { kind: "radio", label: "Descending", checked: !!sorted?.descending, run: () => chooseSort(column.field, true) },
-          ] };
-        });
-        items.push({ label: "Clear sorting", run: () => this.#setView({ ...view, sort: [] }) });
-        this.querySelector<Menu>(".aster-grid-menu")?.openFrom(event.currentTarget as HTMLElement, items, "Sort rows");
-      }}>Sort</button>
+      ${tool("sort", "Sort")}
       ${this.#selectionNote.value ? html`<span class="aster-grid-note" role="status">${this.#selectionNote.value}</span>` : nothing}
       ${this.#grouping?.root.error.value !== undefined ? html`<span class="aster-grid-note aster-error" role="status">Couldn’t load groups.</span>
         <button type="button" class="aster-grid-tool" @click=${() => { this.focus({ preventScroll: true }); void this.#grouping?.retry(); }}>Retry groups</button>` : nothing}
@@ -1114,7 +1100,69 @@ export class Grid extends AsterElement {
         : describeCriteria(view.criteria, this.#collection!.type)}</span>` : nothing}
       ${tool("columns", "Columns")}
       ${this.#persist.value ? tool("views", "Views") : nothing}
-      ${panel === "columns" ? this.#columnsPanel(view) : panel === "views" ? this.#viewsPanel(view) : nothing}
+      ${panel === "sort" ? this.#sortPanel(view) : panel === "columns" ? this.#columnsPanel(view) : panel === "views" ? this.#viewsPanel(view) : nothing}
+    </div>`;
+  }
+
+  #sortPanel(view: GridView): View {
+    const type = this.#collection!.type;
+    const fieldTitle = (field: string) => type.field(field)?.title ?? field;
+    const rows = view.columns
+      .filter((column) => !column.hidden && this.#sortable(column.field))
+      .map((column) => ({ field: column.field, offered: true }));
+    const shown = new Set(rows.map((row) => row.field));
+    // A sort on a hidden column still shows, so the panel never says nothing is sorted.
+    for (const key of view.sort) {
+      if (shown.has(key.field)) continue;
+      shown.add(key.field);
+      rows.push({ field: key.field, offered: false });
+    }
+    const priority = new Map(view.sort.map((key, i) => [key.field, i + 1]));
+    const toggle = (field: string) => {
+      const key = view.sort.find((sortKey) => sortKey.field === field);
+      const sorted = key !== undefined;
+      const descending = key?.descending === true;
+      const name = fieldTitle(field);
+      const action = sorted ? `Sort ${name}, now ${descending ? "descending" : "ascending"}` : `Sort ${name}`;
+      return html`<button type="button" class="aster-grid-sort-direction" aria-label=${action} aria-pressed=${sorted ? "true" : "false"}
+        title=${`${action}. ${sorted ? "Click to reverse" : "Click to sort ascending"}.`}
+        @click=${() => this.#setView(sortDirection(view, field, sorted ? !descending : false, true))}>
+        <svg viewBox="0 0 10 10" aria-hidden="true"><path d=${sorted
+          ? descending ? "M2 3.5 5 6.5l3-3" : "M2 6.5 5 3.5l3 3"
+          : "M2 3.5 5 .5l3 3M2 6.5 5 9.5l3-3"}/></svg>
+      </button>`;
+    };
+    return html`<div class="aster-grid-panel aster-grid-sort-panel aster-popover" popover="manual" ${openWhen(true)}
+      style=${placeStyle(`${this.#id}-tool-sort`)} id=${`${this.#id}-sort`} role="group" aria-label="Sort rows"
+      @keydown=${(e: KeyboardEvent) => this.#panelKey(e)}>
+      <p class="aster-grid-panel-title">Sort rows</p>
+      ${rows.length === 0
+        ? html`<p class="aster-grid-panel-note">This grid has no sortable columns.</p>`
+        : html`<ul>
+          ${rows.map(({ field, offered }) => html`<li data-field=${field}>
+            <span class="aster-grid-sort-name"><span class="aster-grid-sort-title">${fieldTitle(field)}</span></span>
+            <span class="aster-grid-sort-actions">
+              <small class="aster-grid-sort-priority" aria-hidden="true">${priority.has(field) && view.sort.length > 1 ? priority.get(field) : ""}</small>
+              ${priority.has(field) && view.sort.length > 1 ? html`<span class="aster-sr-only">Sort priority ${priority.get(field)}.</span>` : nothing}
+              ${toggle(field)}
+              <button type="button" class="aster-grid-sort-clear" aria-label=${`Clear ${fieldTitle(field)} sorting`} ?disabled=${!priority.has(field)}
+                @click=${(e: MouseEvent) => {
+                  // Clearing disables this button, so focus a control that survives the render.
+                  if (offered) (e.currentTarget as HTMLElement).closest("li")?.querySelector<HTMLElement>(".aster-grid-sort-direction")?.focus();
+                  else this.querySelector<HTMLElement>(`.aster-grid-tool[aria-controls="${this.#id}-sort"]`)?.focus();
+                  this.#setView(removeSort(view, field));
+                }}>
+                <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 2.5 7.5 7.5M7.5 2.5 2.5 7.5"/></svg>
+              </button>
+            </span>
+          </li>`)}
+        </ul>`}
+      <button type="button" class="aster-grid-panel-action" ?disabled=${view.sort.length === 0}
+        @click=${() => {
+          const first = this.querySelector<HTMLElement>(".aster-grid-sort-panel .aster-grid-sort-direction");
+          (first ?? this.querySelector<HTMLElement>(`.aster-grid-tool[aria-controls="${this.#id}-sort"]`))?.focus();
+          this.#setView({ ...view, sort: [] });
+        }}>Clear sorting</button>
     </div>`;
   }
 

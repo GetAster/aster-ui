@@ -806,6 +806,36 @@
   .aster-grid-panel-view { flex: 1; text-align: left; }
   .aster-grid-panel-save { display: flex; gap: 6px; }
   .aster-grid-panel-action { justify-self: start; font-size: 12.5px; font-weight: var(--aster-weight-label); color: var(--aster-accent); }
+  /* Sort panel: one row per column, a direction toggle, and a clear for the active row. */
+  .aster-grid-sort-panel { width: 240px; }
+  .aster-grid-sort-panel li { gap: 8px; }
+  .aster-grid-sort-name { flex: 1; min-width: 0; color: var(--aster-text-2); }
+  .aster-grid-sort-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .aster-grid-sort-panel li:has([aria-pressed="true"]) .aster-grid-sort-name { color: var(--aster-text); }
+  .aster-grid-sort-actions { flex: none; display: flex; align-items: center; gap: 2px; }
+  .aster-grid-sort-priority { width: 14px; flex: none; text-align: right; font-size: 10px; font-variant-numeric: tabular-nums; color: var(--aster-text-3); }
+  .aster-grid-panel.aster-grid-sort-panel li button { display: grid; place-items: center; width: max(24px, var(--aster-ctl-tight)); height: max(24px, var(--aster-ctl-tight)); padding: 0; }
+  .aster-grid-sort-panel li button[aria-pressed="true"], .aster-grid-sort-panel li button[aria-pressed="true"]:hover:not(:disabled) {
+    color: var(--aster-accent); background: var(--aster-accent-soft);
+  }
+  .aster-grid-sort-panel li button svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+  /* Both controls keep their space; inactive ones stay hidden on a pointer device, and always show on touch. */
+  .aster-grid-sort-panel li button.aster-grid-sort-direction { opacity: 0; }
+  .aster-grid-sort-panel li button.aster-grid-sort-direction[aria-pressed="true"],
+  .aster-grid-sort-panel li:hover button.aster-grid-sort-direction,
+  .aster-grid-sort-panel li button.aster-grid-sort-direction:focus-visible { opacity: 1; }
+  .aster-grid-sort-panel li button.aster-grid-sort-clear { color: var(--aster-text-3); }
+  .aster-grid-sort-panel li button.aster-grid-sort-clear:disabled { visibility: hidden; opacity: .45; }
+  @media (hover: none) {
+    .aster-grid-sort-panel li button.aster-grid-sort-direction { opacity: 1; }
+    .aster-grid-sort-panel li button.aster-grid-sort-clear:disabled { visibility: visible; }
+  }
+  .aster-grid-sort-panel > .aster-grid-panel-action { color: var(--aster-text-2); }
+  .aster-grid-sort-panel > .aster-grid-panel-action:disabled { color: var(--aster-text-3); opacity: .55; }
+  @media (forced-colors: active) {
+    .aster-grid-panel { border: 1px solid CanvasText; }
+    .aster-grid-sort-panel li button[aria-pressed="true"] { outline: 1px solid Highlight; outline-offset: -1px; }
+  }
   /* One scroll container both ways; the header and frozen cells stick inside it. */
   .aster-grid-scroll { height: 100%; overflow: auto; overflow-anchor: none; scrollbar-gutter: stable; outline: none; }
   .aster-grid-scroll[data-fixed-columns] { width: fit-content; max-width: 100%; min-width: 0; }

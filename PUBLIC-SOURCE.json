@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "6d7eaf29180c90f15bdd1e6dd78b6785e206a9d040e6e3bf085846cbc007e922"
+      "sha256": "9d62012caea08f27e073b36424fd73ddb6429fac9b1ec3c5561d3384bd59407c"
     },
     {
       "path": "LICENSE",
@@ -687,7 +687,7 @@
     },
     {
       "path": "docs/guide/formatted-values.md",
-      "sha256": "116d11b09888db9370736ded07b09d8f6ebe2faa656c22a0054a22be7b0034e5"
+      "sha256": "94c391b968dd2355c49c5c148649c80ef6c86cf05eb8c205e7ea28313fc58b3b"
     },
     {
       "path": "docs/guide/getting-started.md",
@@ -799,7 +799,7 @@
     },
     {
       "path": "docs/reference/grid.md",
-      "sha256": "34c55911d26ee95f891332c982c0140a8dfc3e060b50da49fc63c13ccd391e13"
+      "sha256": "bd8c4ae4350d8e2769b26fdaa55ba045494cbca4a246ec3d439ef86e79401444"
     },
     {
       "path": "docs/reference/grouping.md",
@@ -1451,7 +1451,7 @@
     },
     {
       "path": "packages/elements/src/grid/grid.ts",
-      "sha256": "9478b8fb11517dd73150f817100a902472d161368fee890f2f9922a118cd660a"
+      "sha256": "5763bae6b8e2e9ab3545c30738031a2f9c5442d6f0578941e49fa3333e2d6651"
     },
     {
       "path": "packages/elements/src/grid/rows.ts",
@@ -1567,7 +1567,7 @@
     },
     {
       "path": "packages/elements/src/styles/elements.css",
-      "sha256": "da067dd124957044a1d59cab44e6c85026c0c545b6a8761a157e410120db39f8"
+      "sha256": "1a47319019239a2b3fb1c13ed96a0e5203a0d416d52ad0d8d339ba89b9ffabd4"
     },
     {
       "path": "packages/elements/src/styles/harbour.css",
@@ -1735,7 +1735,7 @@
     },
     {
       "path": "packages/mock/wasm/ARTIFACT.json",
-      "sha256": "97078fe749171f1ac13fabb35bfab45e4efaab39a5d47bf61e3b38d4d524c2e7"
+      "sha256": "9078e3ff1669884c3a0a066c754b13817015b7cde12d6905f8a9349156e94983"
     },
     {
       "path": "packages/mock/wasm/NOTICE",
@@ -2011,7 +2011,7 @@
     },
     {
       "path": "packages/mock/wasm/odata_mock.wasm",
-      "sha256": "8aa8844f481eb34e4cdfe313bd62e3601333e61cb4e535100f9f52774e73ec6b"
+      "sha256": "59e71c28418c00925afc3d896fc5bfdf7a3bdc17ab49b311135a06f8237fe027"
     },
     {
       "path": "playwright.config.ts",
@@ -2147,7 +2147,7 @@
     },
     {
       "path": "tests/e2e/authentication.spec.ts",
-      "sha256": "4c3a2d34e368291e544949c3eafad9967549f3ee9195fc840089da7422792701"
+      "sha256": "051bd56cd1687fc0dc0334677b44329f1799f97fbe4c9052c3b2e27f49afe4ee"
     },
     {
       "path": "tests/e2e/carousel.spec.ts",
@@ -2327,7 +2327,7 @@
     },
     {
       "path": "tests/e2e/grid.spec.ts",
-      "sha256": "5a1642be39dac967d66e932f6e99e4c29ce112fab3a9446d59851056ca228da0"
+      "sha256": "4683727e1c09a89dc9230c34dbc3ecdb8591371cff59d8e7ea8c30b6ab4dbcfd"
     },
     {
       "path": "tests/e2e/grouping.spec.ts",

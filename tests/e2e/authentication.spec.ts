@@ -215,9 +215,15 @@ test("CommandBar supports formatted errors or application-owned feedback", async
 
 test("sender and timestamp sorting reaches the service and remains available in card layouts", async ({ page }) => {
   await ready(page);
-  async function sort(field: string, direction: string) {
-    await page.getByRole('button', { name: 'Sort', exact: true }).click();
-    await page.getByRole('menu', { name: 'Sort rows', exact: true }).getByRole('group', { name: field, exact: true }).getByRole('menuitemradio', { name: direction, exact: true }).click();
+  async function sort(field: string, direction: 'Ascending' | 'Descending') {
+    const panel = page.getByRole('group', { name: 'Sort rows', exact: true });
+    if (!(await panel.isVisible())) await page.getByRole('button', { name: 'Sort', exact: true }).click();
+    const clear = panel.getByRole('button', { name: 'Clear sorting', exact: true });
+    if (await clear.isEnabled()) await clear.click();
+    const toggle = panel.getByRole('button', { name: new RegExp(`^Sort ${field}(,|$)`) });
+    const wanted = `Sort ${field}, now ${direction.toLowerCase()}`;
+    for (let i = 0; i < 3 && (await toggle.getAttribute('aria-label')) !== wanted; i++) await toggle.click();
+    await expect(toggle).toHaveAccessibleName(wanted);
     await expect(page.getByRole('grid')).toHaveAttribute('aria-busy', 'false');
   }
   await sort('From', 'Ascending');

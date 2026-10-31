@@ -212,6 +212,117 @@ test.describe("the view", () => {
     await expect(page.getByText("Use a number, optionally after >, >=, < or <=, or a range a..b")).toBeVisible();
   });
 
+  test("the Sort panel adds a key per column, toggles direction, and one row clears", async ({ page }) => {
+    await time(page);
+    const panel = page.getByRole("group", { name: "Sort rows", exact: true });
+    const toggle = (field: string) => panel.getByRole("button", { name: new RegExp(`^Sort ${field}(,|$)`) });
+    const sort = () => page.evaluate(() => {
+      const scope = (globalThis as unknown as { aster: { scope: { value(p: string): { value: unknown } } } }).aster.scope;
+      return (scope.value("time.view").value as { sort: { field: string; descending?: boolean }[] }).sort;
+    });
+    await page.getByRole("button", { name: "Sort", exact: true }).click();
+    await expect(panel).toBeVisible();
+    await expect(toggle("Date")).toHaveAttribute("aria-pressed", "true");
+    await expect(toggle("Date")).toHaveAccessibleName("Sort Date, now descending");
+    const { violations } = await new AxeBuilder({ page }).analyze();
+    expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+
+    await toggle("Date").click();
+    await expect(panel).toBeVisible();
+    await expect(toggle("Date")).toHaveAccessibleName("Sort Date, now ascending");
+    await expect(page.locator('.aster-grid-header[data-field="date"]')).toHaveAttribute("aria-sort", "ascending");
+    await expect(page.locator("p.aster-sr-only[aria-live]")).toHaveText("Sorted by Date, ascending");
+
+    await toggle("Person").click();
+    expect(await sort()).toEqual([{ field: "date" }, { field: "personId" }]);
+    await expect(toggle("Person")).toHaveAttribute("aria-pressed", "true");
+    await expect(toggle("Person")).toHaveAccessibleName("Sort Person, now ascending");
+    await expect(panel.locator('li[data-field="personId"] .aster-grid-sort-priority')).toHaveText("2");
+
+    await panel.getByRole("button", { name: "Clear Person sorting", exact: true }).click();
+    expect(await sort()).toEqual([{ field: "date" }]);
+    await expect(toggle("Person")).toHaveAttribute("aria-pressed", "false");
+    await expect(toggle("Person")).toBeFocused();
+
+    await panel.getByRole("button", { name: "Clear sorting", exact: true }).click();
+    expect(await sort()).toEqual([]);
+    await expect(page.locator('.aster-grid-header[data-field="date"]')).not.toHaveAttribute("aria-sort");
+    await expect(panel.getByRole("button", { name: "Clear sorting", exact: true })).toBeDisabled();
+    await expect(toggle("Date")).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Sort", exact: true })).toBeFocused();
+
+    // A focused toggle adds its key on Enter or Space.
+    await page.getByRole("button", { name: "Sort", exact: true }).click();
+    await toggle("Hours").focus();
+    await page.keyboard.press("Enter");
+    expect(await sort()).toEqual([{ field: "hours" }]);
+    await expect(toggle("Hours")).toHaveAccessibleName("Sort Hours, now ascending");
+    await toggle("Note").focus();
+    await page.keyboard.press("Enter");
+    expect(await sort()).toEqual([{ field: "hours" }, { field: "note" }]);
+    await toggle("Project").focus();
+    await page.keyboard.press("Space");
+    expect(await sort()).toEqual([{ field: "hours" }, { field: "note" }, { field: "projectId" }]);
+  });
+
+  test("an unsorted row's arrow appears on hover and the clear keeps its space", async ({ page }) => {
+    await time(page);
+    await page.getByRole("button", { name: "Sort", exact: true }).click();
+    const panel = page.getByRole("group", { name: "Sort rows", exact: true });
+    const row = panel.locator('li[data-field="hours"]');
+    const toggle = row.locator(".aster-grid-sort-direction");
+    const clear = panel.getByRole("button", { name: "Clear Hours sorting", exact: true });
+    const actions = async () => (await row.locator(".aster-grid-sort-actions").boundingBox())!.width;
+    await page.mouse.move(0, 0);
+    await expect(toggle).toHaveCSS("opacity", "0");
+    await expect(clear).toHaveCount(0);
+    const reserved = await actions();
+    await row.hover();
+    await expect(toggle).toHaveCSS("opacity", "1");
+    await expect(clear).toHaveCount(0);
+    expect(await actions()).toBe(reserved);
+    await toggle.click();
+    await page.mouse.move(0, 0);
+    await expect(toggle).toHaveCSS("opacity", "1");
+    await expect(clear).toBeEnabled();
+    await expect(clear).toBeVisible();
+    expect(await actions()).toBe(reserved);
+  });
+
+  test("clearing the last sort hides its arrow when the pointer leaves", async ({ page }) => {
+    await time(page);
+    await page.getByRole("button", { name: "Sort", exact: true }).click();
+    const panel = page.getByRole("group", { name: "Sort rows", exact: true });
+    await panel.getByRole("button", { name: "Clear sorting", exact: true }).click();
+    const row = panel.locator('li[data-field="hours"]');
+    const toggle = row.locator(".aster-grid-sort-direction");
+    const clear = panel.getByRole("button", { name: "Clear Hours sorting", exact: true });
+    await row.hover();
+    await toggle.click();
+    await expect(clear).toBeVisible();
+    await clear.click();
+    await page.mouse.move(0, 0);
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect(toggle).toBeFocused();
+    await expect(toggle).toHaveCSS("opacity", "0");
+  });
+
+  test("a sorted hidden column keeps its row in the Sort panel and can be cleared there", async ({ page }) => {
+    await time(page);
+    await menu(page, "date", "Ascending");
+    await menu(page, "date", "Hide Date");
+    await page.getByRole("button", { name: "Sort", exact: true }).click();
+    const panel = page.getByRole("group", { name: "Sort rows", exact: true });
+    const toggle = panel.getByRole("button", { name: /^Sort Date(,|$)/ });
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect(toggle).toHaveAccessibleName("Sort Date, now ascending");
+    await panel.getByRole("button", { name: "Clear Date sorting", exact: true }).click();
+    await expect(toggle).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Sort", exact: true })).toBeFocused();
+  });
+
   test("hide, move, freeze and resize from the header menu; the column picker", async ({ page }) => {
     await time(page);
     await menu(page, "billable", "Hide Billable");
