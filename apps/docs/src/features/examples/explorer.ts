@@ -1,3 +1,5 @@
+import { setAppearance } from "@getaster/docs/browser";
+
 /** Connect a live example to the docs URL without exposing application internals. */
 export function initExplorer(): void {
   const frame = document.querySelector<HTMLIFrameElement>("[data-collection-preview], [data-demo-preview]");
@@ -12,9 +14,8 @@ export function initExplorer(): void {
   standalone.href = url.href;
   if (demo) {
     url.searchParams.set("embedded", "1");
-    const scheme = document.querySelector<HTMLSelectElement>("#doc-scheme")!;
     const requested = incoming.get("scheme");
-    if (requested === "light" || requested === "dark") { scheme.value = requested; scheme.dispatchEvent(new Event("change")); }
+    if (requested === "light" || requested === "dark") setAppearance(requested);
     url.searchParams.set("scheme", document.documentElement.dataset.scheme ?? "light");
   }
   addEventListener("message", event => {

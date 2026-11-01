@@ -71,3 +71,17 @@ test("shell configuration is escaped while trusted article markup is preserved",
   expect(html).toContain("<h1>Install</h1>");
   expect(html).not.toContain("Aster UI");
 });
+
+test("the shell's scheme picker is the themed listbox, not a native select", () => {
+  const html = renderShell("Page", "<p>Body</p>", {
+    siteName: "Test", wordmark: "test", section: "Docs", homeHref: "../", assetsHref: "../assets/", rootHref: "../", searchHref: "../search.json", navigationHtml: "",
+  });
+  expect(html).toContain('id="doc-scheme"');
+  expect(html).toContain('role="listbox"');
+  expect(html).not.toContain("<select");
+});
+
+test("the docs stylesheet keeps a themed face on any native select that remains", () => {
+  const css = readFileSync(join(import.meta.dir, "../styles/docs.css"), "utf8");
+  expect(css).toContain("appearance:none");
+});

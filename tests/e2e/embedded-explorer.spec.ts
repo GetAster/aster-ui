@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { chooseOption } from "./appearance.ts";
 
 async function reveal(page: Page, locator: ReturnType<Page["locator"]>) {
   const box = await locator.boundingBox();
@@ -101,7 +102,7 @@ for (const [id, ready] of [["composition", "#workspace .aster-grid-row[data-inde
     await expect(frame.locator(ready).first()).toBeVisible();
     await expect(frame.locator(".showcase-nav")).toHaveCount(0);
     for (const scheme of ["light", "dark"]) {
-      await page.getByRole("combobox", { name: "Colour scheme", exact: true }).selectOption(scheme);
+      await chooseOption(page, "Colour scheme", scheme === "light" ? "Light" : "Dark");
       await expect(frame.locator("html")).toHaveAttribute("data-scheme", scheme);
       await expect.poll(() => frame.locator("#scheme").evaluate(el => (el as HTMLElement & { value: string }).value)).toBe(scheme);
       const violations = (await new AxeBuilder({ page }).analyze()).violations;

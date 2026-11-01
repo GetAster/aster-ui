@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "9d62012caea08f27e073b36424fd73ddb6429fac9b1ec3c5561d3384bd59407c"
+      "sha256": "30f3032e967a0509e2dbd5b0d3bd5878d1aca70a86c468c88f28e9220298423c"
     },
     {
       "path": "LICENSE",
@@ -107,7 +107,7 @@
     },
     {
       "path": "apps/docs/src/features/examples/explorer.ts",
-      "sha256": "7bc052c5f5ecd4dd7adc6f18e1e0a9c212f4a633d2789fe7a44049f1ce5d8e8b"
+      "sha256": "0fdda53db31149832dd6b9087817add69e78f61804f8b597ba513a1d1bbf5cb9"
     },
     {
       "path": "apps/docs/src/features/reference/render.ts",
@@ -127,7 +127,7 @@
     },
     {
       "path": "apps/docs/src/styles/docs.css",
-      "sha256": "7279d41394b29b3bd9ca9d11fa195551458ca676faa7bbe33282b3cc93c26a7b"
+      "sha256": "4fa2fd12dacce1ce2473c231200c386001809374360c4fbaea6da53649420c30"
     },
     {
       "path": "apps/docs/src/styles/fonts.css",
@@ -1115,7 +1115,7 @@
     },
     {
       "path": "packages/docs/src/browser/index.ts",
-      "sha256": "13441f976f35a9e572f55c83c8cd973e4c5bf62d3be607672b9689218efa3cd1"
+      "sha256": "56064ab093f084865b45acba15243842e53fcf1a3586905c0e7771b0404e6750"
     },
     {
       "path": "packages/docs/src/browser/main.ts",
@@ -1139,7 +1139,7 @@
     },
     {
       "path": "packages/docs/src/build/shell.ts",
-      "sha256": "5c395d707af5cc7b86cb48690ca4e013a38104be6e24e94265257e1d3cd7be89"
+      "sha256": "ad302b999833772dddfa6dbcc1003027d17ee01d7d960e68acbc7666cad7a28e"
     },
     {
       "path": "packages/docs/src/build/site.ts",
@@ -1147,7 +1147,7 @@
     },
     {
       "path": "packages/docs/src/features/appearance/appearance.ts",
-      "sha256": "3c4c80c7ba309948dddc74571f40cdd49b7abd01cf7e67987d3568fe7905c548"
+      "sha256": "5dfc166c33ab036007ec0f4dfdbf986c80bd5c212e74dcf7f24d796a9dfa75ae"
     },
     {
       "path": "packages/docs/src/features/article/article.ts",
@@ -1207,7 +1207,7 @@
     },
     {
       "path": "packages/docs/styles/docs.css",
-      "sha256": "82e76bff0fff91a716705f198242c746b0f775b3bacf89dcf2cf86b3bb3dd108"
+      "sha256": "25190fe2134fa1f2ce6bbab7ca190d8410ead334b3573e921e701ee499908116"
     },
     {
       "path": "packages/docs/styles/fonts.css",
@@ -1223,7 +1223,7 @@
     },
     {
       "path": "packages/docs/tests/site.test.ts",
-      "sha256": "92eb5dc3f96f2f80347b35c085ae6215a73395e83b4748b42ff86cb52720694d"
+      "sha256": "f59efb839161e429232ec0ab5b422c7bc679544f31d4a494641cb62ac0d139b6"
     },
     {
       "path": "packages/docs/tsconfig.build.json",
@@ -2299,15 +2299,39 @@
     },
     {
       "path": "tests/e2e/docs.spec.ts",
-      "sha256": "356526aecbf83bb16cf5d5fd478f333e86399ebd0327d40ce3c48a2ca6dfbe41"
+      "sha256": "217a1f7e9bc20a1681dd08d3b99bbf7079b15b0e04efadcad5a819c20ff40804"
+    },
+    {
+      "path": "tests/e2e/docs.spec.ts-snapshots/scheme-menu-dark-chromium-darwin.png",
+      "sha256": "4f6a32b4a34bdc0dddc5cbada7e1c991513ab2a54523642a11d26f4e543c36de"
+    },
+    {
+      "path": "tests/e2e/docs.spec.ts-snapshots/scheme-menu-dark-firefox-darwin.png",
+      "sha256": "1ac5b474c951c82f9da7789d33c42b14fb9bf9caf15fcabba87264655c60723d"
+    },
+    {
+      "path": "tests/e2e/docs.spec.ts-snapshots/scheme-menu-dark-webkit-darwin.png",
+      "sha256": "58945a322418a62667a50ce7796aba7e84f5fa8d56e0197a3a75048582064c74"
+    },
+    {
+      "path": "tests/e2e/docs.spec.ts-snapshots/scheme-menu-light-chromium-darwin.png",
+      "sha256": "ed591967d3a079cc6d5a360c3e7db27c875c8d60b53f09fa0eb7e84788a7f250"
+    },
+    {
+      "path": "tests/e2e/docs.spec.ts-snapshots/scheme-menu-light-firefox-darwin.png",
+      "sha256": "8259b52acbbee05e5cf2c7e85d7b852af3981245677c14d02635c0de193f6f78"
+    },
+    {
+      "path": "tests/e2e/docs.spec.ts-snapshots/scheme-menu-light-webkit-darwin.png",
+      "sha256": "62bafa324a88941817200d58c54ed82a6c82a3c9bda405ec961d868ee8e69b24"
     },
     {
       "path": "tests/e2e/embedded-explorer.spec.ts",
-      "sha256": "f693feb3d67f127a7c38d49035b87100dbc865084f09a92bbf24f728a16a66df"
+      "sha256": "00a37e5f9ebc4189aed86dace2abb7f31c15e2eb298d910ebfcd9cea027668f7"
     },
     {
       "path": "tests/e2e/explorer.spec.ts",
-      "sha256": "30e56492f3d0c8c08f3edb207550d607d8687d30144cbe48395e8d66ced0e7c7"
+      "sha256": "458e6de2c9369c2e9fc265cae23f72c984c134cf4bb5657cfb2028bc36992391"
     },
     {
       "path": "tests/e2e/filtering.spec.ts",

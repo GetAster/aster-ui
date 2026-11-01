@@ -1,5 +1,6 @@
 import { test, expect, type FrameLocator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { chooseOption } from "./appearance.ts";
 
 async function choose(frame: FrameLocator | Page, name: string, option: string) {
   await frame.getByRole("combobox", { name, exact: true }).click();
@@ -95,7 +96,7 @@ test("explorer is accessible in both schemes and reduced motion", async ({ page 
   const frame = page.frameLocator("iframe");
   await expect(frame.getByRole("grid", { name: "Workspace folder tiles", exact: true })).toBeVisible();
   for (const scheme of ["light", "dark"]) {
-    await page.getByRole("combobox", { name: "Colour scheme" }).selectOption(scheme);
+    await chooseOption(page, "Colour scheme", scheme === "light" ? "Light" : "Dark");
     await expect(frame.locator("html")).toHaveAttribute("data-scheme", scheme);
     const violations = (await new AxeBuilder({ page }).analyze()).violations;
     expect(violations.map(v => `${v.id}: ${v.nodes.map(n => n.target).join(", ")}`)).toEqual([]);

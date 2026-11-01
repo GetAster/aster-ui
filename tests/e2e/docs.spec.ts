@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { chooseOption } from "./appearance.ts";
 
 test("documentation connects the rationale, guide, live example and Grid API", async ({ page }) => {
   const errors: string[] = [];
@@ -54,7 +55,7 @@ test("light and dark documentation is accessible and keeps its colour preference
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     for (const scheme of ["light", "dark"]) {
-      await page.getByRole("combobox", { name: "Colour scheme" }).selectOption(scheme);
+      await chooseOption(page, "Colour scheme", scheme === "light" ? "Light" : "Dark");
       await expect(page.locator("html")).toHaveAttribute("data-scheme", scheme);
       if (path.includes("getting-started")) {
         await page.locator("iframe").evaluate(frame => frame.scrollIntoView({ block: "center", behavior: "instant" }));
@@ -66,8 +67,60 @@ test("light and dark documentation is accessible and keeps its colour preference
     }
   }
   await page.reload();
-  await expect(page.getByRole("combobox", { name: "Colour scheme" })).toHaveValue("dark");
+  await expect(page.getByRole("combobox", { name: "Colour scheme" })).toHaveText("Dark");
   await expect(page.locator("html")).toHaveAttribute("data-scheme", "dark");
+});
+
+test("the colour scheme picker is a keyboard-operable themed listbox", async ({ page }) => {
+  await page.goto("/reference/");
+  const picker = page.getByRole("combobox", { name: "Colour scheme" });
+  const list = page.getByRole("listbox", { name: "Colour scheme" });
+  await picker.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(list).toBeVisible();
+  await expect(picker).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#doc-scheme-option-system")).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("ArrowDown");
+  await expect(picker).toHaveAttribute("aria-activedescendant", "doc-scheme-option-light");
+  await page.keyboard.press("Enter");
+  await expect(list).toBeHidden();
+  await expect(picker).toHaveText("Light");
+  await expect(page.locator("html")).toHaveAttribute("data-scheme", "light");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await expect(picker).toHaveAttribute("aria-activedescendant", "doc-scheme-option-dark");
+  await page.keyboard.press(" ");
+  await expect(page.locator("html")).toHaveAttribute("data-scheme", "dark");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Escape");
+  await expect(list).toBeHidden();
+  await expect(picker).toBeFocused();
+});
+
+test("the colour scheme menu follows the documentation theme", async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 700 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const scheme of ["light", "dark"]) {
+    await page.goto("/reference/");
+    await chooseOption(page, "Colour scheme", scheme === "light" ? "Light" : "Dark");
+    await page.getByRole("combobox", { name: "Colour scheme" }).click();
+    await expect(page.getByRole("listbox", { name: "Colour scheme" })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const picker = (await page.locator(".scheme-picker").boundingBox())!;
+    const menu = (await page.getByRole("listbox", { name: "Colour scheme" }).boundingBox())!;
+    await expect(page).toHaveScreenshot(`scheme-menu-${scheme}.png`, { animations: "disabled", clip: {
+      x: Math.min(picker.x, menu.x), y: picker.y,
+      width: Math.max(picker.x + picker.width, menu.x + menu.width) - Math.min(picker.x, menu.x),
+      height: menu.y + menu.height - picker.y,
+    } });
+  }
+});
+
+test("a demo URL's scheme drives the documentation picker", async ({ page }) => {
+  await page.goto("/examples/mail.html?scheme=dark");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Webmail");
+  await expect(page.locator("html")).toHaveAttribute("data-scheme", "dark");
+  await expect(page.getByRole("combobox", { name: "Colour scheme" })).toHaveText("Dark");
 });
 
 test("mobile documentation navigation, articles and code stay within the viewport", async ({ page }) => {
