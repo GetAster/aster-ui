@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { chooseOption } from "../e2e/appearance.ts";
+
+function chooseScheme(page: Parameters<typeof chooseOption>[0], scheme: "light" | "dark"): Promise<void> {
+  return chooseOption(page, "Colour scheme", scheme === "light" ? "Light" : "Dark");
+}
 
 test("diagrams keep readable labels, accessible descriptions and theme colours across layouts", async ({ page }) => {
   await page.goto("/docs/guide/data-model.html");
@@ -7,8 +12,8 @@ test("diagrams keep readable labels, accessible descriptions and theme colours a
   await expect(figures).toHaveCount(2);
   for (const width of [1440, 375]) {
     await page.setViewportSize({ width, height: 900 });
-    for (const scheme of ["light", "dark"]) {
-      await page.getByRole("combobox", { name: "Colour scheme" }).selectOption(scheme);
+    for (const scheme of ["light", "dark"] as const) {
+      await chooseScheme(page, scheme);
       const visible = figures.first().locator(width === 375 ? '.diagram-narrow svg' : '.diagram-wide svg');
       await expect(visible).toBeVisible();
       await expect(figures.first().locator(width === 375 ? '.diagram-wide' : '.diagram-narrow')).toBeHidden();
@@ -37,8 +42,8 @@ for (const guide of ['integrate-sql-and-apis', 'authentication', 'keyed-sessions
     await expect(figure.getByRole('img')).toHaveAttribute('aria-label', /.+/);
     for (const width of [1440, 375]) {
       await page.setViewportSize({ width, height: 1000 });
-      for (const scheme of ['light', 'dark']) {
-        await page.getByRole('combobox', { name: 'Colour scheme' }).selectOption(scheme);
+      for (const scheme of ["light", "dark"] as const) {
+        await chooseScheme(page, scheme);
         await page.evaluate(() => document.fonts.ready);
         const svg = figure.locator(width === 375 ? '.diagram-narrow svg' : '.diagram-wide svg');
         await expect(svg).toBeVisible();

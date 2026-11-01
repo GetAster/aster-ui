@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "30f3032e967a0509e2dbd5b0d3bd5878d1aca70a86c468c88f28e9220298423c"
+      "sha256": "f0448ca7d8645d6c1d4902a2c058a37abfc44f1de59ab54163c80faaf72f6a4c"
     },
     {
       "path": "LICENSE",
@@ -2719,7 +2719,7 @@
     },
     {
       "path": "tests/site-release/diagrams.spec.ts",
-      "sha256": "9fab9553ec7fa0bc22320eb60978ed6cbb2d1f5a3db8203aee1fa4cfcbeff90d"
+      "sha256": "717d7728e6102dd8de1e12e82575050866d8f2622f0b22cfe500686a3aacb8b7"
     },
     {
       "path": "tests/site-release/navigation.spec.ts",
