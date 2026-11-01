@@ -63,8 +63,10 @@ await buildDocsSite({ root: import.meta.dir, outdir: "dist/docs", siteName: "Ano
     });
     await page.getByRole("button", { name: "Copy bash code" }).click();
     await expect(page.locator("body")).toHaveAttribute("data-copied", "aster --help\n");
-    for (const scheme of ["light", "dark"]) {
-      await page.getByRole("combobox", { name: "Colour scheme" }).selectOption(scheme);
+    for (const scheme of ["light", "dark"] as const) {
+      const picker = page.getByRole("combobox", { name: "Colour scheme" });
+      await picker.click();
+      await page.getByRole("listbox", { name: "Colour scheme" }).getByRole("option", { name: scheme === "light" ? "Light" : "Dark", exact: true }).click();
       await expect(page.locator("html")).toHaveAttribute("data-scheme", scheme);
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     }

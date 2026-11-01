@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "f0448ca7d8645d6c1d4902a2c058a37abfc44f1de59ab54163c80faaf72f6a4c"
+      "sha256": "53b9b4635b8c55a53ce4bddfb2e54713eead42cd0445e2b94ad3baa8b3facd2b"
     },
     {
       "path": "LICENSE",
@@ -2119,7 +2119,7 @@
     },
     {
       "path": "scripts/test-docs-package.ts",
-      "sha256": "8e18c69cdd7bd95638d031cd0c5f9b373d087aa0a578b4dc7c21864b817230a4"
+      "sha256": "aed02eb86ce47178b46f1a9fa2b0b4a64d000c73d572132b537cca71510fe9bc"
     },
     {
       "path": "scripts/tsconfig.json",
