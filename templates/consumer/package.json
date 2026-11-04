@@ -1,0 +1,19 @@
+{
+  "name": "aster-ui-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot serve.ts",
+    "build": "bun build.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@getaster/data": "^0.4.0",
+    "@getaster/elements": "^0.4.0"
+  },
+  "devDependencies": {
+    "@getaster/mock": "^0.4.0",
+    "@types/bun": "^1.2.15",
+    "typescript": "^5.9.3"
+  }
+}

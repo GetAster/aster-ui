@@ -114,9 +114,10 @@ The group is the bar's containing block, so it must stay `position: relative`
 
 Tag: `aster-section`. Give it a `heading` and a `body`.
 
-The heading is a `role="heading"` element whose level is `level`, holding a
-button with `aria-expanded` and `aria-controls`. Pressing it (Enter or Space on
-the button, or a click) toggles `open`. The body is a `role="region"` named by
+By default it is a titled, collapsible block. The heading is a
+`role="heading"` element whose level is `level`, holding a button with
+`aria-expanded` and `aria-controls`. Pressing it (Enter or Space on the
+button, or a click) toggles `open`. The body is a `role="region"` named by
 the heading. It stays in the DOM when collapsed, so its state, signals and
 form values are kept, and it is `inert` so its controls can't be reached. The
 element carries a `data-open` attribute while open, which the styles use.
@@ -125,6 +126,13 @@ A collapsed section opens by itself when an invalid field (an element with
 `aria-invalid="true"`) newly appears in it, after the render that shows it. It
 opens once: if the person collapses it again while that field stays invalid, it
 stays collapsed until the body has been error-free and an error appears again.
+
+Optional [[attr:Section.chrome]] turns the same element into an in-flow panel:
+the shared window title bar ([[class:Window]]'s template), a separate fold
+chevron, a close control, a footer and a summary that can stay visible.
+[[attr:Section.collapsible]] set to `false` renders a plain heading and keeps
+the body open, for a card that does not fold. These are presentational options;
+the section never removes itself, and a close only asks the host.
 
 Reading `open` inside an `effect` tracks the person's opening and closing as
 well as your own setting of it.
@@ -141,6 +149,10 @@ section.heading = "Advanced";
 section.open = false;
 section.summary = html`2 changes`;
 section.body = html`<aster-field .model=${edit} .field=${"notes"}></aster-field>`;
+
+// An in-flow panel: window chrome, a count that stays visible, and a footer.
+section.chrome = { titleBar: true, status: "always" };
+section.footer = html`<aster-button .label=${"Save"}></aster-button>`;
 ```
 
 ## attr:Section.heading
@@ -169,6 +181,63 @@ The heading level in the page's outline: `2`, `3` or `4`. Default `2`. It sets
 A [[type:View]] shown beside the heading while the section is collapsed, such as
 "2 changes" or a count. It is not rendered while open. Default `nothing`.
 [[class:Form]] sets it to a count of the section's changed fields. Reactive.
+
+## object:SectionChrome
+
+The plain-data chrome object behind [[attr:Section.chrome]]. Every field is
+optional, and assigning a new object re-renders the section.
+
+| Field | Default | Effect |
+|---|---|---|
+| `titleBar` | `false` | Draw the shared window title bar, the template and geometry [[class:Window]] uses, instead of the section head. |
+| `fold` | the value of `titleBar` | Show a separate fold chevron in the title bar. Set `false` to hide it. It is ignored without a title bar, where the heading itself toggles. |
+| `close` | `false` | Show a close button that emits [[event:Section.close]]. |
+| `footer` | `false` | Reserve a footer region at the bottom of the body. Content comes from [[attr:Section.footer]]. |
+| `status` | `"collapsed"` | `"collapsed"` shows the summary only while collapsed, as before. `"always"` shows it whenever a summary is set, collapsed or open. |
+
+Because it is plain data, the YAML composition catalog accepts the same shape:
+`chrome: { titleBar: true, status: always }`.
+
+## attr:Section.chrome
+
+Presentational chrome. Default `{}`. See [[object:SectionChrome]] for the
+fields and defaults. Reactive: assign a new object; the stored object is
+frozen, so mutate by replacing it.
+
+## attr:Section.collapsible
+
+The folding capability. Default `true`: the heading is a button with
+`aria-expanded` and `aria-controls`, and the body is inert while collapsed.
+Set `false` for a plain heading: it keeps `role="heading"` and `aria-level`, but
+has no button semantics, `aria-expanded`, `aria-controls` or chevron, and the
+body stays rendered open and is not inert. `open` then has no visible effect,
+the fold control is not rendered, and no `section-toggle` is emitted. The
+invalid-field auto-open rule applies to collapsible sections. Reactive.
+
+## attr:Section.canClose
+
+Whether the section permits closing. Default `true`. It is the capability half
+of the close surface: [[object:SectionChrome]]'s `close` (or
+[[attr:Section.chrome]] `{ close: true }`) still chooses whether the control is
+shown, and `canClose: false` removes it even when chrome asks for it. The
+section itself never closes or removes itself; the control emits
+[[event:Section.close]] for the host to act on. Reactive.
+
+## attr:Section.footer
+
+The footer contents, a [[type:View]], rendered at the bottom of the body area.
+Default `nothing`. Setting it is sugar for `chrome.footer = true` plus the
+content: `section.footer = view` is `section.chrome = { ...section.chrome,
+footer: true }` with that view. Setting it to `nothing` clears the flag. The
+footer sits inside the collapsing body, so it is hidden and inert while the
+section is collapsed. Reactive.
+
+## event:Section.close
+
+Emitted when the close control from [[attr:Section.chrome]] is activated. It
+bubbles and is cancelable, with no detail. The section has no default action
+and never removes or hides itself: `preventDefault()` lets a host apply its own
+close policy, and otherwise the host decides what happens next.
 
 ## class:Split
 

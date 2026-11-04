@@ -210,16 +210,25 @@ One entry of a menu: a union of shapes told apart by `kind` (`"check"` and
 
 | `kind` | Other fields | Behaviour |
 |---|---|---|
-| none, or `"action"` | `label`, `run`, optional `disabled` | Runs and closes the menu. `disabled` is a reason, not a flag: set, the item stays focusable with `aria-disabled` and the reason as its `title`, and does nothing. |
-| `"check"` | `label`, `checked`, `run` | A `menuitemcheckbox`, marked with a check. Runs and leaves the menu open. |
-| `"radio"` | `label`, `checked`, `run` | A `menuitemradio`, marked with a dot. Choosing one marks it and clears the other radios in the same list. |
-| `"submenu"` | `label`, `items` | Opens a menu beside the item. Has `aria-haspopup="menu"` and `aria-expanded`. |
+| none, or `"action"` | `label`, `run`, optional `disabled`, `icon`, `shortcut` | Runs and closes the menu, unless [[attr:Menu.autoDismiss]] is false. `disabled` is a reason, not a flag: set, the item stays focusable with `aria-disabled` and the reason as its `title`, and does nothing. |
+| `"check"` | `label`, `checked`, `run`, optional `icon`, `shortcut` | A `menuitemcheckbox`, marked with a check. Runs and leaves the menu open. |
+| `"radio"` | `label`, `checked`, `run`, optional `icon`, `shortcut` | A `menuitemradio`, marked with a dot. Choosing one marks it and clears the other radios in the same list. |
+| `"submenu"` | `label`, `items`, optional `icon`, `shortcut` | Opens a menu beside the item. Has `aria-haspopup="menu"` and `aria-expanded`. |
 | `"group"` | `label`, `items` | A heading and a `role="group"` around its items. Not focusable itself. Its items count in the keyboard order with their neighbours. |
 | `"separator"` | none | A rule. Not focusable. |
 
 `run` takes no arguments and returns nothing. A check or radio's `checked` is
 read when the menu opens; the mark then follows the person's choices in place
 until it closes.
+
+`icon` is a [[type:View]] drawn before the label and hidden from assistive
+technology. When any item in a level has one, every item reserves the icon
+cell so labels line up; [[attr:Menu.showIcons]] removes the cell. `shortcut` is
+a human hint such as `"Ctrl+R"` or `"⌘K"`; it is drawn on the trailing edge and
+[[attr:Menu.showShortcuts]] hides it. When the text is a shortcut
+`aria-keyshortcuts` can carry, the item also gets the attribute in its
+standard spelling (`Control+R`, `Meta+K`); symbols, modifier names and key
+names it cannot express are drawn but not announced as a shortcut.
 
 ```ts
 const items: MenuItem[] = [
@@ -235,17 +244,64 @@ declare function rename(): void;
 declare function sortBy(field: string): void;
 ```
 
+## attr:Menu.showIcons
+
+Whether items with an `icon` draw it. Default `true`. With no icons in the
+menu, nothing changes. Set `false` to remove the icon cell entirely; labels
+close up. An icon is decorative, so the item's label is still its accessible
+name. Reactive: applies to the next render of an open menu.
+
+## attr:Menu.showShortcuts
+
+Whether items with a `shortcut` show the hint. Default `true`. Set `false` to
+remove both the visible hint and the matching `aria-keyshortcuts` attribute.
+Reactive.
+
+## attr:Menu.submenuDirection
+
+Where a submenu opens relative to its item: `"auto"` (default) lets CSS
+position it at the inline end and flip to the start when there is no room;
+`"end"` fixes it at the inline end; `"start"` fixes it at the inline start.
+The vertical flip at the viewport's edges still applies. A fixed side does not
+wrap, so choose it when the menu's place on the page is known. Reactive.
+
+## attr:Menu.autoDismiss
+
+Whether choosing an action or link closes the menu. Default `true`. With
+`false` the action still runs, the menu stays open and focus stays on its
+item. Check and radio items always stay open so several can be changed;
+Escape, Tab, a press outside and focus leaving always close the menu
+regardless. Reactive.
+
+## attr:Menu.emptyMessage
+
+Text drawn when a menu has nothing to choose, such as when its item list
+filters to nothing. Default `""`: nothing is drawn. The empty surface is not a
+`role="menu"` (a menu must own items); it is a focusable panel that reads the
+message and keeps Escape working. Reactive.
+
 ## class:Window
 
 Tag: `aster-window`. Set `heading` and `content`, then call
 [[method:Window.show]], [[method:Window.close]] or [[method:Window.toggle]]. It
 draws nothing while closed.
 
-The window is a `role="dialog"` with `aria-modal="false"` named by its heading,
-in the top layer. The page stays usable and isn't made inert. The first time it
-opens it sits beside its opener, above it, or below when there isn't room (centred
-if there is no opener); after that it opens where it was left. Opening focuses the
-window itself, not a control in it.
+The window is a `role="dialog"` named by its heading, in the top layer. The page
+stays usable and isn't made inert unless [[attr:Window.modal]] is true, in which
+case a native modal `<dialog>` wraps the window and supplies inertness and focus
+containment. The first time it opens it sits beside its opener, above it, or
+below when there isn't room (centred if there is no opener, or when
+[[attr:Window.autoCenter]] is set); after that it opens where it was left.
+Opening focuses the window itself, not a control in it.
+
+[[attr:Window.chrome]] chooses which parts are drawn: the title bar, heading,
+Close, Minimize, Maximize, resizer, footer and status bar. Every part keeps its
+old default, so an unconfigured window draws exactly what it did before;
+`footer` and `status` are content set on the window, and each turns its region
+on. Move and resize are in the title bar, so hiding the header removes their
+keyboard controls; [[attr:Window.showResizer]] false also turns off pointer
+resizing. Minimize and Maximize remain managed-window chrome unless a chrome
+switch says otherwise.
 
 By default content exists only while open. Set `preserveContent = true` to keep
 its DOM between openings, including native input values and borrowed child models.
@@ -350,6 +406,115 @@ Read-only reactive boolean while an asynchronous close guard is pending.
 Optional `() => boolean | Promise<boolean>`. Return true to close, false to keep
 editing. A rejection emits `closeerror` and keeps content. The application owns
 confirmation UI, saving and error messages. Disconnection invalidates decisions.
+
+## object:WindowChrome
+
+The plain-data chrome object behind [[attr:Window.chrome]]. Every field is
+optional, and an omitted field keeps its default.
+
+| Field | Default | Effect |
+|---|---|---|
+| `header` | `true` | Draw the title bar: heading, Move, window controls. Without it the window has no bar and no pointer drag. |
+| `title` | `true` | Draw the heading as visible text. A hidden heading still names the dialog and its controls. |
+| `close` | `true` | Draw the Close button. Escape still closes when [[attr:Window.dismissOnEscape]] permits it. |
+| `minimize` | managed | Draw the Minimize button. An unmanaged window shows none unless this is `true`. |
+| `maximize` | managed | Draw the Maximize/Restore button, with the same default. |
+| `resizer` | `true` | Allow pointer resizing from the corner and draw the keyboard Resize control. |
+| `footer` | `false` | Draw the footer region filled by [[attr:Window.footer]]. Setting `footer` turns it on. |
+| `statusBar` | `false` | Draw the status region filled by [[attr:Window.status]]. Setting `status` turns it on. |
+
+Because it is plain data, the YAML composition catalog accepts the same shape:
+`chrome: { header: false, close: false, footer: true }`.
+
+## attr:Window.chrome
+
+Which parts of the window's chrome it draws. Default `{}`. See
+[[object:WindowChrome]] for the fields and defaults. Reactive: assign a new
+object; the stored object is a copy, so mutate by replacing it.
+
+## attr:Window.showHeader
+
+Sugar for `chrome.header`. Default `true`.
+
+## attr:Window.showTitle
+
+Sugar for `chrome.title`. Default `true`. `false` keeps the heading in the
+accessibility tree, so the dialog is still named, but takes it out of view.
+
+## attr:Window.showCloseButton
+
+Sugar for `chrome.close`. Default `true`. Hiding the button never disables
+[[attr:Window.dismissOnEscape]].
+
+## attr:Window.showMinimizeButton
+
+Sugar for `chrome.minimize`. Default: the window's `managed` value, preserving
+the original managed-only chrome.
+
+## attr:Window.showMaximizeButton
+
+Sugar for `chrome.maximize`. Default: the window's `managed` value.
+
+## attr:Window.showResizer
+
+Sugar for `chrome.resizer`. Default `true`. `false` removes the keyboard Resize
+control and turns off CSS pointer resizing.
+
+## attr:Window.showFooter
+
+Sugar for `chrome.footer`. Default `false`. It does not clear
+[[attr:Window.footer]]; set that to `nothing` to drop the content too.
+
+## attr:Window.showStatusBar
+
+Sugar for `chrome.statusBar`. Default `false`.
+
+## attr:Window.footer
+
+The footer's contents, a [[type:View]], drawn below the body and outside its
+scroll area. Default `nothing`. Setting it is sugar for `chrome.footer = true`
+plus the content; setting it to `nothing` turns the region off. Reactive.
+
+## attr:Window.status
+
+The status bar's contents, a [[type:View]], drawn at the bottom in a
+`role="status"` region. Default `nothing`. Setting it is sugar for
+`chrome.statusBar = true` plus the content; setting it to `nothing` turns the
+region off. Reactive.
+
+## attr:Window.initialPlacement
+
+A [[object:WindowPlacement]] used when the window first opens. Default
+`undefined`. It supplies the state and normal bounds; an explicit
+[[method:Window.setPlacement]] call, or a placement already captured by an
+earlier opening, wins over it. Setting it while open does not move the window.
+Invalid states and bounds throw `TypeError` as [[method:Window.setPlacement]]
+does. Reactive only between construction and the first opening.
+
+## attr:Window.modal
+
+Whether the open window makes the rest of the page inert, with focus
+contained, by wrapping it in a native modal `<dialog>`. Default `false`, which
+keeps the original non-modal popover. A minimized modal window releases the
+page until it is restored. The change takes effect on the next open. Reactive.
+
+## attr:Window.dismissOnEscape
+
+Whether Escape inside the window closes it. Default `true`. `false` still
+consumes the key, so it cannot also dismiss a dialog or page beneath. Reactive.
+
+## attr:Window.keepInParentRect
+
+Whether moving and resizing keep the window inside its parent element's
+rectangle, intersected with the viewport's 8 px margin. Default `false`, which
+uses the viewport alone. The parent's size also becomes the window's maximum
+size while this is on. Reactive.
+
+## attr:Window.autoCenter
+
+Whether the first opening centres the window in the viewport instead of placing
+it beside its opener. Default `false`. Applied only while no placement has been
+captured, so a later opening returns to where the window was left. Reactive.
 
 ## method:Window.activate
 
@@ -541,9 +706,18 @@ open and visible.
 ## class:Dialog
 
 Tag: `aster-dialog`. Put one in the page with `content`, and call
-[[method:Dialog.show]] to open it. It is a native modal `<dialog>`: the rest of
-the page is inert, focus is kept inside, and Escape closes it. A press on the
-backdrop closes it too. Focus returns to the opener on close, and `close` fires.
+[[method:Dialog.show]] to open it. By default it is a native modal `<dialog>`:
+the rest of the page is inert and focus is kept inside. With
+[[attr:Dialog.modal]] false it uses `dialog.show()` instead, so the page stays
+usable. Escape and a backdrop press dismiss it unless
+[[attr:Dialog.dismissOnEscape]] or [[attr:Dialog.dismissOnBackdrop]] turns
+those off. Focus returns to the opener on close, and `close` fires.
+
+[[attr:Dialog.title]] adds a header with that heading;
+[[attr:Dialog.showCloseButton]] adds a Close control to it;
+[[attr:Dialog.footer]] adds an action row below the content. With `title` unset
+the header is absent by default, so existing dialogs keep their own heading in
+`content` and name themselves with [[attr:Dialog.labelledBy]].
 
 The contents are drawn whether the dialog is open or not; the browser just hides
 them while it is closed. So `content` is usually a template that reads the page's
@@ -566,13 +740,13 @@ declare const button: HTMLElement;
 
 ## method:Dialog.show
 
-Opens the dialog modally.
+Opens the dialog, modally unless [[attr:Dialog.modal]] is false.
 
 - `opener`: the element focus returns to when it closes. Default: the focused
   element at the time of the call.
 - `focus`: optional function returning the element to focus once it is open.
-  Called right after opening. If it isn't given, or returns `null`, the browser
-  focuses the first focusable element.
+  Called right after opening. It wins over [[attr:Dialog.initialFocus]]; when it
+  returns `null`, the `initialFocus` policy decides.
 
 Returns nothing. Does nothing if the dialog is already open, or hasn't rendered
 yet (call it after the element is connected).
@@ -617,12 +791,70 @@ Whether the dialog is open. Read-only. It reads the native `<dialog>`'s state
 when asked and isn't a signal, so it doesn't re-render anything when it changes:
 listen for `close`, and note when you call [[method:Dialog.show]].
 
+## attr:Dialog.title
+
+The dialog's heading, as plain text. Default `""`, which draws no header. A
+title draws a header with an `h2` named by this text, and that heading becomes
+the dialog's accessible name unless [[attr:Dialog.labelledBy]] names another
+element. With the header hidden by [[attr:Dialog.header]], the title still
+names the dialog through `aria-label`. Reactive.
+
+## attr:Dialog.header
+
+Whether the header bar is drawn. Default: shown when [[attr:Dialog.title]] is
+non-empty. `true` draws an empty header when there is no title, which is useful
+only together with [[attr:Dialog.showCloseButton]]. Reactive.
+
+## attr:Dialog.footer
+
+The footer's contents, a [[type:View]], drawn below `content` with a separating
+rule. Default `nothing`, which draws no footer. Reactive.
+
+## attr:Dialog.showCloseButton
+
+Whether the header carries a Close button. Default `false`, preserving the
+original dialogs, which had no close control. It has no effect without a
+header. The button closes the dialog through [[method:Dialog.close]] and then
+fires [[event:Dialog.close]] like every other close. Reactive.
+
+## attr:Dialog.modal
+
+Whether the dialog is opened with `showModal()`. Default `true`: the page is
+inert and focus is contained. `false` opens it with `show()`, so the rest of
+the page stays usable and focus can leave it; Escape still closes when
+[[attr:Dialog.dismissOnEscape]] permits it. The change applies to the next
+[[method:Dialog.show]]. Reactive.
+
+## attr:Dialog.dismissOnEscape
+
+Whether Escape closes the dialog. Default `true`. When `false`, Escape is
+prevented from reaching the browser's own modal dismissal, so the dialog stays
+open. Reactive.
+
+## attr:Dialog.dismissOnBackdrop
+
+Whether a press on a modal dialog's backdrop closes it. Default `true`. It has
+no effect for a non-modal dialog, which has no backdrop. Reactive.
+
+## attr:Dialog.initialFocus
+
+Where focus goes on open when [[method:Dialog.show]] is given no `focus`
+function: `"first"` (default) focuses the first focusable element, or the
+dialog when it has none; `"dialog"` focuses the dialog panel itself; `"none"`
+leaves focus where it is for a non-modal dialog, and focuses the panel for a
+modal one, which must contain focus; a function returns the element to focus.
+The first-focusable search honours an `[autofocus]` element first. JavaScript
+configuration only for the function form; the YAML catalog can carry the three
+strings. Reactive.
+
 ## event:Dialog.close
 
-Fires after the dialog has closed, whether by [[method:Dialog.close]], Escape or
-a press on the backdrop. No `detail`. It bubbles, so a handler on the
-`aster-dialog` element or an ancestor hears it. Focus has already returned to the
-opener. Use it to reset the dialog's state, so the next opening starts clean.
+Fires after the dialog has closed, whether by [[method:Dialog.close]], the
+Close button, Escape or a press on the backdrop. The last two only apply when
+[[attr:Dialog.dismissOnEscape]] and [[attr:Dialog.dismissOnBackdrop]] permit
+them. No `detail`. It bubbles, so a handler on the `aster-dialog` element or an
+ancestor hears it. Focus has already returned to the opener. Use it to reset
+the dialog's state, so the next opening starts clean.
 
 ## class:Tabs
 
@@ -872,8 +1104,10 @@ button is busy or has a `reason`. A submit button doesn't submit then either.
 While busy, `aria-busy="true"` is set. The label change is not announced by the
 button itself; announce an outcome that matters with [[staticMethod:announce]].
 
-Prefer `reason` to disabling: the button stays focusable and in the tab order, so
-a keyboard or screen-reader user can find it and read why it can't act.
+Prefer `reason` for an advisory refusal: the button stays focusable and in the
+tab order, so a keyboard or screen-reader user can find it and read why it can't
+act. [[attr:Button.disabled]] is the native state for a button that truly isn't
+available: it leaves the tab order and no click or submit fires.
 
 ```ts
 import { signal } from "@preact/signals-core";
@@ -933,8 +1167,43 @@ property. Reactive.
 
 ## attr:Button.variant
 
-`"secondary"` (the default) or `"primary"`, the visual weight. Use one primary
-button per view. Reactive.
+Sugar for [[attr:Button.tone]]: `"secondary"` (the default) or `"primary"`.
+Reading it back from a `"danger"` tone gives `"secondary"`. Reactive.
+
+## attr:Button.tone
+
+The button's visual weight, as [[type:ButtonTone]]: `"secondary"` (the
+default), `"primary"` or `"danger"`. Use one primary button per view and
+`"danger"` for a destructive action. [[attr:Button.variant]] is sugar for the
+primary/secondary pair.
+
+```ts
+html`<aster-button .label=${"Delete"} .tone=${"danger"} @click=${() => void remove()}></aster-button>`;
+```
+
+## attr:Button.size
+
+The button's size on the density scale, as [[type:ButtonSize]]: `"sm"`,
+`"md"` (the default) or `"lg"`. Sizes come from the control-height tokens, so
+they follow [[constant:DENSITIES]]. Reactive.
+
+## attr:Button.disabled
+
+The native disabled state. Default `false`. A disabled button leaves the tab
+order, is dimmed, and neither a click nor a submit fires. It takes precedence
+over [[attr:Button.reason]] for interaction; the reason is still its `title`.
+
+```ts
+html`<aster-button .label=${"Save"} .disabled=${!dirty}></aster-button>`;
+```
+
+## type:ButtonTone
+
+`"secondary" | "primary" | "danger"`: the button's visual weight.
+
+## type:ButtonSize
+
+`"sm" | "md" | "lg"`: the button's size on the density scale.
 
 ## attr:Button.type
 

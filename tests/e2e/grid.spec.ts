@@ -580,6 +580,244 @@ test("keyboard: the header and filter rows are part of the grid; sort changes ar
   await expect(rows(page).first()).toHaveAttribute("aria-selected", "true");
 });
 
+test.describe("chrome", () => {
+  const host = (page: Page) => page.locator("aster-grid.time-grid");
+  const toolbar = (page: Page) => page.locator(".aster-grid-toolbar");
+
+  /** Sets element properties from the test, as a host page would. */
+  async function configure(page: Page, props: Record<string, unknown>): Promise<void> {
+    await host(page).evaluate((el, values) => {
+      for (const [key, value] of Object.entries(values)) (el as unknown as Record<string, unknown>)[key] = value;
+    }, props);
+  }
+  const chromeOf = (page: Page) => host(page).evaluate((el) => (el as unknown as { chrome: unknown }).chrome);
+  const property = (page: Page, name: string) => host(page).evaluate((el, key) => (el as unknown as Record<string, unknown>)[key], name);
+
+  test("defaults are today's full chrome, and the filter row is automatic", async ({ page }) => {
+    await time(page);
+    await expect(toolbar(page)).toBeVisible();
+    await expect(page.locator(".aster-grid-total")).toHaveText("3,000 rows");
+    await expect(page.locator(".aster-grid-head")).toBeVisible();
+    await expect(page.locator(".aster-grid-filters")).toHaveCount(0);
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3001");
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    await expect(page.locator(".aster-grid-filters")).toBeVisible();
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3002");
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    await expect(page.locator(".aster-grid-filters")).toHaveCount(0);
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3001");
+  });
+
+  test("chrome.toolbar false hides the toolbar and keeps the row count announced", async ({ page }) => {
+    await time(page);
+    await configure(page, { chrome: { toolbar: false } });
+    await expect(toolbar(page)).toHaveCount(0);
+    await expect(rows(page).first()).toBeVisible();
+    const describedBy = await grid(page).getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    const count = page.locator(`#${describedBy}`);
+    await expect(count).toHaveText("3,000 rows");
+    await expect(count).toHaveAttribute("aria-live", "polite");
+    expect((await count.boundingBox())!.width).toBeLessThanOrEqual(1);
+    await configure(page, { chrome: { toolbar: true } });
+    await expect(toolbar(page)).toBeVisible();
+    await expect(page.locator(".aster-grid-total")).toHaveText("3,000 rows");
+  });
+
+  test("chrome.header false hides the header visually while its columnheaders and row arithmetic survive", async ({ page }) => {
+    await time(page);
+    const headers = page.locator(".aster-grid-head [role='columnheader']");
+    const headerCount = await headers.count();
+    expect(headerCount).toBeGreaterThan(0);
+    const before = (await page.locator(".aster-grid-head").boundingBox())!;
+    await configure(page, { chrome: { header: false } });
+    await expect(page.locator(".aster-grid-head")).toHaveCount(1);
+    await expect(headers).toHaveCount(headerCount);
+    const after = (await page.locator(".aster-grid-head").boundingBox())!;
+    expect(after.width).toBeLessThanOrEqual(1);
+    expect(after.height).toBeLessThanOrEqual(1);
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3001");
+    // Pointer cannot reach it: the old header area no longer hits a columnheader.
+    const hit = await page.evaluate(({ x, y }) => (document.elementFromPoint(x, y)?.closest("[role='columnheader']") ?? null) !== null, { x: before.x + before.width / 2, y: before.y + before.height / 2 });
+    expect(hit).toBe(false);
+    // Keyboard cannot reach it: ↑ on the first row stays on a cell.
+    await grid(page).focus();
+    await page.keyboard.press("ArrowUp");
+    const activeId = await grid(page).getAttribute("aria-activedescendant");
+    expect(activeId).toBeTruthy();
+    await expect(page.locator(`#${activeId}`)).toHaveAttribute("role", "gridcell");
+    await configure(page, { chrome: { header: true } });
+    await expect(page.locator(".aster-grid-head")).toBeVisible();
+    expect((await page.locator(".aster-grid-head").boundingBox())!.height).toBeGreaterThan(1);
+  });
+
+  test('chrome.filterRow "auto" follows filters, true forces the row and false removes it without clearing filters', async ({ page }) => {
+    await time(page);
+    await configure(page, { chrome: { filterRow: true } });
+    await expect(page.locator(".aster-grid-filters")).toBeVisible();
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3002");
+    await configure(page, { chrome: { filterRow: "auto" } });
+    await expect(page.locator(".aster-grid-filters")).toHaveCount(0);
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3001");
+    const refused = await host(page).evaluate((el) => {
+      try { (el as unknown as { chrome: unknown }).chrome = { filterRow: "sometimes" }; return ""; }
+      catch (error) { return (error as Error).message; }
+    });
+    expect(refused).toContain("filterRow");
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    const note = page.getByRole("textbox", { name: "Filter Note" });
+    await note.fill("flaky build");
+    await note.press("Enter");
+    const total = page.locator(".aster-grid-total");
+    await expect(total).toHaveText(/^\d[\d,]* rows$/);
+    await expect(total).not.toHaveText("3,000 rows");
+    await configure(page, { chrome: { filterRow: false } });
+    await expect(page.locator(".aster-grid-filters")).toHaveCount(0);
+    await expect(toolbar(page).getByRole("button", { name: /^Filters/ })).toHaveCount(0);
+    const count = Number((await total.textContent())!.split(" ")[0]!.replace(/,/g, ""));
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", String(count + 1));
+    for (const text of await page.locator(".aster-grid-row[data-key] [aria-colindex='7']").allTextContents()) expect(text.toLowerCase()).toContain("flaky build");
+  });
+
+  test("chrome.pagingBar is accepted and leaves today's scroll-loading grid unchanged", async ({ page }) => {
+    await time(page);
+    await configure(page, { chrome: { pagingBar: false } });
+    expect(await chromeOf(page)).toEqual({ pagingBar: false });
+    await expect(page.locator(".aster-grid-paging")).toHaveCount(0);
+    await expect(toolbar(page)).toBeVisible();
+    await expect(rows(page).first()).toBeVisible();
+    await configure(page, { chrome: { pagingBar: true } });
+    expect(await chromeOf(page)).toEqual({ pagingBar: true });
+  });
+
+  test("toolbar.count false leaves the other toolbar controls", async ({ page }) => {
+    await time(page);
+    await configure(page, { toolbar: { count: false } });
+    await expect(page.locator(".aster-grid-total")).toHaveCount(0);
+    await expect(toolbar(page).getByRole("button", { name: "Sort", exact: true })).toBeVisible();
+    await expect(toolbar(page).getByRole("button", { name: "Filters", exact: true })).toBeVisible();
+    await expect(toolbar(page).getByRole("button", { name: "Advanced filter", exact: true })).toBeVisible();
+    await expect(toolbar(page).getByRole("button", { name: "Columns", exact: true })).toBeVisible();
+    await expect(toolbar(page).getByRole("button", { name: "Views", exact: true })).toBeVisible();
+  });
+
+  test("toolbar.sort false hides the Sort panel button", async ({ page }) => {
+    await time(page);
+    await configure(page, { toolbar: { sort: false } });
+    await expect(toolbar(page).getByRole("button", { name: "Sort", exact: true })).toHaveCount(0);
+    await expect(toolbar(page).getByRole("button", { name: "Columns", exact: true })).toBeVisible();
+  });
+
+  test("toolbar.filters false hides the filter-row toggle", async ({ page }) => {
+    await time(page);
+    await configure(page, { toolbar: { filters: false } });
+    await expect(toolbar(page).getByRole("button", { name: /^Filters/ })).toHaveCount(0);
+    await expect(page.locator(".aster-grid-filters")).toHaveCount(0);
+    await expect(toolbar(page).getByRole("button", { name: "Advanced filter", exact: true })).toBeVisible();
+  });
+
+  test("toolbar.advanced false hides the advanced filter button", async ({ page }) => {
+    await time(page);
+    await configure(page, { toolbar: { advanced: false } });
+    await expect(toolbar(page).getByRole("button", { name: "Advanced filter", exact: true })).toHaveCount(0);
+    await expect(toolbar(page).getByRole("button", { name: "Columns", exact: true })).toBeVisible();
+  });
+
+  test("toolbar.columns false hides the Columns panel button", async ({ page }) => {
+    await time(page);
+    await configure(page, { toolbar: { columns: false } });
+    await expect(toolbar(page).getByRole("button", { name: "Columns", exact: true })).toHaveCount(0);
+    await expect(toolbar(page).getByRole("button", { name: "Sort", exact: true })).toBeVisible();
+  });
+
+  test("toolbar.views false hides the Views button a persisted grid would show", async ({ page }) => {
+    await time(page);
+    await expect(toolbar(page).getByRole("button", { name: "Views", exact: true })).toBeVisible();
+    await configure(page, { toolbar: { views: false } });
+    await expect(toolbar(page).getByRole("button", { name: "Views", exact: true })).toHaveCount(0);
+    await expect(toolbar(page).getByRole("button", { name: "Columns", exact: true })).toBeVisible();
+  });
+
+  test("toolbar.extra places a host view at the end of the toolbar", async ({ page }) => {
+    await time(page);
+    await host(page).evaluate((el) => {
+      const extra = document.createElement("span");
+      extra.dataset.testExtra = "";
+      extra.textContent = "Host actions";
+      (el as unknown as { toolbar: unknown }).toolbar = { extra };
+    });
+    const extra = page.locator(".aster-grid-toolbar [data-test-extra]");
+    await expect(extra).toBeVisible();
+    await expect(extra).toHaveText("Host actions");
+    await expect(toolbar(page).getByRole("button", { name: "Sort", exact: true })).toBeVisible();
+    const refused = await host(page).evaluate((el) => {
+      try { (el as unknown as { toolbar: unknown }).toolbar = false; return ""; }
+      catch (error) { return (error as Error).message; }
+    });
+    expect(refused).toContain("object");
+    await expect(extra).toBeVisible();
+  });
+
+  test("showHeader normalizes into chrome and preserves the other chrome fields", async ({ page }) => {
+    await time(page);
+    expect(await property(page, "showHeader")).toBe(true);
+    await configure(page, { chrome: { toolbar: false } });
+    await configure(page, { showHeader: false });
+    expect(await chromeOf(page)).toEqual({ toolbar: false, header: false });
+    expect(await property(page, "showHeader")).toBe(false);
+    expect((await page.locator(".aster-grid-head").boundingBox())!.height).toBeLessThanOrEqual(1);
+    await configure(page, { showHeader: true });
+    expect(await chromeOf(page)).toEqual({ toolbar: false, header: true });
+    expect((await page.locator(".aster-grid-head").boundingBox())!.height).toBeGreaterThan(1);
+  });
+
+  test("showToolbar normalizes into chrome and keeps the row count reachable", async ({ page }) => {
+    await time(page);
+    expect(await property(page, "showToolbar")).toBe(true);
+    await configure(page, { showToolbar: false });
+    expect(await chromeOf(page)).toEqual({ toolbar: false });
+    expect(await property(page, "showToolbar")).toBe(false);
+    await expect(toolbar(page)).toHaveCount(0);
+    await expect(page.locator(`#${await grid(page).getAttribute("aria-describedby")}`)).toHaveText("3,000 rows");
+    await configure(page, { showToolbar: true });
+    expect(await chromeOf(page)).toEqual({ toolbar: true });
+    await expect(toolbar(page)).toBeVisible();
+  });
+
+  test("showFilterRow normalizes into chrome and forces the row open or removed", async ({ page }) => {
+    await time(page);
+    expect(await property(page, "showFilterRow")).toBe(true);
+    await configure(page, { showFilterRow: true });
+    expect(await chromeOf(page)).toEqual({ filterRow: true });
+    await expect(page.locator(".aster-grid-filters")).toBeVisible();
+    await configure(page, { showFilterRow: false });
+    expect(await chromeOf(page)).toEqual({ filterRow: false });
+    expect(await property(page, "showFilterRow")).toBe(false);
+    await expect(page.locator(".aster-grid-filters")).toHaveCount(0);
+  });
+
+  test("showPagingBar normalizes into chrome without rendering a paging bar", async ({ page }) => {
+    await time(page);
+    expect(await property(page, "showPagingBar")).toBe(true);
+    await configure(page, { showPagingBar: false });
+    expect(await chromeOf(page)).toEqual({ pagingBar: false });
+    expect(await property(page, "showPagingBar")).toBe(false);
+    await expect(page.locator(".aster-grid-paging")).toHaveCount(0);
+    await configure(page, { showPagingBar: true });
+    expect(await chromeOf(page)).toEqual({ pagingBar: true });
+  });
+
+  test("a hidden header and toolbar together leave row count and column headers accessible", async ({ page }) => {
+    await time(page);
+    await configure(page, { showToolbar: false, showHeader: false });
+    expect(await page.locator(".aster-grid-head [role='columnheader']").count()).toBeGreaterThan(0);
+    const describedBy = await grid(page).getAttribute("aria-describedby");
+    await expect(page.locator(`#${describedBy}`)).toHaveText("3,000 rows");
+    const violations = (await new AxeBuilder({ page }).include("aster-grid.time-grid").analyze()).violations;
+    expect(violations.map((v) => v.id)).toEqual([]);
+  });
+});
+
 test.describe("at phone width", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

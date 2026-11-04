@@ -91,6 +91,36 @@ be available before the rule can enable an action. This prevents a missing lazy
 publication from enabling a negative test. Existing `when()` semantics remain
 unchanged. `checkRule()` reports invalid publication/property paths.
 
+## staticMethod:compileCompositeYaml
+
+`compileCompositeYaml(text, file?)` is exported from the `@getaster/elements/yaml`
+subpath. It parses a YAML 1.2 document (at most 256 KiB) and returns
+`{ definition, sources }`: the same plain-data [[object:CompositeDefinition]] that
+`defineComposite` accepts, and a [[type:CompositeSources]] map from definition
+path to `{ file, line, column }`. Pass both to the registry's
+`validate(definition, sources)` method so
+unknown models, components, renderers and properties fail with a located
+message before a model is constructed. The runtime consumes the definition; a
+browser never needs a YAML parser.
+
+YAML carries configuration only. Tags, anchors and aliases are rejected, keys
+must be strings, and every value must be JSON-compatible, so a definition
+cannot smuggle in a function. Compile at build time and import the resulting
+JSON, or call the compiler from a bundler plugin:
+
+```ts
+import { compileCompositeYaml } from "@getaster/elements/yaml";
+import { readFileSync } from "node:fs";
+
+const compiled = compileCompositeYaml(readFileSync("screen.ui.yaml", "utf8"), "screen.ui.yaml");
+const definition = authoring.validate(compiled.definition, compiled.sources);
+```
+
+The repository's CLI, `bun scripts/composite-yaml.ts screen.ui.yaml screen.ui.json`,
+uses the same export. The `*.ui.yaml` loader in this repository is a
+build-time integration, not a package export; the example above is the whole
+contract needed to write one for another bundler.
+
 ## staticMethod:defineElement
 
 `defineElement({ tag, properties, render })` defines and registers a light-DOM
@@ -220,8 +250,9 @@ element's own defaults; explicit `undefined` is accepted only where supported.
 
 Includes Button, Field, Check, Select, Picker, TreePicker, DateField, Choice,
 Switch, Grid, TileGrid, Listbox, Form, ListEditor, RuleEditor, FilterBuilder,
-TreeNavigator, Tabs, Section, Split, Carousel, Slicer, ComponentHost, Window,
-Dialog, Dashboard, CommandBar, Sidebar and ProgressStatus. Callbacks, templates and borrowed
+TreeNavigator, Tabs, Section, Accordion, Split, Carousel, Slicer, ComponentHost,
+Window, Dialog, Menu, Dashboard, CommandBar, Sidebar and ProgressStatus.
+Callbacks, templates and borrowed
 models enter through registered renderers or model/input references. They are
 ordinary JavaScript values; YAML cannot supply executable code.
 
@@ -230,10 +261,12 @@ limited schema completion. These adapters do not change any standalone control
 API. Events retain their existing names and payloads; trusted host/factory code
 connects them to model actions and owns listener cleanup.
 
-Dashboard widget-type registration, Menu positioning, Dialog/Window opening,
-Workspace coordination and Toaster announcements retain their explicit lifecycle
-methods. They are not writable configuration properties. Use a registered factory
-and its Lifetime for setup/cleanup of such services. Register app-local components
+Dashboard widget-type registration, Menu positioning (its items and opening
+point are method arguments), Dialog/Window opening, Workspace coordination and
+Toaster announcements retain their explicit lifecycle methods. They are not
+writable configuration properties; a Menu's chrome switches, like Window's and
+Dialog's, are plain-data properties the adapter carries. Use a registered
+factory and its Lifetime for setup/cleanup of such services. Register app-local components
 with `compositeElement(Constructor)` to derive their contract automatically.
 
 ## attr:CommandBar.showErrors

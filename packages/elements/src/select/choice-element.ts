@@ -11,6 +11,10 @@ export class Choice extends AsterElement {
   readonly #value = this.prop<Value | undefined>(undefined);
   readonly #label = this.prop("");
   readonly #placeholder = this.prop("Choose…");
+  readonly #filter = this.prop(false);
+  readonly #clearable = this.prop(false);
+  readonly #noResults = this.prop("No matches");
+  readonly #disabled = this.prop(false);
   readonly #state = new ChoiceState();
   readonly #id = uid("aster-choice");
 
@@ -38,6 +42,34 @@ export class Choice extends AsterElement {
   set placeholder(v: string) {
     this.#placeholder.value = v;
   }
+  /** Filters the list as the person types. Default `false`. */
+  get filter(): boolean {
+    return this.#filter.value;
+  }
+  set filter(v: boolean) {
+    this.#filter.value = v;
+  }
+  /** Shows a clear button while a value is chosen. Default `false`. */
+  get clearable(): boolean {
+    return this.#clearable.value;
+  }
+  set clearable(v: boolean) {
+    this.#clearable.value = v;
+  }
+  /** What the filtered list says when nothing matches. Default "No matches". */
+  get noResults(): string {
+    return this.#noResults.value;
+  }
+  set noResults(v: string) {
+    this.#noResults.value = v;
+  }
+  /** Removes the choice from the tab order and stops it opening. Default `false`. */
+  get disabled(): boolean {
+    return this.#disabled.value;
+  }
+  set disabled(v: boolean) {
+    this.#disabled.value = v;
+  }
 
   override focus(options?: FocusOptions): void {
     this.querySelector<HTMLElement>("[role=combobox]")?.focus(options);
@@ -50,6 +82,10 @@ export class Choice extends AsterElement {
       value: this.#value.value,
       placeholder: this.#placeholder.value,
       label: this.#label.value,
+      filter: this.#filter.value,
+      clearable: this.#clearable.value,
+      noResults: this.#noResults.value,
+      disabled: this.#disabled.value,
       choose: (v) => {
         this.#value.value = v;
         this.emit("change", v);

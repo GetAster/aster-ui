@@ -87,8 +87,13 @@ export abstract class AsterElement extends HTMLElement {
     this.onDisconnect(() => target.removeEventListener(type, handler as EventListener, options));
   }
 
-  protected emit<T>(type: string, detail?: T): boolean {
-    return this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, cancelable: true }));
+  /**
+   * Dispatches a bubbling CustomEvent. Action events are cancelable by
+   * default; a notification that fires after the fact passes
+   * `{ cancelable: false }`.
+   */
+  protected emit<T>(type: string, detail?: T, options: { readonly cancelable?: boolean } = {}): boolean {
+    return this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, cancelable: options.cancelable ?? true }));
   }
 
   #upgradeProperties(): void {

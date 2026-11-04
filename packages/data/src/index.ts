@@ -21,7 +21,7 @@ export { Collection, type CollectionOptions, type CollectionStatus } from "./col
 export { aggregate, countBy, countWhere, subtractExact, sum, sumValues } from "./collection/aggregate.ts";
 export { apply, creatable, diff, invert, merge, writable, type ChangeSet, type FieldChange, type OwnedChanges } from "./changes/changeset.ts";
 export { validateEntity, validateField, type FieldErrors } from "./validate/validate.ts";
-export { EditModel, type Conflict, type EditDraft, type EditOptions, type FieldRules, type Rule } from "./edit/edit-model.ts";
+export { EditModel, type Conflict, type EditDraft, type EditFieldPolicy, type EditOptions, type EditPolicy, type FieldRules, type Rule } from "./edit/edit-model.ts";
 export { DataContext, type Saved } from "./context.ts";
 export { Selection, selectionOptionsError, type SelectionOptions } from "./selection/selection.ts";
 export {

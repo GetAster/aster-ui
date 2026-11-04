@@ -16,7 +16,7 @@ import type { Clock } from "./clock.ts";
 export const STATES = ["active", "paused", "archived"] as const;
 export type State = (typeof STATES)[number];
 
-export const PAGES = ["home", "projects", "project", "people", "tasks", "model", "time", "reports", "showcase"] as const;
+export const PAGES = ["home", "projects", "project", "people", "tasks", "model", "helpdesk", "time", "reports", "showcase"] as const;
 export type Page = (typeof PAGES)[number];
 
 export interface Route {

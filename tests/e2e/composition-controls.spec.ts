@@ -17,14 +17,38 @@ test("built-in contracts cover public setters and reject invalid props before mo
     const authoring = lib.defineCompositeRegistry({ models: { empty: lib.defineCompositeModel({ inputs: {}, exports: {}, create: () => ({ values: {} }) }) }, components: lib.asterComponents });
     const diagnostics = (type: string, props: object) => authoring.diagnostics({ version: 1, name: "Controls", model: { type: "empty" }, children: { control: { type, props } }, layout: { child: "control" } });
     return { missing, count: Object.keys(lib.asterComponents).length,
-      invalid: [diagnostics("NumberField", { step: "-0.1" }), diagnostics("NumberField", { min: "not a number" }), diagnostics("Breadcrumbs", { items: [{ id: "unsafe", label: "Unsafe", href: "javascript:alert(1)" }] }), diagnostics("Accordion", { items: [{ id: "same", heading: "One" }, { id: "same", heading: "Two" }] }), diagnostics("Grid", { selectable: "yes" }), diagnostics("Tabs", { activation: "sometimes" }), diagnostics("Form", { sections: [null] }), diagnostics("Sidebar", { items: [{ id: "bad", label: "Bad", href: "javascript:alert(1)" }] })],
-      valid: diagnostics("Form", { sections: [{ title: "Details", items: ["name"] }] }),
+      invalid: [diagnostics("NumberField", { step: "-0.1" }), diagnostics("NumberField", { min: "not a number" }), diagnostics("Breadcrumbs", { items: [{ id: "unsafe", label: "Unsafe", href: "javascript:alert(1)" }] }), diagnostics("Accordion", { items: [{ id: "same", heading: "One" }, { id: "same", heading: "Two" }] }), diagnostics("Grid", { selectable: "yes" }), diagnostics("Grid", { policy: { sortable: "name" } }), diagnostics("Grid", { sortable: (field: string) => field === "name" }), diagnostics("Grid", { features: { kind: "page" } }), diagnostics("Grid", { features: [{ kind: "resize" }] }), diagnostics("Grid", { features: [{ kind: "edit", mode: "form" }] }), diagnostics("Grid", { features: [{ kind: "select", appearance: "checkbox" }] }), diagnostics("Grid", { multiSort: "no" }), diagnostics("Grid", { editMode: "form" }), diagnostics("Grid", { selectionAppearance: "checkbox" }), diagnostics("Grid", { selectionColumn: "yes" }), diagnostics("Grid", { autoFetch: "no" }), diagnostics("Grid", { pageSize: 0 }), diagnostics("Grid", { keepPages: "many" }), diagnostics("Grid", { exactCount: "yes" }), diagnostics("Grid", { toolbar: { expandAll: "no" } }), diagnostics("Grid", { tree: { parentField: "parentId", autoOpen: -1 } }), diagnostics("Grid", { tree: { parentField: "parentId", cascadeSelection: "yes" } }), diagnostics("Grid", { tree: { parentField: "parentId", pageSize: 0 } }), diagnostics("Grid", { loadingMessage: 42 }), diagnostics("Grid", { error: () => undefined }), diagnostics("Grid", { columnMenu: true }), diagnostics("Grid", { filterOperators: { hours: "gt" } }), diagnostics("Grid", { chrome: { headerMenu: "no" } }), diagnostics("Grid", { showHeaderMenu: "no" }), diagnostics("Tabs", { activation: "sometimes" }), diagnostics("Form", { sections: [null] }), diagnostics("Sidebar", { items: [{ id: "bad", label: "Bad", href: "javascript:alert(1)" }] }), diagnostics("Section", { chrome: { status: "sometimes" } })],
+      valid: [diagnostics("Form", { sections: [{ title: "Details", items: ["name"] }] }), diagnostics("Section", { chrome: { titleBar: true, status: "always" }, collapsible: false }), diagnostics("Grid", { features: [{ kind: "sort", multi: false }, { kind: "edit", mode: "cell" }, { kind: "select", appearance: "cell", column: true }, { kind: "page" }] }), diagnostics("Grid", { filterOperators: { hours: ["gt", "ge"] } }), diagnostics("Grid", { autoFetch: false, loadingMessage: "Fetching rows…" }), diagnostics("Grid", { pageSize: 50, keepPages: 4, exactCount: true }), diagnostics("Grid", { toolbar: { expandAll: false }, tree: { parentField: "parentId", draggable: true, reparent: false, dropOnLeaves: false, autoOpen: 2, showOpener: false, cascadeSelection: true, pageSize: 50, matchLimit: 100, openLimit: 20 } })],
+      validPolicy: diagnostics("Grid", { policy: { sortable: false, filterable: ["name"], groupable: ["name"], resizable: false, movable: true, hideable: ["name"], freezable: true, fields: { name: { editable: false, groupable: false, resizable: true, movable: false, hideable: true, freezable: false } } } }),
     };
   });
-  expect(result.count).toBe(36);
+  expect(result.count).toBe(37);
   expect(result.missing).toEqual([]);
-  expect(result.valid).toEqual([]);
+  for (const diagnostics of result.valid) expect(diagnostics).toEqual([]);
+  expect(result.validPolicy).toEqual([]);
   for (const diagnostics of result.invalid) expect(diagnostics).toHaveLength(1);
+});
+
+test("Grid chrome and toolbar validator accepts the YAML data forms and rejects the rest", async ({ page }) => {
+  await page.goto("/playground/composition.html");
+  const result = await page.evaluate(async () => {
+    const lib = await import("/lib/aster-ui.js" as string);
+    const authoring = lib.defineCompositeRegistry({ models: { empty: lib.defineCompositeModel({ inputs: {}, exports: {}, create: () => ({ values: {} }) }) }, components: lib.asterComponents });
+    const diagnostics = (props: object) => authoring.diagnostics({ version: 1, name: "Chrome", model: { type: "empty" }, children: { grid: { type: "Grid", props } }, layout: { child: "grid" } });
+    return {
+      valid: diagnostics({ chrome: { toolbar: false, header: false, filterRow: "auto", headerMenu: false, pagingBar: false }, toolbar: { count: true, sort: false, filters: false, advanced: false, columns: false, views: false }, showHeader: false, showToolbar: false, showFilterRow: false, showHeaderMenu: false, showPagingBar: false }),
+      forcedFilterRow: diagnostics({ chrome: { filterRow: true } }),
+      badFilterRow: diagnostics({ chrome: { filterRow: "sometimes" } }),
+      badChrome: diagnostics({ chrome: { header: "no" } }),
+      badHeaderMenu: diagnostics({ chrome: { headerMenu: "no" } }),
+      badToolbar: diagnostics({ toolbar: false }),
+      badExtra: diagnostics({ toolbar: { extra: "not a view" } }),
+      badSugar: diagnostics({ showHeader: "no" }),
+    };
+  });
+  expect(result.valid).toEqual([]);
+  expect(result.forcedFilterRow).toEqual([]);
+  for (const diagnostics of [result.badFilterRow, result.badChrome, result.badHeaderMenu, result.badToolbar, result.badExtra, result.badSugar]) expect(diagnostics).toHaveLength(1);
 });
 
 test("Sidebar supports controlled navigation, permission changes, groups and native links", async ({ page }) => {

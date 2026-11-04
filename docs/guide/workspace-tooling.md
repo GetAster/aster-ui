@@ -135,9 +135,11 @@ This is an excerpt, not a complete YAML document. See the
 Use the registrations in the [device registry module](../playground/composition-registry.js)
 for that full definition; it also uses grids, renderers and a lazy inspector.
 
-After compiling your YAML to JSON, replace the JavaScript `authoring.define(...)`
-step with validation. This loading excerpt assumes the same `authoring`, `ctx`
-and `container` as above, and a compiled file using those registered names:
+After compiling your YAML to JSON with `compileCompositeYaml` from
+`@getaster/elements/yaml` (see [load and mount the workspace](declarative-workspace.md#load-and-mount-the-workspace)),
+replace the JavaScript `authoring.define(...)` step with validation. This
+loading excerpt assumes the same `authoring`, `ctx` and `container` as above,
+and a compiled file using those registered names:
 
 ```js
 const response = await fetch("./device-status.ui.json");

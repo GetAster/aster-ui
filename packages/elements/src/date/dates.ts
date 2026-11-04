@@ -9,10 +9,32 @@ export function iso(year: number, month: number, day: number): string | undefine
   return d.toISOString().slice(0, 10);
 }
 
-/** "7 Oct 2026" for `2026-10-07`; other text unchanged. Month names are ours, the same in every engine. */
-export function formatDate(value: string): string {
+/** How a date is written in a field's input. */
+export type DateFormat = "medium" | "short" | "iso";
+
+/**
+ * A date as written: "7 Oct 2026" (`medium`, the default), "7 Oct 26"
+ * (`short`) or `2026-10-07` (`iso`). Other text unchanged. Month names are
+ * ours, the same in every engine.
+ */
+export function formatDate(value: string, format: DateFormat = "medium"): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  return m ? `${Number(m[3])} ${SHORT[Number(m[2]) - 1]} ${m[1]}` : value;
+  if (!m) return value;
+  switch (format) {
+    case "iso":
+      return value;
+    case "short":
+      return `${Number(m[3])} ${SHORT[Number(m[2]) - 1]} ${m[1]!.slice(2)}`;
+    case "medium":
+      return `${Number(m[3])} ${SHORT[Number(m[2]) - 1]} ${m[1]}`;
+  }
+}
+
+/** Whether text is a real `YYYY-MM-DD` calendar date. */
+export function isIsoDate(text: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const [y, m, d] = text.split("-").map(Number) as [number, number, number];
+  return iso(y, m, d) === text;
 }
 
 /**

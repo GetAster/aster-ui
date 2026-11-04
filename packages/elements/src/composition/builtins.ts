@@ -21,10 +21,15 @@ import { TreePicker } from "../picker/tree-picker.ts";
 import { DateField } from "../date/date-field.ts";
 import { Choice } from "../select/choice-element.ts";
 import { Switch } from "../switch/switch.ts";
-import { Grid } from "../grid/grid.ts";
+import { Grid, type GridToolbar } from "../grid/grid.ts";
+import { validateFeatures, type GridFeature } from "../grid/features.ts";
+import type { CapabilityValue, FieldPolicy } from "../grid/policy.ts";
+import { validateGridLabels, validateGridPresentation, type GridLabels, type GridPresentation } from "../grid/appearance.ts";
 import { TileGrid } from "../tile-grid/tile-grid.ts";
 import { Listbox } from "../listbox/listbox.ts";
 import { Form } from "../form/form.ts";
+import { validateFormFeatures, type FormFeature } from "../form/features.ts";
+import type { FormControlName } from "../form/controls.ts";
 import { ListEditor } from "../list-edit/list-edit.ts";
 import { RuleEditor } from "../rule/rule-editor.ts";
 import { FilterBuilder } from "../filter/filter-builder.ts";
@@ -35,8 +40,9 @@ import { Split } from "../split/split.ts";
 import { Carousel } from "../carousel/carousel.ts";
 import { Slicer } from "../slicer/slicer.ts";
 import { ComponentHost } from "../component/component.ts";
-import { Window } from "../window/window.ts";
+import { Window, type WindowChrome, type WindowPlacement } from "../window/window.ts";
 import { Dialog } from "../dialog/dialog.ts";
+import { Menu } from "../menu/menu.ts";
 import { Dashboard } from "../dashboard/dashboard.ts";
 import { CommandBar } from "../composition/command-bar.ts";
 
@@ -68,21 +74,119 @@ const numeric = (v: unknown): v is string | number => {
   try { canonicalNumeric(v); return true; } catch { return false; }
 };
 const sourceOptions = (v: unknown) => v === undefined || v instanceof Collection || v instanceof PickerOptions;
+const formControlName = checked<FormControlName>("form control name", (v): v is FormControlName =>
+  v === "text" || v === "number" || v === "date" || v === "check" || v === "select" || v === "picker");
 const formItem = checked<import("../form/form.ts").FormItem>("field name, configured field or derived value", v =>
-  typeof v === "string" || object(v) && optionalNumber(v.span) && (typeof v.field === "string" && sourceOptions(v.options)
-    || typeof v.title === "string" && t.signal(t.string).validate(v.value)));
+  typeof v === "string" || (object(v) && optionalNumber(v.span) && (
+    (typeof v.field === "string" && sourceOptions(v.options)
+      && (v.title === undefined || typeof v.title === "string")
+      && (v.hint === undefined || typeof v.hint === "string")
+      && (v.placeholder === undefined || typeof v.placeholder === "string")
+      && optionalBoolean(v.readOnly) && optionalBoolean(v.disabled) && optionalBoolean(v.required)
+      && (v.control === undefined || formControlName.validate(v.control)))
+    || (typeof v.title === "string" && t.signal(t.string).validate(v.value)))));
 const sections = t.array(t.object({ title: t.string, columns: t.optional(t.positiveInteger), open: t.optional(t.boolean), items: t.array(formItem) }));
+const formPolicy = t.object({ readOnly: t.optional(t.boolean), disabled: t.optional(t.boolean) });
+const formChrome = t.object({
+  columns: t.optional(t.positiveInteger),
+  titleOrientation: t.optional(literals("top", "start")),
+  showInlineErrors: t.optional(t.boolean),
+  errorSummary: t.optional(t.boolean),
+  autoFocus: t.optional(t.boolean),
+});
+const formFeatures = t.custom<readonly FormFeature[]>("form feature list", (value): value is readonly FormFeature[] => {
+  try { validateFormFeatures(value); return true; } catch { return false; }
+}, { type: "array", items: { type: "object" } });
+const isoDate = checked<string>("date (YYYY-MM-DD)", (v): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v));
 const gridView = checked<NonNullable<Grid["view"]>>("Grid view", v => object(v)
   && Array.isArray(v.columns) && v.columns.every(c => object(c) && typeof c.field === "string" && optionalNumber(c.width) && optionalBoolean(c.hidden) && (c.sortField === undefined || typeof c.sortField === "string" && c.sortField.trim().length > 0))
   && Array.isArray(v.sort) && v.sort.every(k => object(k) && typeof k.field === "string" && optionalBoolean(k.descending))
   && object(v.filters) && Object.values(v.filters).every(c => object(c) && typeof c.op === "string")
   && typeof v.frozen === "number" && Number.isSafeInteger(v.frozen) && v.frozen >= 0
   && (v.groupBy === undefined || typeof v.groupBy === "string" || Array.isArray(v.groupBy) && v.groupBy.every(k => typeof k === "string")));
+const gridChrome = t.object({
+  toolbar: t.optional(t.boolean),
+  header: t.optional(t.boolean),
+  filterRow: t.optional(checked<"auto" | boolean>('true, false or "auto"', v => v === "auto" || typeof v === "boolean")),
+  headerMenu: t.optional(t.boolean),
+  pagingBar: t.optional(t.boolean),
+});
+const gridToolbar = t.object({
+  count: t.optional(t.boolean),
+  sort: t.optional(t.boolean),
+  filters: t.optional(t.boolean),
+  advanced: t.optional(t.boolean),
+  columns: t.optional(t.boolean),
+  views: t.optional(t.boolean),
+  expandAll: t.optional(t.boolean),
+  extra: t.optional(checked<GridToolbar["extra"]>("Grid.toolbar.extra", v => v === undefined || view(v))),
+});
+// Capability switches in a composition catalog are plain data: a boolean or a
+// field-name allowlist. Predicates remain a JavaScript-only setter value.
+const gridCapability = t.custom<CapabilityValue>("boolean or field allowlist", (value): value is CapabilityValue =>
+  typeof value === "boolean" || Array.isArray(value) && value.every((field) => typeof field === "string"), { anyOf: [{ type: "boolean" }, { type: "array", items: { type: "string" } }] });
+const fieldPolicy = t.object({
+  sortable: t.optional(gridCapability), filterable: t.optional(gridCapability), groupable: t.optional(gridCapability),
+  resizable: t.optional(gridCapability), movable: t.optional(gridCapability), hideable: t.optional(gridCapability),
+  freezable: t.optional(gridCapability), editable: t.optional(gridCapability),
+});
+const fieldPolicies = t.custom<Readonly<Record<string, FieldPolicy>>>("field policy record",
+  (value): value is Readonly<Record<string, FieldPolicy>> => object(value) && Object.values(value).every((entry) => fieldPolicy.validate(entry)),
+  { type: "object", additionalProperties: fieldPolicy.schema ?? {} });
+const gridPolicy = t.object({
+  sortable: t.optional(gridCapability),
+  filterable: t.optional(gridCapability),
+  groupable: t.optional(gridCapability),
+  resizable: t.optional(gridCapability),
+  movable: t.optional(gridCapability),
+  hideable: t.optional(gridCapability),
+  freezable: t.optional(gridCapability),
+  editable: t.optional(gridCapability),
+  selectable: t.optional(t.boolean),
+  fields: t.optional(fieldPolicies),
+});
+const gridFeatures = t.custom<readonly GridFeature[]>("grid feature list", (value): value is readonly GridFeature[] => {
+  try { validateFeatures(value); return true; } catch { return false; }
+}, { type: "array", items: { type: "object" } });
+// Presentation is plain data in a catalog; JS-only class predicates and hilite
+// tests fail validation because `validateGridPresentation` rejects functions.
+const gridPresentation = t.custom<GridPresentation>("grid presentation", (value): value is GridPresentation => {
+  try { validateGridPresentation(value); return true; } catch { return false; }
+}, { type: "object" });
+const gridLabels = t.custom<GridLabels>("grid label bag", (value): value is GridLabels => {
+  try { validateGridLabels(value); return true; } catch { return false; }
+}, { type: "object", additionalProperties: { type: "string" } });
 const milliseconds = t.custom("nonnegative milliseconds", (value): value is number => Number.isSafeInteger(value) && typeof value === "number" && value >= 0 && value <= 2_147_483_647, { type: "integer", minimum: 0, maximum: 2_147_483_647 });
+const sectionChrome = t.object({
+  titleBar: t.optional(t.boolean),
+  fold: t.optional(t.boolean),
+  close: t.optional(t.boolean),
+  footer: t.optional(t.boolean),
+  status: t.optional(literals("collapsed", "always")),
+});
+const windowChrome: CompositeType<WindowChrome> = t.object({
+  header: t.optional(t.boolean),
+  title: t.optional(t.boolean),
+  close: t.optional(t.boolean),
+  minimize: t.optional(t.boolean),
+  maximize: t.optional(t.boolean),
+  resizer: t.optional(t.boolean),
+  footer: t.optional(t.boolean),
+  statusBar: t.optional(t.boolean),
+});
+const positiveNumber = t.custom("positive finite number", (v): v is number => typeof v === "number" && Number.isFinite(v) && v > 0, { type: "number", exclusiveMinimum: 0 });
+const windowPlacement: CompositeType<WindowPlacement> = t.object({
+  state: literals("normal", "maximized", "minimized"),
+  bounds: t.optional(t.object({ x: t.number, y: t.number, width: positiveNumber, height: positiveNumber })),
+  restoreMaximized: t.optional(t.boolean),
+});
+const initialFocus = checked<Dialog["initialFocus"]>('"first", "dialog", "none" or a focus function', v =>
+  v === undefined || v === "first" || v === "dialog" || v === "none" || fn(v));
 const progressTiming = t.object({ delayMs: t.optional(milliseconds), minVisibleMs: t.optional(milliseconds) });
 const bound = {
   model: t.optional(t.instance(EditModel)), field: t.string, label: t.string,
   labelled: t.boolean, sharedReasons: t.instance(Map<string, string>),
+  hint: t.string, showErrors: t.boolean, validateOn: literals("submit", "change", "exit"),
 };
 
 /** Reusable public control contracts. Select entries explicitly for an application's allowlist. */
@@ -93,6 +197,9 @@ export const asterComponents = Object.freeze({
     confirmLabel: t.optional(t.string),
     busy: bindable(t.boolean),
     variant: literals("secondary", "primary"),
+    tone: literals("secondary", "primary", "danger"),
+    size: literals("sm", "md", "lg"),
+    disabled: t.boolean,
     type: literals("button", "submit"),
     icon: checked<Button["icon"]>("Button.icon", view),
     reason: t.optional(t.string),
@@ -127,6 +234,8 @@ export const asterComponents = Object.freeze({
   Accordion: element<Accordion>()("aster-accordion", {
     items: checked<Accordion["items"]>("accordion items", v => Array.isArray(v) && new Set(v.map(i => i?.id)).size === v.length && v.every(i => object(i) && typeof i.id === "string" && i.id.length > 0 && typeof i.heading === "string" && !(i.body !== undefined && i.create !== undefined) && optionalBoolean(i.disabled) && (i.body === undefined || view(i.body)) && (i.summary === undefined || view(i.summary)) && (i.actions === undefined || view(i.actions)) && (i.create === undefined || fn(i.create)))),
     expanded: t.array(t.string), multiple: t.boolean, headingLevel: literals(2,3,4),
+    visibilityMode: literals("multiple", "mutex"),
+    canClose: t.boolean, canReorder: t.boolean, canCollapseAll: t.boolean,
   }),
   Check: element<Check>()("aster-check", {
     ...bound,
@@ -134,6 +243,10 @@ export const asterComponents = Object.freeze({
   Select: element<Select>()("aster-select", {
     ...bound,
     choices: t.optional(options),
+    placeholder: t.string,
+    filter: t.boolean,
+    clearable: t.boolean,
+    noResults: t.string,
   }),
   Picker: element<Picker>()("aster-picker", {
     ...bound,
@@ -151,16 +264,29 @@ export const asterComponents = Object.freeze({
   }),
   DateField: element<DateField>()("aster-date", {
     ...bound,
+    min: t.optional(isoDate),
+    max: t.optional(isoDate),
+    format: literals("medium", "short", "iso"),
+    placeholder: t.string,
+    dismissOnSelect: t.boolean,
   }),
   Choice: element<Choice>()("aster-choice", {
     options: options,
     value: checked<Choice["value"]>("Choice.value", v => v === undefined || value(v)),
     label: t.string,
     placeholder: t.string,
+    filter: t.boolean,
+    clearable: t.boolean,
+    noResults: t.string,
+    disabled: t.boolean,
   }),
   Switch: element<Switch>()("aster-switch", {
     binding: checked<Switch["binding"]>("Switch.binding", v => v === undefined || object(v) && v.ctx instanceof DataContext && typeof v.set === "string" && typeof v.key === "string" && typeof v.field === "string"),
     label: t.string,
+    disabled: t.boolean,
+    readOnly: t.boolean,
+    onLabel: t.optional(t.string),
+    offLabel: t.optional(t.string),
   }),
   Grid: element<Grid>()("aster-grid", {
     progressPolicy: progressTiming,
@@ -173,18 +299,55 @@ export const asterComponents = Object.freeze({
     persist: t.string,
     renderers: checked<Grid["renderers"]>("Grid.renderers", v => object(v) && Object.values(v).every(fn)),
     formatters: checked<Grid["formatters"]>("Grid.formatters", v => object(v) && Object.values(v).every(fn)),
+    presentation: gridPresentation,
+    labels: gridLabels,
     summaries: checked<Grid["summaries"]>("Grid.summaries", v => Array.isArray(v) && v.every(s => object(s) && (s.label === undefined || typeof s.label === "string") && (s.method === "count" || ["sum", "min", "max", "average", "countdistinct"].includes(String(s.method)) && typeof s.field === "string"))),
     lookups: checked<Grid["lookups"]>("Grid.lookups", v => object(v) && Object.values(v).every(l => object(l) && typeof l.set === "string" && typeof l.display === "string")),
     rowMenu: checked<Grid["rowMenu"]>("Grid.rowMenu", fn),
-    tree: checked<Grid["tree"]>("Grid.tree", v => v === undefined || object(v) && typeof v.parentField === "string" && optionalBoolean(v.draggable) && (v.filterMode === undefined || ["keepAncestors", "strict"].includes(String(v.filterMode)))),
+    columnMenu: checked<Grid["columnMenu"]>("Grid.columnMenu", fn),
+    filterOperators: checked<Grid["filterOperators"]>("Grid.filterOperators", v => object(v) && Object.values(v).every(list => Array.isArray(list) && list.every(op => typeof op === "string" && op.length > 0))),
+    tree: checked<Grid["tree"]>("Grid.tree", v => v === undefined || object(v) && typeof v.parentField === "string"
+      && optionalBoolean(v.draggable) && optionalBoolean(v.reparent) && optionalBoolean(v.dropOnLeaves) && optionalBoolean(v.cascadeSelection)
+      && optionalBoolean(v.showOpener) && (v.autoOpen === undefined || Number.isSafeInteger(v.autoOpen) && typeof v.autoOpen === "number" && v.autoOpen >= 0)
+      && (v.pageSize === undefined || t.positiveInteger.validate(v.pageSize)) && (v.matchLimit === undefined || t.positiveInteger.validate(v.matchLimit))
+      && (v.openLimit === undefined || t.positiveInteger.validate(v.openLimit))
+      && (v.folderIcon === undefined || view(v.folderIcon)) && (v.nodeIcon === undefined || view(v.nodeIcon))
+      && (v.filterMode === undefined || ["keepAncestors", "strict"].includes(String(v.filterMode)))),
     rowControls: checked<Grid["rowControls"]>("Grid.rowControls", v => v === undefined || fn(v)),
     expansion: checked<Grid["expansion"]>("Grid.expansion", v => v === undefined || object(v) && fn(v.content) && optionalBoolean(v.single) && optionalNumber(v.limit) && (v.canExpand === undefined || fn(v.canExpand))),
-    editable: t.boolean,
+    policy: gridPolicy,
+    features: gridFeatures,
+    sortable: gridCapability,
+    filterable: gridCapability,
+    groupable: gridCapability,
+    resizable: gridCapability,
+    movable: gridCapability,
+    hideable: gridCapability,
+    freezable: gridCapability,
+    editable: gridCapability,
+    multiSort: t.boolean,
+    editMode: literals("row", "cell"),
+    selectionAppearance: literals("row", "cell"),
+    selectionColumn: t.boolean,
     rules: checked<Grid["rules"]>("Grid.rules", object),
     empty: checked<Grid["empty"]>("Grid.empty", view),
+    loading: checked<Grid["loading"]>("Grid.loading", view),
+    loadingMessage: t.string,
+    error: checked<Grid["error"]>("Grid.error", v => v === undefined || fn(v)),
+    autoFetch: t.boolean,
+    pageSize: t.positiveInteger,
+    keepPages: t.optional(t.positiveInteger),
+    exactCount: t.boolean,
     collection: t.optional(t.instance(Collection)),
     selection: t.optional(t.instance(Selection)),
     selectable: t.boolean,
+    chrome: gridChrome,
+    toolbar: gridToolbar,
+    showHeader: t.boolean,
+    showToolbar: t.boolean,
+    showFilterRow: t.boolean,
+    showHeaderMenu: t.boolean,
+    showPagingBar: t.boolean,
   }),
   TileGrid: element<TileGrid>()("aster-tile-grid", {
     collection: t.optional(t.instance(Collection)),
@@ -211,6 +374,18 @@ export const asterComponents = Object.freeze({
     model: t.optional(t.instance(EditModel)),
     sections,
     headingLevel: literals(2,3,4),
+    policy: formPolicy,
+    readOnly: t.boolean,
+    disabled: t.boolean,
+    chrome: formChrome,
+    columns: t.positiveInteger,
+    titleOrientation: literals("top", "start"),
+    showInlineErrors: t.boolean,
+    errorSummary: t.boolean,
+    autoFocus: t.boolean,
+    features: formFeatures,
+    validateOn: literals("submit", "change", "exit"),
+    saveOnEnter: t.boolean,
   }),
   ListEditor: element<ListEditor>()("aster-list-editor", {
     list: t.optional(t.instance(ListEdit)),
@@ -234,6 +409,7 @@ export const asterComponents = Object.freeze({
     model: t.optional(t.instance(FilterDraft)),
     label: t.string,
     readOnlyReason: t.optional(t.string),
+    operators: checked<FilterBuilder["operators"]>("FilterBuilder.operators", v => v === undefined || fn(v)),
   }),
   TreeNavigator: element<TreeNavigator>()("aster-tree-navigator", {
     tree: t.optional(t.instance(Tree)),
@@ -242,6 +418,7 @@ export const asterComponents = Object.freeze({
     choosable: checked<TreeNavigator["choosable"]>("TreeNavigator.choosable", v => v === undefined || fn(v)),
     headingLevel: literals(1, 2, 3, 4, 5, 6),
     chooseLabel: t.string,
+    search: t.boolean,
   }),
   Tabs: element<Tabs>()("aster-tabs", {
     renderPanel: checked<Tabs["renderPanel"]>("Tabs.renderPanel", v => v === undefined || fn(v)),
@@ -253,12 +430,16 @@ export const asterComponents = Object.freeze({
   }),
   Section: element<Section>()("aster-section", {
     actions: checked<Section["actions"]>("Section.actions", view),
+    chrome: sectionChrome,
+    collapsible: t.boolean,
     disabled: t.boolean,
+    footer: checked<Section["footer"]>("Section.footer", view),
     heading: t.string,
     open: t.boolean,
     body: checked<Section["body"]>("Section.body", view),
     level: literals(2,3,4),
     summary: checked<Section["summary"]>("Section.summary", view),
+    canClose: t.boolean,
   }),
   Split: element<Split>()("aster-split", {
     orientation: literals("horizontal", "vertical"), size: t.number, collapsible: t.boolean, collapsed: t.boolean, responsive: t.boolean,
@@ -292,10 +473,41 @@ export const asterComponents = Object.freeze({
     managed: t.boolean,
     preserveContent: t.boolean,
     beforeClose: checked<Window["beforeClose"]>("Window.beforeClose", v => v === undefined || fn(v)),
+    chrome: windowChrome,
+    footer: checked<Window["footer"]>("Window.footer", view),
+    status: checked<Window["status"]>("Window.status", view),
+    initialPlacement: windowPlacement,
+    modal: t.boolean,
+    dismissOnEscape: t.boolean,
+    keepInParentRect: t.boolean,
+    autoCenter: t.boolean,
+    showHeader: t.boolean,
+    showTitle: t.boolean,
+    showCloseButton: t.boolean,
+    showMinimizeButton: t.boolean,
+    showMaximizeButton: t.boolean,
+    showResizer: t.boolean,
+    showFooter: t.boolean,
+    showStatusBar: t.boolean,
   }),
   Dialog: element<Dialog>()("aster-dialog", {
     content: checked<Dialog["content"]>("Dialog.content", view),
     labelledBy: t.optional(t.string),
+    title: t.string,
+    header: t.boolean,
+    footer: checked<Dialog["footer"]>("Dialog.footer", view),
+    showCloseButton: t.boolean,
+    modal: t.boolean,
+    dismissOnEscape: t.boolean,
+    dismissOnBackdrop: t.boolean,
+    initialFocus,
+  }),
+  Menu: element<Menu>()("aster-menu", {
+    showIcons: t.boolean,
+    showShortcuts: t.boolean,
+    submenuDirection: literals("auto", "start", "end"),
+    autoDismiss: t.boolean,
+    emptyMessage: t.string,
   }),
   Dashboard: element<Dashboard>()("aster-dashboard", {
     label: t.string,

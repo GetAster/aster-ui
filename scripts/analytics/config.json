@@ -1,0 +1,6 @@
+{
+  "scriptUrl": "https://cloud.umami.is/script.js",
+  "websiteId": "571af6eb-01db-4cb9-9e86-e2395590fc78",
+  "collectionOrigin": "https://gateway.umami.is",
+  "domains": ["getaster.now", "ax.getaster.now", "downloads.getaster.now", "sdk.getaster.now", "webdata.getaster.now", "ui.getaster.now"]
+}

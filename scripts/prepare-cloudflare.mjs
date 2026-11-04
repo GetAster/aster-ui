@@ -1,3 +1,4 @@
+import { instrumentDirectory } from './analytics/publish.mjs';
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
@@ -28,6 +29,7 @@ if (expected.size) throw new Error(`Missing assets: ${[...expected].join(", ")}`
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "workers/default"), { recursive: true });
 await cp(source, resolve(output, "workers/default/assets"), { recursive: true });
+await instrumentDirectory(resolve(output, "workers/default/assets"));
 if (Object.hasOwn(receipt.files, "_redirects")) throw new Error("_redirects is reserved for deployment routing");
 const routes = Object.keys(receipt.files).filter(path => path === "index.html" || path.endsWith("/index.html"))
   .sort().flatMap(path => {

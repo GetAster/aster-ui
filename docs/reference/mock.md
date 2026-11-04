@@ -137,9 +137,13 @@ the server's.
 
 Where the engine is: a `BufferSource` with the bytes, a `URL`, or a string (a
 URL, resolved against the package's module). By default the file next to the
-package, `wasm/odata_mock.wasm`. A `file:` URL is read from disk under Bun;
-anything else is fetched, so a page must serve the file and a non-200 answer
-rejects the creation.
+package, `wasm/odata_mock.wasm`; the package exports that path, so
+`import.meta.resolve("@getaster/mock/wasm/odata_mock.wasm")` finds it in
+Node.js and Bun. A `file:` URL is read from disk under Bun; anything else is
+fetched, so a page must serve the file and a non-200 answer rejects the
+creation. Pages commonly ask for the root-relative
+`new URL("odata_mock.wasm", document.baseURI)`, which means the development or
+static server serves the installed file at `/odata_mock.wasm`.
 
 ## attr:MockServiceOptions.storage
 

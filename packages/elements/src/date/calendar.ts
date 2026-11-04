@@ -50,6 +50,9 @@ export interface CalendarProps {
   readonly value: string | undefined;
   readonly today: string;
   readonly label: string;
+  /** Inclusive bounds, `YYYY-MM-DD`; days outside are shown but can't be chosen. */
+  readonly min?: string | undefined;
+  readonly max?: string | undefined;
   readonly choose: (date: string) => void;
   /** Closed without a choice: Escape, or a press outside. */
   readonly dismiss: (refocus: boolean) => void;
@@ -73,6 +76,10 @@ export function calendarView(state: CalendarState, p: CalendarProps): TemplateRe
     queueMicrotask(() => document.getElementById(`${p.id}-${to}`)?.focus());
   };
   const page = (by: { months?: number; years?: number }) => (state.focused.value = shift(focused, by));
+  const allowed = (day: string) => (p.min === undefined || day >= p.min) && (p.max === undefined || day <= p.max);
+  const choose = (day: string) => {
+    if (allowed(day)) p.choose(day);
+  };
   const grid = (e: KeyboardEvent) => {
     const to = gridKey(e, focused);
     if (to) {
@@ -80,7 +87,7 @@ export function calendarView(state: CalendarState, p: CalendarProps): TemplateRe
       move(to);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      p.choose(focused);
+      choose(focused);
     }
   };
   const dialog = (e: KeyboardEvent) => {
@@ -119,8 +126,9 @@ export function calendarView(state: CalendarState, p: CalendarProps): TemplateRe
               ? html`<td></td>`
               : html`<td role="gridcell" id=${`${p.id}-${day}`} tabindex=${day === focused ? "0" : "-1"}
                   aria-selected=${day === p.value ? "true" : nothing} aria-current=${day === p.today ? "date" : nothing}
+                  aria-disabled=${allowed(day) ? nothing : "true"}
                   aria-label=${DAY.format(Date.parse(`${day}T12:00:00Z`))}
-                  @click=${() => p.choose(day)}>${Number(day.slice(8))}</td>`,
+                  @click=${() => choose(day)}>${Number(day.slice(8))}</td>`,
           )}</tr>`,
         )}
       </tbody>

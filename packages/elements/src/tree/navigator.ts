@@ -20,6 +20,8 @@ export class TreeNavigator extends AsterElement {
   readonly #chooseLabel = this.prop("Choose");
   readonly #headingLevel = this.prop(2);
   readonly #choosable = this.prop<((entity: Entity) => string | undefined) | undefined>(undefined);
+  readonly #search = this.prop(false);
+  readonly #query = this.prop("");
   /** Keys from the top level down to the level shown. */
   readonly #path = signal<readonly KeyText[]>([]);
   readonly #back = signal<readonly (readonly KeyText[])[]>([]);
@@ -63,6 +65,15 @@ export class TreeNavigator extends AsterElement {
     return this.#path.value;
   }
 
+  /** Whether the bar carries a search field that narrows the level's loaded rows. Default `false`. */
+  get search(): boolean {
+    return this.#search.value;
+  }
+  set search(v: boolean) {
+    this.#search.value = v;
+    if (!v) this.#query.value = "";
+  }
+
   /** Shows the level under `key` (`undefined`: the top), as if each level were opened in turn. */
   async go(key: KeyText | undefined): Promise<void> {
     const tree = this.#tree.peek();
@@ -87,6 +98,8 @@ export class TreeNavigator extends AsterElement {
       return e ? String(e[display] ?? "") : "…";
     };
     const loaded = level.keys.value.filter((k): k is KeyText => k !== undefined);
+    const query = this.#query.value.trim().toLowerCase();
+    const matches = query ? loaded.filter((key) => title(key).toLowerCase().includes(query)) : loaded;
     const count = level.count.value;
     if (count === undefined && level.status.peek() !== "loading") queueMicrotask(() => void level.ensure(0, level.pageSize).catch(() => {}));
     const heading = parent === undefined ? this.#label.value || "Top level" : title(parent);
@@ -104,6 +117,10 @@ export class TreeNavigator extends AsterElement {
             )}
           </ol>
         </nav>
+        ${this.#search.value ? html`<div class="aster-drill-search">
+          <input type="search" placeholder="Search" aria-label=${`Search ${this.#label.value || "this level"}`}
+            .value=${this.#query.value} @input=${(e: Event) => { this.#query.value = (e.target as HTMLInputElement).value; }}>
+        </div>` : nothing}
       </div>
       <div class="aster-drill-heading" role="heading" aria-level=${this.#headingLevel.value} id=${`${this.#id}-heading`} tabindex="-1">${heading}</div>
       <div class="aster-drill-viewport">
@@ -114,7 +131,8 @@ export class TreeNavigator extends AsterElement {
           }}>
           ${count === undefined ? html`<li class="aster-drill-empty"><span role="status">Loading…</span></li>` : nothing}
           ${count === 0 ? html`<li class="aster-drill-empty">Nothing here.</li>` : nothing}
-          ${loaded.map((key) => {
+          ${query && loaded.length > 0 && matches.length === 0 ? html`<li class="aster-drill-empty"><span role="status">Nothing matches.</span></li>` : nothing}
+          ${matches.map((key) => {
             const entity = this.#entity(key);
             const name = title(key);
             const folder = tree.hasChildren(key, parent);
@@ -132,7 +150,7 @@ export class TreeNavigator extends AsterElement {
                 : nothing}
             </li>`;
           })}
-          ${count !== undefined && loaded.length < count ? html`<li class="aster-drill-empty"><span role="status">${loaded.length} of ${count}…</span></li>` : nothing}
+          ${!query && count !== undefined && loaded.length < count ? html`<li class="aster-drill-empty"><span role="status">${loaded.length} of ${count}…</span></li>` : nothing}
         </ul>
       </div>
     </section>`;
@@ -158,6 +176,7 @@ export class TreeNavigator extends AsterElement {
   }
 
   #move(path: readonly KeyText[], direction: number, replaceHistory = false): void {
+    this.#query.value = "";
     const from = this.#path.peek();
     if (from.join() === path.join()) return;
     if (!replaceHistory) {
@@ -221,6 +240,11 @@ export class TreeNavigator extends AsterElement {
   #key(e: KeyboardEvent): void {
     if (e.key === "Escape") {
       e.stopPropagation();
+      if (e.target instanceof HTMLInputElement && this.#query.peek()) {
+        e.preventDefault();
+        this.#query.value = "";
+        return;
+      }
       this.emit("cancel");
     } else if (e.key === "Backspace" && !(e.target as Element).matches("input, textarea") && this.#path.peek().length) {
       e.preventDefault();

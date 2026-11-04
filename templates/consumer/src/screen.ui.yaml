@@ -1,0 +1,27 @@
+version: 1
+name: ProjectList
+model:
+  type: projects
+  inputs:
+    ctx: { ref: inputs.ctx }
+children:
+  table:
+    type: Grid
+    props:
+      ctx: { ref: inputs.ctx }
+      label: Projects
+      collection: { ref: model.collection }
+      selection: { ref: model.selection }
+      selectable: true
+      view:
+        columns:
+          - { field: name }
+          - { field: owner, width: 160 }
+          - { field: state, width: 120 }
+        sort: [{ field: name }]
+        filters: {}
+        frozen: 0
+layout:
+  type: stack
+  items:
+    - { child: table }

@@ -11,6 +11,7 @@ export function inputView(p: {
   readonly keyboard?: string;
   readonly placeholder?: string;
   readonly readOnly?: boolean;
+  readonly disabled?: boolean;
   readonly required?: boolean;
   readonly invalid?: boolean;
   readonly describedBy?: string;
@@ -18,12 +19,12 @@ export function inputView(p: {
 }) {
   return html`<label class=${p.rows ? "aster-field aster-field-prose" : "aster-field"} data-ring-owner>
     ${p.rows ? html`<textarea id=${p.id ?? nothing} rows=${p.rows} .value=${live(p.value)}
-      aria-label=${p.label ?? nothing} placeholder=${p.placeholder || nothing} ?readonly=${p.readOnly}
+      aria-label=${p.label ?? nothing} placeholder=${p.placeholder || nothing} ?readonly=${p.readOnly} ?disabled=${p.disabled}
       aria-required=${p.required ? "true" : nothing} aria-invalid=${p.invalid ? "true" : nothing}
       aria-describedby=${p.describedBy ?? nothing}
       @input=${(e: InputEvent) => p.input((e.target as HTMLTextAreaElement).value)}></textarea>`
       : html`<input id=${p.id ?? nothing} type=${p.type ?? "text"} inputmode=${p.keyboard || nothing} .value=${live(p.value)}
-        aria-label=${p.label ?? nothing} placeholder=${p.placeholder || nothing} ?readonly=${p.readOnly}
+        aria-label=${p.label ?? nothing} placeholder=${p.placeholder || nothing} ?readonly=${p.readOnly} ?disabled=${p.disabled}
         aria-required=${p.required ? "true" : nothing} aria-invalid=${p.invalid ? "true" : nothing}
         aria-describedby=${p.describedBy ?? nothing} autocomplete="off" spellcheck="false"
         @focus=${(e: FocusEvent) => p.readOnly && (e.target as HTMLInputElement).select()}

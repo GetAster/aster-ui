@@ -43,6 +43,20 @@ unavailable while any clause is invalid; Cancel and Clear expression are
 available during ordinary editing. A read-only reason disables editing and
 removes the commit controls so hosts can implement asynchronous guards.
 
+## attr:FilterBuilder.operators
+
+A function from a field to the operators its condition may use, such as a
+page's per-field allowlist; omitted, the field's metadata operators apply. It
+narrows the operator choice, and never adds an operator the metadata does not
+offer. A draft restored with an operator the function refuses keeps the clause
+visible as "Unavailable" so it can be repaired; the host should validate the
+expression before applying it. [[attr:Grid.filterOperators]] passes the grid's
+map here.
+
+```ts
+editor.operators = (field) => field?.name === "hours" ? ["gt", "ge"] : filterOperators(field);
+```
+
 ## event:FilterBuilder.apply
 
 Bubbling, cancellable CustomEvent. `detail` is a validated Criteria expression,

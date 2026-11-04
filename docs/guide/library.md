@@ -23,6 +23,31 @@ needed. The mock, examples and charting vendor runtime are separate from the
 production controls. See [Get started](getting-started.md) for the shared data
 model and a working example.
 
+## Stylesheets
+
+Import one composed theme entry and then your application CSS:
+
+```css
+@import "@getaster/elements/styles/theme-lamplight.css";
+```
+
+`theme-lamplight.css` and `theme-harbour.css` each compose `base.css`,
+`elements.css` and that identity in order. `theme-lamplight.css` also imports
+`fonts.css`, which declares the Bricolage Grotesque and Fraunces Latin faces
+shipped with the package. Import both composed entries only when the
+application lets people switch identity.
+
+### The mock's WASM file
+
+`@getaster/mock` ships its engine at `wasm/odata_mock.wasm` inside the package
+and exports that path, so `import.meta.resolve("@getaster/mock/wasm/odata_mock.wasm")`
+finds it in Node.js and Bun. A browser page normally asks for the
+root-relative URL `new URL("odata_mock.wasm", document.baseURI)`, which means
+the development or static server must serve the installed file at
+`/odata_mock.wasm`. For a different location, pass `wasm` bytes, a `URL` or a
+URL string to `createMockService`; see the
+[mock reference](../reference/#attr:MockServiceOptions.wasm).
+
 Teams with a dependency cooldown policy may need an exception for these newly
 published first-party versions. Keep malware checks enabled when granting an
 exception. You can also evaluate the browser distribution built from source.

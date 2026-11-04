@@ -1,5 +1,9 @@
 # Aster UI
 
+[![npm @getaster/data](https://img.shields.io/npm/v/@getaster/data?label=%40getaster%2Fdata)](https://www.npmjs.com/package/@getaster/data)
+[![npm @getaster/elements](https://img.shields.io/npm/v/@getaster/elements?label=%40getaster%2Felements)](https://www.npmjs.com/package/@getaster/elements)
+[![npm @getaster/mock](https://img.shields.io/npm/v/@getaster/mock?label=%40getaster%2Fmock)](https://www.npmjs.com/package/@getaster/mock)
+
 Aster UI connects grids, forms, trees and other application controls to a shared
 data model. Filtering, selection, edits and request state stay consistent across
 views. Use TypeScript and custom elements directly, or compose workspaces in
@@ -59,6 +63,30 @@ The release workflow derives one version for all four packages and the website.
 
 Outputs go to `dist-release/`; this command does not publish anything. See the
 [package guide](docs/guide/library.md) for browser usage and component setup.
+
+## Releases
+
+The repository's package manifests stay `0.0.0` and private; npm versions are
+derived and shared by all four packages:
+
+- `VERSION` holds the `<major.minor>` line and a commit-count offset.
+  `bun run version:build` prints `<major.minor>.<commit count - offset>`. The
+  npm badges above and `npm view @getaster/elements version` show what is
+  published.
+- A release run derives one version, builds every package and the matching
+  website, then publishes stable versions under `latest` and previews as
+  `<version>-preview.<run>` under `next`. Its dry-run input builds and checks
+  everything without publishing. It also scans dependencies, verifies the WASM
+  artifact and checks a fresh package consumer and the consumer template.
+- To start a new minor line, change the major/minor in `VERSION` and set the
+  offset to the commit count at that change, then verify with
+  `bun run version:build`. Never rewrite a published version.
+- User-facing changes are recorded in [CHANGELOG.md](CHANGELOG.md); the release
+  notes are curated there rather than generated from the commit log.
+
+The standalone consumer template lives in
+[templates/consumer](templates/consumer/README.md) and is published separately
+as [GetAster/aster-ui-template](https://github.com/GetAster/aster-ui-template).
 
 ## License
 

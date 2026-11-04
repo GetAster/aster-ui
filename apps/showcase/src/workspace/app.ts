@@ -35,7 +35,7 @@ import { isPage, isState, ME, type Page, type Route, type State } from "./model.
 import type { AppSetup } from "./setup.ts";
 import { Share } from "./share.ts";
 
-const PAGE_TITLES: Record<Page, string> = { home: "Home", projects: "Projects", project: "Project", people: "People", tasks: "Tasks", model: "Information model", time: "Time", reports: "Reports", showcase: "Component showcase" };
+const PAGE_TITLES: Record<Page, string> = { home: "Home", projects: "Projects", project: "Project", people: "People", tasks: "Tasks", model: "Information model", helpdesk: "Helpdesk model", time: "Time", reports: "Reports", showcase: "Component showcase" };
 const TAB_TITLES: Record<State, string> = { active: "Active", paused: "Paused", archived: "Archived" };
 
 /** Pages in their own chunks, loaded on first visit. */
@@ -44,6 +44,7 @@ const LAZY: Partial<Record<Page, () => Promise<unknown>>> = {
   people: () => import("./features/people/people.ts"),
   tasks: () => import("./features/tasks/tasks.ts"),
   model: () => import("./features/model/infomodel.ts"),
+  helpdesk: () => import("./features/model/helpdesk.ts"),
   time: () => import("./features/time/time.ts"),
   reports: () => import("./features/reports/reports.ts"),
   showcase: () => import("../app/main.ts"),
@@ -113,6 +114,8 @@ export class AsterDemo extends AsterElement {
               ? html`<aster-tasks-page .setup=${this.#setup}></aster-tasks-page>`
             : page === "model"
               ? html`<aster-model-page .setup=${this.#setup}></aster-model-page>`
+            : page === "helpdesk"
+              ? html`<aster-helpdesk-page></aster-helpdesk-page>`
             : page === "time"
               ? html`<aster-time-page .setup=${this.#setup}></aster-time-page>`
             : page === "reports"
@@ -151,7 +154,7 @@ export class AsterDemo extends AsterElement {
   #sidebar(page: Page): View {
     const { model } = this.#setup;
     const pinned = model.pinned.items.value.filter((p): p is Entity => p !== undefined);
-    const item = (to: "home" | "projects" | "people" | "tasks" | "model" | "time" | "reports" | "showcase", label: string, extra: View = nothing) =>
+    const item = (to: "home" | "projects" | "people" | "tasks" | "model" | "helpdesk" | "time" | "reports" | "showcase", label: string, extra: View = nothing) =>
       html`<a class="aster-nav-item" href=${`#${to === "projects" ? `projects/${model.route.value.tab}` : to}`}
         aria-current=${page === to || (to === "projects" && page === "project") ? "page" : nothing}>${icons[to]}${label}${extra}</a>`;
     return html`<aside class="sidebar">
@@ -163,6 +166,7 @@ export class AsterDemo extends AsterElement {
           ${item("people", "People")}
           ${item("tasks", "Tasks")}
           ${item("model", "Model")}
+          ${item("helpdesk", "Helpdesk")}
           ${item("time", "Time")}
           ${item("reports", "Reports")}
           ${item("showcase", "Showcase")}

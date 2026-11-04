@@ -147,7 +147,9 @@ Subclasses implement `render()` and may use these protected members:
 
 The element renders when it connects and stops tracking when it disconnects;
 if it's connected again, it renders afresh. Overriding `connectedCallback`
-or `disconnectedCallback` must call `super`.
+or `disconnectedCallback` must call `super`. There is no `requestUpdate()`:
+setting a property backed by `this.prop()` writes its signal, which schedules
+the next commit.
 
 Only signals read while `render()` runs are tracked. Use `peek()` in event
 handlers to read a signal without making it a dependency, and build keyed
@@ -443,7 +445,8 @@ Token names by role, without the `--aster-` prefix: `type`, `surfaces`,
 `motion`, `toast` and `light`. An identity must define every one of them in
 its light rule; its dark rule (`:root[data-scheme="dark"]`, or the
 identity's own) overrides only what changes. The element stylesheets use
-no `--aster-` property outside this list and [[constant:DENSITY]].
+no `--aster-` property outside this list, [[constant:DENSITY]] and
+[[constant:COMPONENT_VARS]].
 
 Use the tokens in your own CSS so app screens follow the identity and scheme:
 
@@ -515,3 +518,51 @@ function setDensity(d: Density): void {
 
 Every name in [[constant:DENSITY]] as a full custom property name, such as
 `--aster-ctl`.
+
+## constant:COMPONENT_VARS
+
+Component geometry intents, grouped by component. Unlike [[constant:TOKENS]],
+an identity need not define them: `base.css` gives each a default, and an app
+may set one on a placement to tune that component. Component stylesheets use
+them only for geometry CSS owns; there are no matching JavaScript size
+properties.
+
+| Component | Variable | Default | Sets |
+|---|---|---|---|
+| Form | `--aster-form-label-width` | `9rem` | Label column when labels sit beside controls |
+| Grid | `--aster-grid-header-height` | `calc(var(--aster-pad-y) * 2 + 16.8px)` | Header cell minimum height |
+| Grid | `--aster-grid-toolbar-height` | `auto` | Toolbar minimum height; follows content by default |
+| Grid | `--aster-grid-row-min-height` | `auto` | Record cell minimum height; a floor, not a fixed height |
+| Grid | `--aster-grid-tree-indent` | `18px` | Indent per tree level |
+| Grid | `--aster-grid-summary-height` | `auto` | Summary bar minimum height |
+| Menu | `--aster-menu-cell-height` | `auto` | Menu item minimum height |
+| Menu | `--aster-menu-icon-size` | `14px` | Menu icon size; the icon cell adds 2px |
+| Window | `--aster-window-header-height` | `calc(var(--aster-ctl) + var(--aster-pad) - 1px)` | Title bar minimum height (windows and sections) |
+| Dialog | `--aster-dialog-max-width` | `100%` | Panel maximum width, also bounded by the viewport |
+
+The defaults follow density through the referenced variables. `auto` means
+the component keeps its content-driven size, so an unconfigured component is
+unchanged; setting the variable imposes a floor (row and menu heights) or a
+cap (dialog width). A page may scope a value to one placement, such as a
+compact window grid:
+
+```css
+.helpdesk-grid {
+  --aster-grid-row-min-height: 28px;
+  --aster-grid-tree-indent: 12px;
+}
+```
+
+The tile sizing variables keep their existing names and are documented in the
+tiles reference: `--tile-min-width`, `--tile-gap`, `--tile-height`,
+`--tile-viewport-height`, `--tile-media-height` and `--tile-image-fit`. The
+grid also writes stable internal intent variables that a page may read but not
+set: `--grid-columns` (the column track list), `--frozen-N` (each frozen
+column's sticky offset), `--level` (a row's zero-based depth) and
+`--stack-grow` (stack growth intent). They are not part of the theme contract
+and may change with a component's own layout.
+
+## constant:COMPONENT_VAR_NAMES
+
+Every name in [[constant:COMPONENT_VARS]] as a full custom property name, such
+as `--aster-grid-header-height`.

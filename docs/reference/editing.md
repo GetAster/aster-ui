@@ -416,6 +416,91 @@ edit.applyRules(scope, "project", {
 
 See [[group:page-rules]].
 
+## method:EditModel.applyPolicy
+
+- `policy`: an [[object:EditPolicy]].
+
+Sets static edit defaults: read-only and disabled for every field, and
+per-field read-only, disabled and required entries. Passing `{}` clears them.
+They are defaults, not a second rule system:
+
+- An effect that [[method:EditModel.applyRules]] names for the field wins,
+  including an explicit `false`. A rule that sets `readOnly: false` makes the
+  field editable even when the policy says read-only.
+- A field's own entry in `policy.fields` wins over the form-wide entry.
+- The metadata's ceilings still apply: a computed field, an immutable saved
+  field, a field hidden on the record and a deleted record are read-only
+  whatever the policy says; a non-nullable field is required.
+- A disabled field refuses `set()` with "Disabled." and leaves the tab order in
+  the UI. A read-only field refuses `set()` with its reason.
+
+It may be called before or after `applyRules`; `state()` recomputes for every
+reader. [[class:Form]] uses it for its policy and its fields' static flags.
+
+```ts
+edit.applyPolicy({ readOnly: true });
+edit.applyPolicy({ fields: { budget: { readOnly: false, required: true } } });
+```
+
+## method:EditModel.validateField
+
+- `name`: a field of the record's type; an unknown name throws.
+
+Checks that one field and shows or clears its error, leaving the other fields'
+errors alone. Returns whether the field is now valid. This is the per-field
+validation behind a form that validates on change or exit; `validate()`
+checks everything.
+
+```ts
+edit.set("name", "");
+edit.validateField("name");        // false: "Name is required."
+edit.set("name", "Brand refresh");
+edit.validateField("name");        // true: the error is gone
+```
+
+## object:EditPolicy
+
+Static edit defaults, taken by [[method:EditModel.applyPolicy]].
+
+- `readOnly?: boolean`: every field starts read-only.
+- `disabled?: boolean`: every field starts disabled.
+- `fields?: Readonly<Record<string, EditFieldPolicy>>`: per-field defaults,
+  merged over the form-wide entries.
+
+```ts
+const policy: EditPolicy = { readOnly: true, fields: { budget: { readOnly: false }, behindDays: { required: true } } };
+```
+
+## attr:EditPolicy.readOnly
+
+Every field starts read-only. Default `false`. A page rule that names
+read-only, or a field's own entry, overrides it.
+
+## attr:EditPolicy.disabled
+
+Every field starts disabled. Default `false`. A page rule that names
+`enabled`, or a field's own entry, overrides it.
+
+## object:EditFieldPolicy
+
+One field's static defaults: `readOnly`, `disabled` and `required`, each
+optional. A page rule that names the same effect overrides it.
+
+## attr:EditFieldPolicy.readOnly
+
+This field starts read-only. Default: the [[attr:EditPolicy.readOnly]] entry,
+then `false`. A page rule that names read-only overrides it.
+
+## attr:EditFieldPolicy.disabled
+
+This field starts disabled. Default: the [[attr:EditPolicy.disabled]] entry,
+then `false`. A page rule that names `enabled` overrides it.
+
+## attr:EditFieldPolicy.required
+
+This field is required. Default `false`; a non-nullable field is required
+anyway. A page rule that names `required` overrides it.
+
 ## method:EditModel.derived
 
 - `name`: a field name.
@@ -452,12 +537,15 @@ in code has a result and override state without authored cases.
 
 - `name`: a field of the record's type; an unknown name throws.
 
-Returns a cached computed signal of the field's [[object:FieldState]]. Page
-rules come first; then, in this order, a replay, a deleted record, a field
-hidden on the record, and a computed field (or an immutable one once saved)
-make it read-only with a reason. A field that isn't nullable and isn't
-computed is required. A page rule's own `readOnly` reason is kept for
-computed and immutable fields.
+Returns a cached computed signal of the field's [[object:FieldState]]. A
+static default from [[method:EditModel.applyPolicy]] applies only to an
+effect no page rule names; a page rule comes first, then, in this order, a
+replay, a deleted record, a field hidden on the record, and a computed field
+(or an immutable one once saved) make it read-only with a reason. A field
+that isn't nullable and isn't computed is required, and so is a field whose
+policy or rule says required. A page rule's own `readOnly` reason is kept for
+computed and immutable fields. Static policy reasons are the generic
+"Read-only." and "Disabled.", so a form can group them into one hint.
 
 ```ts
 edit.state("updatedAt").value;   // { readOnly: true, reasons: { readOnly: "Updated is set by the server." }, visible: true, … }

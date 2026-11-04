@@ -11,6 +11,20 @@
   @media (pointer: coarse) {
     :root:not([data-density]) { --aster-ctl: 38px; --aster-ctl-tight: 32px; --aster-pad-y: 12px; --aster-row-y: 9px; --aster-pad: 16px; --aster-gap: 18px; }
   }
+  /* Component geometry intents: defaults an identity or an app may override.
+     `auto` follows the content; lengths are floors a placement may raise. */
+  :root {
+    --aster-form-label-width: 9rem;
+    --aster-grid-header-height: calc(var(--aster-pad-y) * 2 + 16.8px);
+    --aster-grid-toolbar-height: auto;
+    --aster-grid-row-min-height: auto;
+    --aster-grid-tree-indent: 18px;
+    --aster-grid-summary-height: auto;
+    --aster-menu-cell-height: auto;
+    --aster-menu-icon-size: 14px;
+    --aster-window-header-height: calc(var(--aster-ctl) + var(--aster-pad) - 1px);
+    --aster-dialog-max-width: 100%;
+  }
 
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }

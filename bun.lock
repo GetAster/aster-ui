@@ -61,6 +61,7 @@
         "@getaster/data": "workspace:*",
         "@preact/signals-core": "1.14.4",
         "lit-html": "3.3.3",
+        "yaml": "^2.9.1",
       },
     },
     "packages/elements-preview": {

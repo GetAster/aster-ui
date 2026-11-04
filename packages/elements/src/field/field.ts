@@ -69,7 +69,7 @@ export class Field extends BoundField {
     const kind = inputKind(c.meta);
     return inputView({ id: c.id, value: text, type: kind.type, keyboard: this.#keyboard.value || kind.inputmode || "",
       ...(this.labelled ? {} : { label: c.label }), placeholder: this.#placeholder.value, readOnly, required: c.state.required,
-      invalid: c.invalid, ...(c.describedBy ? { describedBy: c.describedBy } : {}), ...(isProse(c.meta) ? { rows: 2 } : {}),
+      disabled: !c.state.enabled, invalid: c.invalid, ...(c.describedBy ? { describedBy: c.describedBy } : {}), ...(isProse(c.meta) ? { rows: 2 } : {}),
       input: (text) => this.write(parseInput(c.meta, text)) });
   }
 }

@@ -1,14 +1,20 @@
 import { html, nothing } from "lit-html";
 import { AsterElement, define, read, type Bindable, type View } from "../base/element.ts";
 
+/** A button's visual weight: neutral, accented, or destructive. */
+export type ButtonTone = "secondary" | "primary" | "danger";
+/** A button's size on the density scale. */
+export type ButtonSize = "sm" | "md" | "lg";
+
 /**
  * A button with every state: rest, hover, pressed, focus, busy and
  * disabled. Busy and confirmation swap the label in place; every label is
  * stacked in one grid cell, so the width never changes. While busy, clicks
  * are ignored and a submit doesn't fire.
  *
- * Prefer `reason` to disabling: the button stays focusable, says why in its
- * title, and its click is swallowed.
+ * `disabled` is the native state: the button leaves the tab order and can't
+ * be pressed. Prefer `reason` for an advisory refusal: the button stays
+ * focusable, says why in its title, and its click is swallowed.
  */
 export class Button extends AsterElement {
   readonly #label = this.prop("");
@@ -16,7 +22,9 @@ export class Button extends AsterElement {
   readonly #confirmLabel = this.prop<string | undefined>(undefined);
   readonly #busy = this.prop<Bindable<boolean>>(false);
   readonly #confirming = this.prop(false);
-  readonly #variant = this.prop<"secondary" | "primary">("secondary");
+  readonly #tone = this.prop<ButtonTone>("secondary");
+  readonly #size = this.prop<ButtonSize>("md");
+  readonly #disabled = this.prop(false);
   readonly #type = this.prop<"button" | "submit">("button");
   readonly #icon = this.prop<View>(nothing);
   readonly #reason = this.prop<string | undefined>(undefined);
@@ -48,11 +56,36 @@ export class Button extends AsterElement {
   set busy(v: Bindable<boolean>) {
     this.#busy.value = v;
   }
+  /** Sugar for `tone`: `"primary"` or `"secondary"`. A `"danger"` tone reads back as secondary. */
   get variant(): "secondary" | "primary" {
-    return this.#variant.value;
+    return this.#tone.value === "primary" ? "primary" : "secondary";
   }
   set variant(v: "secondary" | "primary") {
-    this.#variant.value = v;
+    if (v !== "secondary" && v !== "primary") throw new TypeError('variant must be "secondary" or "primary"');
+    this.#tone.value = v;
+  }
+  /** The button's visual weight. Default `"secondary"`. */
+  get tone(): ButtonTone {
+    return this.#tone.value;
+  }
+  set tone(v: ButtonTone) {
+    if (v !== "secondary" && v !== "primary" && v !== "danger") throw new TypeError('tone must be "secondary", "primary" or "danger"');
+    this.#tone.value = v;
+  }
+  /** The button's size. Default `"md"`. */
+  get size(): ButtonSize {
+    return this.#size.value;
+  }
+  set size(v: ButtonSize) {
+    if (v !== "sm" && v !== "md" && v !== "lg") throw new TypeError('size must be "sm", "md" or "lg"');
+    this.#size.value = v;
+  }
+  /** The native disabled state: out of the tab order, and no click or submit. Default `false`. */
+  get disabled(): boolean {
+    return this.#disabled.value;
+  }
+  set disabled(v: boolean) {
+    this.#disabled.value = v;
   }
   get type(): "button" | "submit" {
     return this.#type.value;
@@ -96,8 +129,11 @@ export class Button extends AsterElement {
     const labels = [this.#label.value, this.#busyLabel.value, this.#confirmLabel.value];
     const showing = busy && labels[1] ? 1 : confirming && labels[2] ? 2 : 0;
     const reason = this.#reason.value;
-    return html`<button class="aster-button" type=${this.#type.value} data-variant=${this.#variant.value}
-      aria-busy=${busy ? "true" : "false"} aria-disabled=${reason ? "true" : nothing} title=${reason ?? nothing}>
+    const disabled = this.#disabled.value;
+    return html`<button class="aster-button" type=${this.#type.value} data-tone=${this.#tone.value}
+      data-variant=${this.#tone.value === "primary" ? "primary" : "secondary"} data-size=${this.#size.value}
+      ?disabled=${disabled}
+      aria-busy=${busy ? "true" : "false"} aria-disabled=${reason && !disabled ? "true" : nothing} title=${reason ?? nothing}>
       ${this.#icon.value}
       <span class="aster-label-swap">
         ${labels.map((l, i) => (l === undefined ? nothing : html`<span ?data-off=${i !== showing}>${l}</span>`))}
@@ -106,7 +142,7 @@ export class Button extends AsterElement {
   }
 
   #guard(e: MouseEvent): void {
-    if (read(this.#busy.peek()) || this.#reason.peek()) {
+    if (this.#disabled.peek() || read(this.#busy.peek()) || this.#reason.peek()) {
       e.preventDefault();
       e.stopImmediatePropagation();
     }

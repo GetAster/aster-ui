@@ -18,6 +18,12 @@ resolves npm modules and CSS imports. The package ships TypeScript declarations.
 Its main entry registers browser elements and requires a DOM; use
 `@getaster/data` for headless work. Package tooling requires Node 22 or later.
 
+`@getaster/elements/styles/theme-lamplight.css` and
+`@getaster/elements/styles/theme-harbour.css` each compose the base primitives,
+element styles and one identity. Lamplight's entry also loads the packaged
+Bricolage Grotesque and Fraunces Latin faces from
+`@getaster/elements/styles/fonts.css`. Import one composed entry, not the parts.
+
 ## Connect a grid
 
 With an OData service exposing a `Projects` entity set and JSON CSDL metadata:
@@ -52,10 +58,13 @@ keyboard interaction and semantic markup; application labels, focus flow and
 accessibility still need testing in the completed application.
 
 The package depends on Aster's data core, Lit HTML and Preact signals. Keep one
-compatible copy of each shared runtime in your build. The optional ECharts
-adapter accepts an application-supplied runtime; ECharts, showcase data, fonts
-and the mock service are not bundled into this package. There are no install
-scripts.
+compatible copy of each shared runtime in your build. The YAML compiler is a
+separate subpath, `@getaster/elements/yaml`, and is the only entry that loads
+the `yaml` parser; a browser that imports a compiled definition never loads it.
+The optional ECharts adapter accepts an application-supplied runtime; ECharts,
+showcase data and the mock service are not bundled into this package. The
+Lamplight font files and their SIL Open Font License texts are included under
+`styles/fonts/`. There are no install scripts.
 
 ## Documentation and support
 

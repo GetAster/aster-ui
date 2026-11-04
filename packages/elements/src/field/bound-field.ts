@@ -4,6 +4,9 @@ import { html, nothing } from "lit-html";
 import { AsterElement, uid, type View } from "../base/element.ts";
 import { formatValue } from "./values.ts";
 
+/** When a bound field revalidates its own value. */
+export type ValidateOn = "submit" | "change" | "exit";
+
 /** What a control needs to render itself inside a bound field. */
 export interface ControlContext {
   readonly id: string;
@@ -11,7 +14,7 @@ export interface ControlContext {
   readonly meta: FieldMeta | undefined;
   readonly value: Value | undefined;
   readonly state: FieldState;
-  /** `aria-describedby` for the control: the error, then the read-only reason. */
+  /** `aria-describedby` for the control: its error, hint, reasons and pending note. */
   readonly describedBy: string | undefined;
   readonly invalid: boolean;
   readonly label: string;
@@ -36,6 +39,9 @@ export abstract class BoundField extends AsterElement {
   readonly #label = this.prop("");
   readonly #labelled = this.prop(false);
   readonly #shared = this.prop<ReadonlyMap<string, string>>(new Map());
+  readonly #hint = this.prop("");
+  readonly #showErrors = this.prop(true);
+  readonly #validateOn = this.prop<ValidateOn>("submit");
   readonly #uid = uid("aster-field");
 
   get model(): EditModel | undefined {
@@ -76,6 +82,47 @@ export abstract class BoundField extends AsterElement {
     this.#shared.value = v;
   }
 
+  /** Help text under the control, in addition to the label. */
+  get hint(): string {
+    return this.#hint.value;
+  }
+  set hint(v: string) {
+    this.#hint.value = v;
+  }
+
+  /** Whether to draw the error under the control. Default `true`; the control still reports `aria-invalid`. */
+  get showErrors(): boolean {
+    return this.#showErrors.value;
+  }
+  set showErrors(v: boolean) {
+    this.#showErrors.value = v;
+  }
+
+  /**
+   * When the field revalidates itself: only when the host validates
+   * (`"submit"`, the default), after every edit (`"change"`), or when focus
+   * leaves it (`"exit"`).
+   */
+  get validateOn(): ValidateOn {
+    return this.#validateOn.value;
+  }
+  set validateOn(v: ValidateOn) {
+    if (v !== "submit" && v !== "change" && v !== "exit") throw new TypeError('validateOn must be "submit", "change" or "exit"');
+    this.#validateOn.value = v;
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.listen(this, "focusout", (event) => {
+      if (this.#validateOn.peek() !== "exit") return;
+      const next = (event as FocusEvent).relatedTarget;
+      if (next instanceof Node && this.contains(next)) return;
+      const model = this.#model.peek();
+      const name = this.#field.peek();
+      if (model?.type.field(name)) model.validateField(name);
+    });
+  }
+
   protected abstract control(c: ControlContext): View;
 
   /** Control-specific validation supplements the model's errors. */
@@ -100,7 +147,11 @@ export abstract class BoundField extends AsterElement {
   }
 
   protected write(value: Value): void {
-    this.#model.peek()?.set(this.#field.peek(), value);
+    const model = this.#model.peek();
+    if (!model) return;
+    const name = this.#field.peek();
+    model.set(name, value);
+    if (this.#validateOn.peek() === "change") model.validateField(name);
   }
 
   protected render(): View {
@@ -113,10 +164,17 @@ export abstract class BoundField extends AsterElement {
     const hidden = model?.hidden.value.has(name) ?? false;
     const error = model?.errors.value[name]?.[0] ?? this.validation(meta, model?.values.value[name]);
     const pending = model && meta ? model.pending(name).value : false;
+    const hint = this.#hint.value;
+    const showErrors = this.#showErrors.value;
     const reason = state.readOnly ? state.reasons.readOnly : undefined;
-    const sharedId = reason === undefined ? undefined : this.#shared.value.get(reason);
-    const errorId = `${this.#uid}-error`;
-    const reasonId = sharedId ?? `${this.#uid}-reason`;
+    const disabledReason = state.enabled ? undefined : state.reasons.enabled;
+    const sharedId = (text: string | undefined) => (text === undefined ? undefined : this.#shared.value.get(text));
+    const hintId = hint ? `${this.#uid}-hint` : undefined;
+    const errorId = showErrors && error ? `${this.#uid}-error` : undefined;
+    const reasonShared = sharedId(reason);
+    const disabledShared = sharedId(disabledReason);
+    const reasonId = reason ? reasonShared ?? `${this.#uid}-reason` : undefined;
+    const disabledId = disabledReason ? disabledShared ?? `${this.#uid}-disabled` : undefined;
     const pendingId = `${this.#uid}-pending`;
     const suggestedId = `${this.#uid}-suggested`;
     const suggested = !hidden && !state.readOnly && (model?.derived(name).value ?? false);
@@ -130,12 +188,14 @@ export abstract class BoundField extends AsterElement {
       meta,
       value: model?.values.value[name],
       state,
-      describedBy: [error ? errorId : "", reason ? reasonId : "", changed ? pendingId : "", suggested ? suggestedId : ""].filter(Boolean).join(" ") || undefined,
+      describedBy: [errorId ?? "", hintId ?? "", reasonId ?? "", disabledId ?? "", changed ? pendingId : "", suggested ? suggestedId : ""].filter(Boolean).join(" ") || undefined,
       invalid: error !== undefined,
       label,
     };
+    this.setAttribute("data-field", name);
     this.toggleAttribute("data-pending", pending);
     this.toggleAttribute("data-readonly", state.readOnly);
+    this.toggleAttribute("data-disabled", !state.enabled);
     this.toggleAttribute("data-value-hidden", hidden);
     this.toggleAttribute("data-suggested", suggested);
     const was = this.describe(meta, model?.baseline.value[name]) || "empty";
@@ -156,9 +216,11 @@ export abstract class BoundField extends AsterElement {
           </div>`
         : nothing}
       ${hidden ? this.#hiddenValue(c) : this.row(c)}
+      ${hint && hintId ? html`<p class="aster-hint" id=${hintId}>${hint}</p>` : nothing}
       ${suggested ? html`<p class="aster-hint" id=${suggestedId}>Suggested value</p>` : nothing}
       ${changed ? html`<span class="aster-sr-only" id=${pendingId}>${pendingText}</span>` : nothing}
-      ${reason && !sharedId ? html`<p class="aster-hint" id=${reasonId}>${reason}</p>` : nothing}
-      ${error ? html`<p class="aster-error" id=${errorId} role="alert">${error}</p>` : nothing}`;
+      ${reason && reasonId && !reasonShared ? html`<p class="aster-hint" id=${reasonId}>${reason}</p>` : nothing}
+      ${disabledReason && disabledId && !disabledShared ? html`<p class="aster-hint" id=${disabledId}>${disabledReason}</p>` : nothing}
+      ${showErrors && error && errorId ? html`<p class="aster-error" id=${errorId} role="alert">${error}</p>` : nothing}`;
   }
 }

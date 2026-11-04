@@ -72,9 +72,30 @@ in `packages/elements/src/styles/`; `bun run site` copies them to
 `apps/showcase/src/workspace/styles.css` and lists them in `apps/showcase/src/workspace/themes.ts`
 for its theme menu.
 
+The package also ships a composed entry per identity: `theme-lamplight.css`
+and `theme-harbour.css` import the base primitives, the element styles and
+that identity in the required order. `theme-lamplight.css` also imports
+`fonts.css`, so Bricolage Grotesque and Fraunces arrive with the theme.
+
 ## Loading a theme
 
-Link the theme before `aster-ui.css`, then name it on the root:
+With a bundler, import one composed entry. It is the whole stylesheet; do not
+also import `base.css` or `elements.css`:
+
+```css
+@import "@getaster/elements/styles/theme-harbour.css";
+```
+
+Name the identity on the root. Harbour is opt-in; Lamplight is the default
+and needs no attribute:
+
+```html
+<html data-identity="harbour">
+```
+
+An application that offers both identities can import both composed entries;
+the shared base and element rules are identical. For the unbundled
+distribution, link the theme before `aster-ui.css`:
 
 ```html
 <link rel="stylesheet" href="lib/themes/harbour.css">
@@ -97,7 +118,11 @@ the same.
 ```sh
 bun run theme-check path/to/harbour.css   # in this repository
 bunx aster-theme-check path/to/harbour.css   # where @getaster/elements is installed
+bunx aster-theme-check node_modules/@getaster/elements/styles/theme-harbour.css
 ```
+
+A composed entry is checked as one sheet: relative `@import`s are resolved
+before the identity tokens are read.
 
 For each identity in the file, in both schemes, it checks:
 

@@ -1,0 +1,5 @@
+/* Lamplight in one import: faces, base primitives, element styles, identity. */
+@import "./fonts.css";
+@import "./base.css";
+@import "./elements.css";
+@import "./lamplight.css";

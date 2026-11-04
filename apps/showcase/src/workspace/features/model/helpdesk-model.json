@@ -1,0 +1,600 @@
+{
+  "model": {
+    "id": "1",
+    "name": "Helpdesk",
+    "version": "0.1.0-draft",
+    "enums": {
+      "TicketStatus": [
+        "open",
+        "pending",
+        "resolved",
+        "closed"
+      ],
+      "TicketPriority": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "MessageKind": [
+        "public_reply",
+        "internal_note",
+        "system_activity"
+      ],
+      "Channel": [
+        "email",
+        "chat",
+        "whatsapp",
+        "ax"
+      ],
+      "DeliveryStatus": [
+        "received",
+        "queued",
+        "sent",
+        "failed"
+      ]
+    },
+    "customTypes": {
+      "EmailAddress": {
+        "base": "text",
+        "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+      },
+      "HexColor": {
+        "base": "text",
+        "pattern": "^#[0-9A-Fa-f]{6}$"
+      },
+      "SanitizedHtml": {
+        "base": "text",
+        "validate": "sanitize-html"
+      }
+    },
+    "mixins": {
+      "Taggable": {
+        "fields": {
+          "tags": {
+            "ref": "Tag",
+            "many": true
+          }
+        }
+      },
+      "has-author": {
+        "fields": {
+          "author": {
+            "ref": "Principal",
+            "required": true
+          }
+        }
+      }
+    },
+    "criteria": {
+      "isPublicReply": {
+        "op": "eq",
+        "field": "kind",
+        "value": "public_reply"
+      },
+      "isInternalNote": {
+        "op": "eq",
+        "field": "kind",
+        "value": "internal_note"
+      },
+      "fromCustomer": {
+        "op": "eq",
+        "field": "authorIsCustomer",
+        "value": true
+      },
+      "fromAgent": {
+        "op": "eq",
+        "field": "authorIsAgent",
+        "value": true
+      },
+      "hasAgentReply": {
+        "op": "any",
+        "field": "messages",
+        "where": {
+          "op": "and",
+          "args": [
+            {
+              "op": "eq",
+              "field": "kind",
+              "value": "public_reply"
+            },
+            {
+              "op": "eq",
+              "field": "authorIsAgent",
+              "value": true
+            }
+          ]
+        }
+      },
+      "isUnassigned": {
+        "op": "eq",
+        "field": "assignee",
+        "value": null
+      },
+      "assignedToMe": {
+        "op": "eq",
+        "field": "assignee",
+        "value": {
+          "criteria": "user"
+        }
+      },
+      "inMyTeam": {
+        "op": "via",
+        "field": "team",
+        "where": {
+          "op": "any",
+          "field": "members",
+          "where": {
+            "op": "eq",
+            "field": "id",
+            "value": {
+              "criteria": "user"
+            }
+          }
+        }
+      },
+      "contactIsMe": {
+        "op": "eq",
+        "field": "id",
+        "value": {
+          "criteria": "user"
+        }
+      },
+      "requesterIsMe": {
+        "op": "eq",
+        "field": "requester",
+        "value": {
+          "criteria": "user"
+        }
+      },
+      "ticketRequesterIsMe": {
+        "op": "via",
+        "field": "ticket",
+        "where": "requesterIsMe"
+      }
+    },
+    "types": {
+      "Principal": {
+        "id": "principal",
+        "behaviours": [
+          "auditable"
+        ],
+        "fields": {
+          "name": {
+            "type": "text",
+            "required": true
+          }
+        }
+      },
+      "Contact": {
+        "id": "contact",
+        "inherits": "Principal",
+        "mixins": [
+          "Taggable"
+        ],
+        "fields": {
+          "email": {
+            "type": "EmailAddress",
+            "required": true,
+            "unique": true
+          },
+          "company": {
+            "type": "text"
+          },
+          "phone": {
+            "type": "text"
+          },
+          "notes": {
+            "ref": "ContactNote",
+            "many": true,
+            "owned": true
+          },
+          "lastContactedAt": {
+            "computed": {
+              "language": "sql",
+              "formula": "select max(m.created)\nfrom messages m\njoin tickets t on m.ticket = t.id\nwhere t.requester = $1.id\n"
+            }
+          }
+        }
+      },
+      "ContactNote": {
+        "id": "contact-note",
+        "behaviours": [
+          "auditable"
+        ],
+        "fields": {
+          "contact": {
+            "ref": "Contact",
+            "required": true
+          },
+          "author": {
+            "ref": "Principal",
+            "required": true
+          },
+          "body": {
+            "type": "text",
+            "required": true
+          }
+        }
+      },
+      "Agent": {
+        "id": "agent",
+        "inherits": "Principal",
+        "fields": {
+          "email": {
+            "type": "EmailAddress",
+            "required": true,
+            "unique": true
+          },
+          "avatarUrl": {
+            "type": "text"
+          },
+          "teams": {
+            "ref": "Team",
+            "many": true
+          }
+        }
+      },
+      "Team": {
+        "id": "team",
+        "fields": {
+          "name": {
+            "type": "text",
+            "required": true,
+            "unique": true
+          },
+          "members": {
+            "ref": "Agent",
+            "many": true
+          }
+        }
+      },
+      "Tag": {
+        "id": "tag",
+        "fields": {
+          "name": {
+            "type": "text",
+            "required": true,
+            "unique": true
+          },
+          "color": {
+            "type": "HexColor",
+            "required": true
+          }
+        }
+      },
+      "Inbox": {
+        "id": "inbox",
+        "fields": {
+          "name": {
+            "type": "text",
+            "required": true
+          },
+          "channel": {
+            "type": "Channel",
+            "required": true
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "Ticket": {
+        "id": "ticket",
+        "mixins": [
+          "Taggable"
+        ],
+        "behaviours": [
+          "auditable",
+          "history"
+        ],
+        "fields": {
+          "referenceNumber": {
+            "type": "text",
+            "required": true,
+            "unique": true
+          },
+          "subject": {
+            "type": "text",
+            "requiredWhen": {
+              "op": "via",
+              "field": "channel",
+              "where": {
+                "op": "eq",
+                "field": "channel",
+                "value": "email"
+              }
+            }
+          },
+          "requester": {
+            "ref": "Contact",
+            "required": true
+          },
+          "channel": {
+            "ref": "Inbox",
+            "required": true
+          },
+          "status": {
+            "type": "TicketStatus",
+            "default": "open"
+          },
+          "priority": {
+            "type": "TicketPriority",
+            "default": "normal"
+          },
+          "assignee": {
+            "ref": "Agent"
+          },
+          "team": {
+            "ref": "Team"
+          },
+          "participants": {
+            "ref": "Agent",
+            "many": true
+          },
+          "messages": {
+            "ref": "Message",
+            "many": true,
+            "owned": true
+          },
+          "resolvedAt": {
+            "type": "timestamp"
+          },
+          "closedAt": {
+            "type": "timestamp"
+          },
+          "firstReplyAt": {
+            "computed": {
+              "formula": "select min(m.created)\nfrom messages m\nwhere m.ticket = $1.id and m.kind = 'public_reply' and author_is_agent(m)\n"
+            }
+          },
+          "lastReplyAt": {
+            "computed": {
+              "formula": "select max(m.created)\nfrom messages m\nwhere m.ticket = $1.id and m.kind = 'public_reply' and author_is_agent(m)\n"
+            }
+          },
+          "lastCustomerReplyAt": {
+            "computed": {
+              "formula": "select max(m.created)\nfrom messages m\nwhere m.ticket = $1.id and m.kind = 'public_reply' and not author_is_agent(m)\n"
+            }
+          },
+          "waitingSince": {
+            "computed": {
+              "formula": "select case\n  when $1.status in ('open', 'pending')\n   and last_customer_reply_at($1) > coalesce(last_reply_at($1), $1.created)\n  then last_customer_reply_at($1)\n  else null\nend\n"
+            }
+          },
+          "messageCount": {
+            "computed": {
+              "formula": "select count(*) from messages m where m.ticket = $1.id\n"
+            }
+          },
+          "lastMessagePreview": {
+            "computed": {
+              "formula": "select m.body_text\nfrom messages m\nwhere m.ticket = $1.id\norder by m.created desc\nlimit 1\n"
+            }
+          }
+        },
+        "transitions": [
+          {
+            "field": "status",
+            "actions": [
+              {
+                "action": "resolve",
+                "from": [
+                  "open",
+                  "pending"
+                ],
+                "to": "resolved",
+                "requires": "hasAgentReply",
+                "set": {
+                  "resolvedAt": {
+                    "now": true
+                  }
+                }
+              },
+              {
+                "action": "close",
+                "from": [
+                  "resolved"
+                ],
+                "to": "closed",
+                "set": {
+                  "closedAt": {
+                    "now": true
+                  }
+                }
+              },
+              {
+                "action": "reopen",
+                "from": [
+                  "resolved"
+                ],
+                "to": "open"
+              }
+            ]
+          }
+        ]
+      },
+      "Message": {
+        "id": "message",
+        "readOnly": true,
+        "mixins": [
+          "has-author"
+        ],
+        "behaviours": [
+          "auditable"
+        ],
+        "fields": {
+          "ticket": {
+            "ref": "Ticket",
+            "required": true
+          },
+          "kind": {
+            "type": "MessageKind",
+            "required": true
+          },
+          "bodyText": {
+            "type": "text",
+            "requiredWhen": {
+              "op": "in",
+              "field": "kind",
+              "values": [
+                "public_reply",
+                "internal_note"
+              ]
+            }
+          },
+          "bodyHtml": {
+            "type": "SanitizedHtml"
+          },
+          "deliveryStatus": {
+            "type": "DeliveryStatus",
+            "default": "received"
+          },
+          "attachments": {
+            "ref": "Attachment",
+            "many": true,
+            "owned": true
+          },
+          "authorIsAgent": {
+            "computed": {
+              "formula": "select exists(select 1 from agents a where a.id = $1.author)"
+            }
+          },
+          "authorIsCustomer": {
+            "computed": {
+              "formula": "select not author_is_agent($1)"
+            }
+          }
+        }
+      },
+      "Attachment": {
+        "id": "attachment",
+        "behaviours": [
+          "auditable"
+        ],
+        "fields": {
+          "message": {
+            "ref": "Message",
+            "required": true
+          },
+          "filename": {
+            "type": "text",
+            "required": true
+          },
+          "contentType": {
+            "type": "text",
+            "required": true
+          },
+          "size": {
+            "type": "integer",
+            "required": true
+          },
+          "checksum": {
+            "type": "text"
+          },
+          "uploadedBy": {
+            "ref": "Principal"
+          }
+        }
+      }
+    },
+    "security": {
+      "roles": [
+        "contact",
+        "agent"
+      ],
+      "rows": {
+        "Ticket": {
+          "contact": "requesterIsMe",
+          "agent": {
+            "op": "or",
+            "args": [
+              "assignedToMe",
+              "inMyTeam",
+              "isUnassigned"
+            ]
+          }
+        },
+        "Message": {
+          "contact": {
+            "op": "and",
+            "args": [
+              "ticketRequesterIsMe",
+              "isPublicReply"
+            ]
+          },
+          "agent": {
+            "op": "via",
+            "field": "ticket",
+            "where": true
+          }
+        },
+        "Contact": {
+          "contact": "contactIsMe",
+          "agent": true
+        },
+        "ContactNote": {
+          "agent": true
+        },
+        "Attachment": {
+          "contact": {
+            "op": "via",
+            "field": "message",
+            "where": {
+              "op": "via",
+              "field": "ticket",
+              "where": "requesterIsMe"
+            }
+          },
+          "agent": {
+            "op": "via",
+            "field": "message",
+            "where": {
+              "op": "via",
+              "field": "ticket",
+              "where": true
+            }
+          }
+        },
+        "Agent": {
+          "contact": true,
+          "agent": true
+        },
+        "Team": {
+          "agent": true
+        },
+        "Tag": {
+          "agent": true
+        },
+        "Inbox": {
+          "agent": true
+        }
+      }
+    },
+    "reactions": [
+      {
+        "name": "reopenOnCustomerMessage",
+        "on": "Message.created",
+        "guard": {
+          "op": "and",
+          "args": [
+            "isPublicReply",
+            "fromCustomer",
+            {
+              "op": "via",
+              "field": "ticket",
+              "where": {
+                "op": "eq",
+                "field": "status",
+                "value": "resolved"
+              }
+            }
+          ]
+        },
+        "action": "reopen"
+      }
+    ]
+  }
+}

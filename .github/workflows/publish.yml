@@ -64,6 +64,7 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
       - run: bun scripts/check-package-consumer.ts
+      - run: bun scripts/check-template-consumer.ts
       - name: Build the matching release website
         run: bun run site:release --version "$RELEASE_VERSION" --revision "$GITHUB_SHA"
         env:

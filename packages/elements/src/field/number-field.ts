@@ -127,7 +127,7 @@ export class NumberField extends BoundField {
       <input id=${c.id} type="text" inputmode=${this.#kind(c.meta) === "integer" ? "numeric" : "decimal"}
         .value=${live(text)} aria-label=${this.labelled ? nothing : c.label} aria-describedby=${c.describedBy ?? nothing}
         aria-required=${c.state.required ? "true" : nothing} aria-invalid=${c.invalid ? "true" : nothing}
-        ?readonly=${readOnly} placeholder=${this.#placeholder.value || nothing} autocomplete="off" spellcheck="false"
+        ?readonly=${readOnly} ?disabled=${!c.state.enabled} placeholder=${this.#placeholder.value || nothing} autocomplete="off" spellcheck="false"
         @focus=${(e: FocusEvent) => {
           this.#focused.value = true;
           if (display !== entered) queueMicrotask(() => (e.target as HTMLInputElement).select());
@@ -139,7 +139,7 @@ export class NumberField extends BoundField {
         }}>
       ${this.#suffix.value ? html`<span class="aster-number-affix">${this.#suffix.value}</span>` : nothing}
       ${this.#buttons.value ? html`<span class="aster-number-steps">
-        ${([-1, 1] as const).map(d => html`<button type="button" aria-label=${`${d === 1 ? "Increase" : "Decrease"} ${c.label}`} ?disabled=${readOnly || this.#next(d, c) === undefined}
+        ${([-1, 1] as const).map(d => html`<button type="button" aria-label=${`${d === 1 ? "Increase" : "Decrease"} ${c.label}`} ?disabled=${!c.state.enabled || readOnly || this.#next(d, c) === undefined}
           @mousedown=${(e: MouseEvent) => { if (e.button === 0) e.preventDefault(); }} @click=${() => step(d)}>
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d=${d === 1 ? "M3 8h10M8 3v10" : "M3 8h10"}/></svg>
         </button>`)}

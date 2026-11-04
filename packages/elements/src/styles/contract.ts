@@ -39,3 +39,19 @@ export const TOKEN_NAMES: readonly string[] = Object.values(TOKENS).flat().map((
 export const DENSITY = ["ctl", "ctl-tight", "pad-y", "row-y", "pad", "gap"] as const;
 export const DENSITIES = ["compact", "standard", "comfortable"] as const;
 export const DENSITY_NAMES: readonly string[] = DENSITY.map((t) => `--aster-${t}`);
+
+/**
+ * Component geometry intents, by component. Unlike [[TOKENS]] an identity
+ * need not define these: each has a default in `base.css`, and a component
+ * uses it for geometry CSS owns. An app may set one on a placement.
+ */
+export const COMPONENT_VARS = {
+  form: ["label-width"],
+  grid: ["header-height", "toolbar-height", "row-min-height", "tree-indent", "summary-height"],
+  menu: ["cell-height", "icon-size"],
+  window: ["header-height"],
+  dialog: ["max-width"],
+} as const;
+/** Every name in [[constant:COMPONENT_VARS]] as a full custom property name, such as `--aster-grid-header-height`. */
+export const COMPONENT_VAR_NAMES: readonly string[] = Object.entries(COMPONENT_VARS)
+  .flatMap(([component, names]) => names.map((name) => `--aster-${component}-${name}`));

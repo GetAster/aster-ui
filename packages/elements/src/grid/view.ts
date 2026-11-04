@@ -27,13 +27,102 @@ export interface GridView {
   readonly frozen: number;
 }
 
-/** The query a view describes, within `base` (such as "this project only"). */
+/**
+ * Which view entries the grid can apply. A refused entry is a capability
+ * the schema, the grid's structure or the page policy doesn't allow.
+ */
+export interface ViewCapabilities {
+  readonly sortable?: (field: string) => boolean;
+  readonly filterable?: (field: string) => boolean;
+  readonly groupable?: (field: string) => boolean;
+  readonly hideable?: (field: string) => boolean;
+  readonly freezable?: (field: string) => boolean;
+}
+
+/** A view entry that the derived presentation leaves out, and why it was refused. */
+export interface ViewRefusal {
+  readonly kind: "sort" | "filter" | "criteria" | "group" | "hidden" | "frozen";
+  readonly field: string;
+}
+
+/** Fields a criteria expression reads, at the level it filters; related-record clauses name the navigation. */
+export function criteriaFields(criteria: Criteria): readonly string[] {
+  if (!criteria || typeof criteria !== "object") return [];
+  const node = criteria as { readonly op?: unknown; readonly args?: readonly Criteria[]; readonly arg?: Criteria; readonly field?: unknown; readonly other?: unknown };
+  switch (node.op) {
+    case "and":
+    case "or":
+      return Array.isArray(node.args) ? node.args.flatMap(criteriaFields) : [];
+    case "not":
+      return node.arg ? criteriaFields(node.arg) : [];
+    default: {
+      const fields: string[] = [];
+      if (typeof node.field === "string") fields.push(node.field);
+      // A field-to-field comparison reads both operands; each must pass capability checks.
+      if (typeof node.other === "string") fields.push(node.other);
+      return fields;
+    }
+  }
+}
+
+/** The view entries `allowed` refuses, for the drift note. The view itself is never rewritten. */
+export function viewRefusals(view: GridView, allowed: ViewCapabilities): readonly ViewRefusal[] {
+  const refusals: ViewRefusal[] = [];
+  if (allowed.sortable) for (const key of view.sort) if (!allowed.sortable(key.field)) refusals.push({ kind: "sort", field: key.field });
+  if (allowed.filterable) {
+    for (const field of Object.keys(view.filters)) if (!allowed.filterable(field)) refusals.push({ kind: "filter", field });
+    if (view.criteria) for (const field of new Set(criteriaFields(view.criteria))) if (!allowed.filterable(field)) refusals.push({ kind: "criteria", field });
+  }
+  if (allowed.groupable) for (const field of groupFields(view)) if (!allowed.groupable(field)) refusals.push({ kind: "group", field });
+  if (allowed.hideable) for (const column of view.columns) if (column.hidden && !allowed.hideable(column.field)) refusals.push({ kind: "hidden", field: column.field });
+  // Frozen columns are a prefix: the first one the page refuses ends the frozen run.
+  if (allowed.freezable) {
+    const visible = effectiveColumns(view, allowed.hideable);
+    for (let i = 0; i < Math.min(view.frozen, visible.length); i++) {
+      const field = visible[i]!.field;
+      if (!allowed.freezable(field)) {
+        refusals.push({ kind: "frozen", field });
+        break;
+      }
+    }
+  }
+  return refusals;
+}
+
+/** The columns shown: a column the page forbids hiding stays visible. */
+export function effectiveColumns(view: GridView, hideable?: (field: string) => boolean): readonly GridColumn[] {
+  return view.columns.filter((column) => !column.hidden || (hideable !== undefined && !hideable(column.field)));
+}
+
+/** The frozen prefix, cut where the page forbids freezing a column. */
+export function effectiveFrozen(view: GridView, visible: readonly GridColumn[], freezable?: (field: string) => boolean): number {
+  const wanted = Math.min(view.frozen, visible.length);
+  if (!freezable) return wanted;
+  let frozen = 0;
+  while (frozen < wanted && freezable(visible[frozen]!.field)) frozen++;
+  return frozen;
+}
+
+/** The grouping levels in force: stored levels the page refuses are left out. */
+export function effectiveGroups(view: GridView | undefined, groupable?: (field: string) => boolean): readonly string[] {
+  const fields = groupFields(view);
+  return groupable ? fields.filter((field) => groupable(field)) : fields;
+}
+
+/**
+ * The query a view describes, within `base` (such as "this project only").
+ * Entries `allowed` refuses are left out of the derived query while the view
+ * keeps them, so a person's intent resumes when the page allows it again.
+ */
 /** `sortPaths` maps a column to what it sorts by, for a lookup column the related record's display field. */
-export function viewQuery(set: string, view: GridView, base?: Criteria, sortPaths: Readonly<Record<string, string>> = {}): Query {
-  const parts = [...(base ? [base] : []), ...Object.values(view.filters), ...(view.criteria ? [view.criteria] : [])];
+export function viewQuery(set: string, view: GridView, base?: Criteria, sortPaths: Readonly<Record<string, string>> = {}, allowed: ViewCapabilities = {}): Query {
+  const sort = allowed.sortable ? view.sort.filter((key) => allowed.sortable!(key.field)) : view.sort;
+  const filters = Object.entries(view.filters).filter(([field]) => !allowed.filterable || allowed.filterable(field));
+  const criteria = view.criteria && (!allowed.filterable || criteriaFields(view.criteria).every(allowed.filterable)) ? view.criteria : undefined;
+  const parts = [...(base ? [base] : []), ...filters.map(([, filter]) => filter), ...(criteria ? [criteria] : [])];
   const filter: Criteria | undefined = parts.length === 0 ? undefined : parts.length === 1 ? parts[0] : { op: "and", args: parts };
   const paths = { ...sortPaths, ...Object.fromEntries(view.columns.filter(c => c.sortField).map(c => [c.field, c.sortField!])) };
-  const orderBy = view.sort.map((k) => (paths[k.field] ? { ...k, field: paths[k.field]! } : k));
+  const orderBy = sort.map((k) => (paths[k.field] ? { ...k, field: paths[k.field]! } : k));
   return { set, ...(filter ? { filter } : {}), ...(orderBy.length ? { orderBy } : {}) };
 }
 

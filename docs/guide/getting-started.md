@@ -28,9 +28,39 @@ Open **http://localhost:4174/playground/first-grid.html**. The built site is sta
 
 The standalone distribution lives in `dist-local/lib/`. You can also copy that directory and the two example files into your own static site, preserving their relative paths. See [installation and distribution](library.md) for the files and TypeScript dependencies.
 
+## Start from the template
+
+The [Aster UI consumer template](https://github.com/GetAster/aster-ui-template)
+is a small standalone Bun project that installs the packages from npm. It
+connects a `DataContext` to the WebAssembly mock, compiles a YAML screen with
+`@getaster/elements/yaml`, and mounts it through the composition registry. Use
+it when you want a working npm application rather than the source checkout
+above.
+
+Choose **Use this template** on the repository, or create a copy from a
+terminal:
+
+```bash
+gh repo create my-app --template GetAster/aster-ui-template --clone
+cd my-app
+bun install
+bun run dev
+```
+
+Edit `src/screen.ui.yaml` for the screen and `src/model.ts` for its data and
+actions. The template's README lists the guide for each part and how to replace
+the mock with a real OData service.
+
+The mock package ships its engine as `wasm/odata_mock.wasm` and exports it at
+`@getaster/mock/wasm/odata_mock.wasm`. A page asks for the root-relative
+`odata_mock.wasm` route, so a development or static server must serve that file
+there; the template's `serve.ts` and `build.ts` do. A real service removes the
+mock and the route.
+
 ## The HTML shell
 
-A theme supplies the visual tokens. The elements stylesheet supplies the controls. Importing the library module registers the custom elements.
+A theme supplies the visual tokens. The elements stylesheet supplies the controls. Importing the library module registers the custom elements. In an npm application, import one composed entry, for example
+`@getaster/elements/styles/theme-lamplight.css`; it includes the fonts, base primitives, element styles and the theme in the required order. The standalone distribution below keeps them as separate files.
 
 <!--first-grid-html-->
 

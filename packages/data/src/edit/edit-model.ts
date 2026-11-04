@@ -5,7 +5,7 @@ import type { StoredRecord } from "../store/store.ts";
 import { ODataError } from "../odata/errors.ts";
 import type { Entity, EntityType, Value } from "../schema/model.ts";
 import { CriteriaError } from "../criteria/values.ts";
-import { DEFAULT_STATE, type Case, type Explanation, type FieldState, type PageScope, type StateRules } from "../scope/scope.ts";
+import { DEFAULT_STATE, type Case, type Effect, type Explanation, type FieldState, type PageScope, type StateRules } from "../scope/scope.ts";
 import { keyFromText, type KeyText } from "../store/keys.ts";
 import { validateEntity, type FieldErrors } from "../validate/validate.ts";
 
@@ -20,7 +20,29 @@ export interface EditOptions {
   readonly rules?: readonly Rule[];
 }
 
+/** Static defaults for one field. A page rule that names an effect overrides it. */
+export interface EditFieldPolicy {
+  readonly readOnly?: boolean;
+  readonly disabled?: boolean;
+  readonly required?: boolean;
+}
+
+/**
+ * Static edit defaults, applied through [[method:EditModel.applyPolicy]].
+ * They are defaults, not a second rule system: an effect a page rule sets
+ * wins, and the metadata's ceilings (computed, immutable, non-nullable)
+ * still apply. A form's presentation configuration carries them.
+ */
+export interface EditPolicy {
+  readonly readOnly?: boolean;
+  readonly disabled?: boolean;
+  /** Per-field defaults, merged over the form-wide entries. */
+  readonly fields?: Readonly<Record<string, EditFieldPolicy>>;
+}
+
 const NONE: ReadonlySet<string> = new Set();
+const NO_EFFECTS: ReadonlySet<Effect> = new Set();
+const EFFECTS = ["visible", "enabled", "readOnly", "required"] as const;
 
 /**
  * A field's page rules. With `clearWhenHidden`, hiding a shown field clears
@@ -88,6 +110,9 @@ export class EditModel {
   #writes: string[] = [];
   readonly #pending = new Map<string, ReadonlySignal<boolean>>();
   readonly #ruled = signal<ReadonlyMap<string, ReadonlySignal<FieldState>>>(new Map());
+  /** The effects each field's page rules name; an unnamed effect yields to static policy. */
+  readonly #effects = new Map<string, ReadonlySet<Effect>>();
+  readonly #policy = signal<EditPolicy>({});
   readonly #states = new Map<string, ReadonlySignal<FieldState>>();
   readonly #disposers: (() => void)[] = [];
   /** A past change shown over its old values: read-only, never saved. */
@@ -244,6 +269,10 @@ export class EditModel {
       this.#errors.value = { ...this.#errors.peek(), [name]: [state.reasons.readOnly ?? `${this.#title(name)} is read-only.`] };
       return;
     }
+    if (!state.enabled) {
+      this.#errors.value = { ...this.#errors.peek(), [name]: [state.reasons.enabled ?? `${this.#title(name)} is disabled.`] };
+      return;
+    }
     batch(() => {
       this.#values.value = { ...this.#values.peek(), [name]: value };
       if (this.#derived.has(name) && !this.#typed.peek().has(name)) this.#typed.value = new Set(this.#typed.peek()).add(name);
@@ -264,6 +293,9 @@ export class EditModel {
     const ruled = new Map(this.#ruled.peek());
     for (const [name, { clearWhenHidden: _, derived, ...state }] of Object.entries(rules)) {
       const field = this.#field(name);
+      const effects = new Set<Effect>();
+      for (const effect of EFFECTS) if (rules[name]![effect] !== undefined) effects.add(effect);
+      this.#effects.set(name, effects);
       ruled.set(name, scope.state(`${target}.${name}`, state));
       if (derived === undefined) continue;
       if (field.computed) throw new Error(`${this.type.name}.${name} is set by the server, so it can't have a derived value`);
@@ -295,6 +327,32 @@ export class EditModel {
         }),
       );
     }
+  }
+
+  /**
+   * Static edit defaults, such as a form that is locked for viewing. They
+   * are defaults: a page rule that names an effect overrides it, and the
+   * metadata still refuses edits to computed or immutable fields. Passing
+   * `{}` clears them. Call it before or after `applyRules`; the state is
+   * recomputed for whoever reads it.
+   */
+  applyPolicy(policy: EditPolicy): void {
+    this.#policy.value = policy;
+  }
+
+  /**
+   * Checks one field and shows or clears its error, leaving the other
+   * fields' errors alone. This is the per-field validation behind
+   * `validateOn: "change"` and `"exit"`; `validate()` checks everything.
+   */
+  validateField(name: string): boolean {
+    this.#field(name);
+    const now = this.#check(this.#values.peek())[name];
+    const rest = { ...this.#errors.peek() };
+    if (now === undefined) delete rest[name];
+    else rest[name] = now;
+    this.#errors.value = rest;
+    return now === undefined;
   }
 
   /**
@@ -370,9 +428,10 @@ export class EditModel {
   }
 
   /**
-   * A field's state: its page rules, then what the metadata and the record
-   * say. Computed fields are read-only, immutable ones once saved, and every
-   * field of a deleted record; a non-nullable field is required.
+   * A field's state: static policy for effects no page rule names, then the
+   * page rules, then what the metadata and the record say. Computed fields
+   * are read-only, immutable ones once saved, and every field of a deleted
+   * record; a non-nullable field is required.
    */
   state(name: string): ReadonlySignal<FieldState> {
     let state = this.#states.get(name);
@@ -380,8 +439,15 @@ export class EditModel {
       const field = this.#field(name);
       state = computed(() => {
         const ruled = this.#ruled.value.get(name)?.value ?? DEFAULT_STATE;
+        const owned = this.#effects.get(name) ?? NO_EFFECTS;
+        const policy = this.#policy.value;
+        const own = policy.fields?.[name];
         const reasons = { ...ruled.reasons };
-        let readOnly = ruled.readOnly;
+        const policyReadOnly = own?.readOnly ?? policy.readOnly ?? false;
+        const policyDisabled = own?.disabled ?? policy.disabled ?? false;
+        const policyRequired = own?.required ?? false;
+        let readOnly = owned.has("readOnly") ? ruled.readOnly : policyReadOnly;
+        let enabled = owned.has("enabled") ? ruled.enabled : !policyDisabled;
         if (this.#replay) {
           readOnly = true;
           reasons.readOnly = "This is a past change.";
@@ -397,8 +463,10 @@ export class EditModel {
             ? `${this.#title(name)} is set by the server.`
             : `${this.#title(name)} can't be changed once it's set.`;
         }
-        const required = ruled.required || (!field.nullable && !field.computed);
-        return Object.freeze({ ...ruled, readOnly, required, reasons: Object.freeze(reasons) });
+        if (!owned.has("readOnly") && policyReadOnly) reasons.readOnly ??= "Read-only.";
+        if (!owned.has("enabled") && policyDisabled) reasons.enabled ??= "Disabled.";
+        const required = (owned.has("required") ? ruled.required : policyRequired) || (!field.nullable && !field.computed);
+        return Object.freeze({ ...ruled, readOnly, enabled, required, reasons: Object.freeze(reasons) });
       });
       this.#states.set(name, state);
     }
@@ -461,11 +529,11 @@ export class EditModel {
     const mode = untracked(() => this.isNew.value) ? "create" : "update";
     const changed = mode === "create" ? values : this.#changed(values);
     const errors: Record<string, readonly string[]> = { ...validateEntity(this.type, changed, mode) };
-    for (const name of this.#ruled.value.keys()) {
-      const state = this.state(name).value;
-      if (state.required && (values[name] ?? null) === null && !errors[name] && !this.#hidden.value.has(name)) {
-        errors[name] = [`${this.#title(name)} is required.`];
-      }
+    for (const field of this.type.fields) {
+      const name = field.name;
+      if (field.computed || this.#hidden.value.has(name)) continue;
+      if ((values[name] ?? null) !== null || errors[name]) continue;
+      if (this.state(name).value.required) errors[name] = [`${this.#title(name)} is required.`];
     }
     const ruled = new Set<string>();
     for (const rule of this.#rules) {

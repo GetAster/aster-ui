@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { DENSITIES, DENSITY_NAMES, TOKEN_NAMES } from "../src/styles/contract.ts";
+import { COMPONENT_VAR_NAMES, DENSITIES, DENSITY_NAMES, TOKEN_NAMES } from "../src/styles/contract.ts";
 
 const styles = join(import.meta.dir, "../src/styles");
 const app = join(import.meta.dir, "../../../apps/showcase/src/workspace");
@@ -35,7 +35,17 @@ test("elements and the app use only contract tokens", () => {
     ...appSheets.map(({ dir, file }) => read(dir, file)),
   ];
   const used = new Set(sheets.flatMap((css) => [...css.matchAll(/var\((--aster-[\w-]+)/g)].map((m) => m[1]!)));
-  expect([...used].filter((t) => !TOKEN_NAMES.includes(t) && !DENSITY_NAMES.includes(t))).toEqual([]);
+  expect([...used].filter((t) => !TOKEN_NAMES.includes(t) && !DENSITY_NAMES.includes(t) && !COMPONENT_VAR_NAMES.includes(t))).toEqual([]);
+});
+
+test("base.css gives every component intent a default", () => {
+  const css = read(styles, "base.css");
+  expect(COMPONENT_VAR_NAMES.filter((name) => !new RegExp(`${name}\\s*:`).test(css))).toEqual([]);
+});
+
+test("component stylesheets consume every component intent", () => {
+  const css = read(styles, "elements.css");
+  expect(COMPONENT_VAR_NAMES.filter((name) => !css.includes(`var(${name}`))).toEqual([]);
 });
 
 test("base.css defines every density token for every density", () => {

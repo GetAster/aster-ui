@@ -56,6 +56,7 @@ for (const name of packages) {
       writeFileSync(join(destination, "styles/aster-ui.css"), ["base.css", "elements.css"].map(f => readFileSync(join(source, "src/styles", f), "utf8")).join("\n"));
       manifest.files.push("styles", "bin");
       manifest.exports["./styles/*"] = "./styles/*";
+      manifest.exports["./yaml"] = { types: "./dist/yaml.d.ts", import: "./dist/yaml.js", default: "./dist/yaml.js" };
       manifest.sideEffects = ["./dist/index.js", "./dist/**/*.js", "./styles/*.css"];
       const cli = await Bun.build({ entrypoints: [join(source, "tools/aster-theme-check.ts")], target: "node", outdir: join(destination, "bin"), minify: false });
       if (!cli.success) throw new AggregateError(cli.logs, "Theme CLI build failed");

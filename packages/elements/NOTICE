@@ -3,3 +3,7 @@ Copyright 2026 Aster UI contributors
 
 Aster UI code in this package is licensed under the Apache License, Version 2.0.
 See LICENSE. Separately installed dependencies retain their respective licenses.
+
+The font files in styles/fonts/ are licensed under the SIL Open Font License,
+Version 1.1. Their copyright notices and license texts are in the
+OFL-bricolage-grotesque.txt and OFL-fraunces.txt files beside them.

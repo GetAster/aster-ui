@@ -32,6 +32,8 @@ for (const theme of ["lamplight", "harbour"]) for (const scheme of ["light", "da
       await page.keyboard.press("Space");
       await expect(page.locator("#focus-check")).toBeChecked();
       await expect(page.locator("#focus-check")).toHaveCSS("outline-style", "solid");
+      // Shadows are dropped in forced colours; the shared button keeps a real edge.
+      await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCSS("border-top-width", "1px");
     });
   }
 }

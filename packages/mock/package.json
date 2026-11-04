@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./wasm/odata_mock.wasm": "./wasm/odata_mock.wasm"
   },
   "dependencies": {
     "@getaster/data": "workspace:*"

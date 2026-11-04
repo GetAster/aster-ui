@@ -109,7 +109,8 @@ export class Picker extends BoundField {
     const multiple = this.#multiple.value;
     const chosen = multiple ? this.#values.value : c.value === null || c.value === undefined ? [] : [c.value];
     const query = this.#query.value;
-    const open = this.#open.value && !c.state.readOnly;
+    const disabled = !c.state.enabled;
+    const open = this.#open.value && !c.state.readOnly && !disabled;
     const list = this.#list();
     const loaded = (list?.items.value ?? []).filter((e): e is Entity => e !== undefined);
     const searching = this.#searching.value;
@@ -179,14 +180,16 @@ export class Picker extends BoundField {
           aria-required=${c.state.required ? "true" : nothing}
           aria-invalid=${c.invalid ? "true" : nothing}
           aria-describedby=${describedBy ?? nothing}
-          ?readonly=${c.state.readOnly}
+          ?readonly=${c.state.readOnly} ?disabled=${disabled}
           autocomplete="off" spellcheck="false"
           @input=${(e: InputEvent) => {
+            if (disabled) return;
             // Typing replaces the shown name, even where the engine didn't select it on click.
             const t = (e.target as HTMLInputElement).value;
             this.#type(query === undefined && label && t.startsWith(label) && t.length > label.length ? t.slice(label.length) : t);
           }}
           @click=${(e: MouseEvent) => {
+            if (disabled) return;
             if (this.#open.peek()) return this.#close();
             this.#show();
             (e.target as HTMLInputElement).select();
@@ -197,7 +200,7 @@ export class Picker extends BoundField {
             this.#close();
           }}
           @keydown=${(e: KeyboardEvent) => {
-            if (c.state.readOnly) return;
+            if (c.state.readOnly || disabled) return;
             const isOpen = this.#open.peek();
             switch (e.key) {
               case "ArrowDown":

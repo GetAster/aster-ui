@@ -1,0 +1,16 @@
+@import "@getaster/elements/styles/theme-lamplight.css";
+
+body {
+  margin: 0;
+  padding: var(--aster-pad);
+  background: var(--aster-page);
+  color: var(--aster-text);
+  font: var(--aster-weight) var(--aster-font-size) / var(--aster-line) var(--aster-font-ui);
+}
+
+main { max-width: 60rem; }
+h1 { margin: 0 0 calc(var(--aster-gap) / 2); font-size: 1.4em; }
+p { color: var(--aster-text-2); }
+
+/* A virtualized grid needs a bounded height. */
+#screen { height: 26rem; }

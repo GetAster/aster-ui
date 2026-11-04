@@ -23,6 +23,7 @@ export class FilterBuilder extends AsterElement {
   readonly #model = this.prop<FilterDraft | undefined>(undefined);
   readonly #label = this.prop("Advanced filter");
   readonly #readOnly = this.prop<string | undefined>(undefined);
+  readonly #operators = this.prop<((field: Field | undefined) => readonly string[]) | undefined>(undefined);
   readonly #choices = new Map<string, ChoiceState>();
   readonly #lists = new Map<string, { text: string; encoded: string }>();
   readonly #customRelative = signal<ReadonlySet<string>>(new Set());
@@ -41,6 +42,12 @@ export class FilterBuilder extends AsterElement {
   /** A reason shown instead of editable controls. */
   get readOnlyReason(): string | undefined { return this.#readOnly.value; }
   set readOnlyReason(value: string | undefined) { this.#readOnly.value = value; }
+  /**
+   * The operators offered for a field, such as a page's per-field allowlist.
+   * Default: the metadata's operators, from [[staticMethod:filterOperators]].
+   */
+  get operators(): ((field: Field | undefined) => readonly string[]) | undefined { return this.#operators.value; }
+  set operators(value: ((field: Field | undefined) => readonly string[]) | undefined) { this.#operators.value = value; }
 
   override focus(options?: FocusOptions): void { this.querySelector<HTMLElement>("[role=combobox], input, button")?.focus(options); }
 
@@ -86,7 +93,7 @@ export class FilterBuilder extends AsterElement {
     const remove = !root ? html`<button type="button" class="aster-list-edit-action" aria-label=${`Remove ${name}`} @click=${() => this.#remove(node.id)}>Remove</button>` : nothing;
     if (node.kind === "condition") {
       const field = this.#field(type, node.field);
-      const operators = filterOperators(field);
+      const operators = this.#operators.value ? this.#operators.value(field) : filterOperators(field);
       return html`<div class="aster-filter-condition" role="group" aria-label=${name} data-clause=${node.id}>
         <div class="aster-filter-condition-fields">
           ${this.#choice(`${node.id}-field`, `${name}: field`, node.field, this.#fields(type), (field) => model.change(node.id, { field }), errorId)}

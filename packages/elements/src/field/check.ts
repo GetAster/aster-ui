@@ -18,6 +18,7 @@ export class Check extends BoundField {
         aria-label=${this.labelled ? nothing : c.label}
         aria-readonly=${c.state.readOnly ? "true" : nothing}
         aria-required=${c.state.required ? "true" : nothing}
+        ?disabled=${!c.state.enabled}
         @click=${(e: MouseEvent) => c.state.readOnly && e.preventDefault()}
         aria-invalid=${c.invalid ? "true" : nothing}
         aria-describedby=${c.describedBy ?? nothing}

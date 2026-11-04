@@ -155,18 +155,46 @@ Existing elements and adapters continue to work with `compositeElement(tag, cont
 ## Load and mount the workspace
 
 Register the model and components in application code, then compile the YAML
-at build time. From this repository:
-
-```sh
-bun scripts/composite-yaml.ts screen.ui.yaml screen.ui.json
-```
-
-The compiler produces a definition and source locations for useful validation
-errors. The browser loads the JSON; it does not need a YAML parser.
+at build time with the compiler shipped in `@getaster/elements/yaml`:
 
 ```js
-const { definition, sources } = await response.json();
-const workspace = new Composite(definition, registry, {
+import { readFileSync } from "node:fs";
+import { compileCompositeYaml } from "@getaster/elements/yaml";
+
+const { definition, sources } = compileCompositeYaml(
+  readFileSync("screen.ui.yaml", "utf8"),
+  "screen.ui.yaml",
+);
+const checked = authoring.validate(definition, sources);
+```
+
+`authoring` is the `defineCompositeRegistry({ models, components, renderers })`
+result from your application. `validate` checks that the definition names only
+registered models, components, renderers and properties, and reports the YAML
+file, line and column of the first problem. YAML carries plain data only: tags,
+anchors, aliases and functions are rejected, so executable behaviour stays in
+the registered model and components.
+
+Compile at build time and import the resulting JSON; the browser does not need
+a YAML parser. A bundler integration is a small loader over the same export:
+
+```js
+build.onLoad({ filter: /\.ui\.yaml$/ }, ({ path }) => ({
+  contents: JSON.stringify(compileCompositeYaml(readFileSync(path, "utf8"), path)),
+  loader: "json",
+}));
+```
+
+A compiled document has the shape `{ definition, sources }`. If you prefer a
+file on disk, the repository's `bun scripts/composite-yaml.ts screen.ui.yaml
+screen.ui.json` uses the same compiler; that CLI is a repository tool, not a
+package export. The `*.ui.yaml` loader used by this documentation's examples is
+likewise repository build-time code, not part of the published package surface.
+
+Mount the checked definition with the registry:
+
+```js
+const workspace = new Composite(checked, registry, {
   inputs: { ctx },
   ctx,
   sources,

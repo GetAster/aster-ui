@@ -104,15 +104,22 @@ control of your own. It renders, in order:
 | When | What shows |
 |---|---|
 | `labelled` is true | The label above the control, linked to it with `for`. "Optional" beside it if the field isn't required or read-only. |
+| [[attr:BoundField.hint]] is set | The help text under the control, included in its `aria-describedby`. |
 | The value differs from the one loaded, on a saved record | `data-pending` on the element (an edge and a dot in the styles), a Revert button named "Revert Title to Draft plan", and a visually hidden "Changed, not saved yet; was Draft plan" in the control's description. |
 | The field is read-only by its state | `data-readonly` on the element and the reason under the control as a hint, unless the reason is in [[attr:BoundField.sharedReasons]]. |
-| The model has an error for the field | The first error under the control with `role="alert"`; the control is `aria-invalid`. |
+| The field is disabled by its state | `data-disabled` on the element and a generic disabled reason, if the state gives one; controls set their native `disabled`. |
+| The model has an error for the field | The first error under the control with `role="alert"`; the control is `aria-invalid`. [[attr:BoundField.showErrors]] `false` suppresses the text but not `aria-invalid`. |
 | The server hides the field on this record | A read-only box with the placeholder "Hidden" in place of the control, and `data-value-hidden` on the element. |
 | The field's state isn't visible | Nothing, and the element is `hidden`. |
 
-The control's `aria-describedby` names the error, then the read-only reason,
-then the description of the change. A new record's fields aren't marked as
-changed and have no Revert.
+The control's `aria-describedby` names the error, the hint, the read-only and
+disabled reasons, then the description of the change. A new record's fields
+aren't marked as changed and have no Revert.
+
+[[attr:BoundField.validateOn]] decides whether the field validates itself:
+`"submit"` (the default) leaves validation to the model's `validate()` or
+`save()`, `"change"` revalidates after every write, and `"exit"` when focus
+leaves the field. Both use [[method:EditModel.validateField]].
 
 Most fields in an enterprise form are required, so the label marks the
 optional ones; the control carries `aria-required` either way.
@@ -190,6 +197,41 @@ html`<p id="archived-reason" class="aster-hint">${reason}</p>
   <aster-field .model=${edit} .field=${"name"} .labelled=${true}
     .sharedReasons=${new Map([[reason, "archived-reason"]])}></aster-field>`;
 ```
+
+## attr:BoundField.hint
+
+Help text under the control, in addition to the label. Default `""`. It is
+included in the control's `aria-describedby` and doesn't replace the error.
+[[object:FormField]] carries it as `hint`.
+
+```ts
+html`<aster-field .model=${edit} .field=${"name"} .hint=${"The name shown on reports"}></aster-field>`;
+```
+
+## attr:BoundField.showErrors
+
+Whether to draw the error under the control. Default `true`. When `false`,
+`aria-invalid` still marks the control and the error stays on the model, so an
+error summary or another surface can show it. [[attr:Form.showInlineErrors]]
+sets it for every field.
+
+## attr:BoundField.validateOn
+
+When the field revalidates its own value, as [[type:ValidateOn]]: `"submit"`
+(the default), `"change"` or `"exit"`. `"submit"` leaves validation to
+[[method:EditModel.validate]] and [[method:EditModel.save]]; `"change"`
+revalidates after every write; `"exit"` revalidates when focus leaves the
+field, unless it moves to another control inside the same field. Both use
+[[method:EditModel.validateField]]. [[attr:Form.validateOn]] sets it for every
+field.
+
+```ts
+html`<aster-field .model=${edit} .field=${"name"} .validateOn=${"exit"}></aster-field>`;
+```
+
+## type:ValidateOn
+
+`"submit" | "change" | "exit"`: when a bound field revalidates itself.
 
 ## object:ControlContext
 
@@ -309,7 +351,8 @@ parseInput(budgetField, "41,200.50"); // "41200.50" for an Edm.Decimal
 Tag `aster-select`. Bind it with [[attr:BoundField.model]] and
 [[attr:BoundField.field]] to a field with allowed values. The options are
 the allowed values with their labels, after "None" when the field is
-nullable; the frame shows "Choose…" when the value isn't one of them.
+nullable; the frame shows [[attr:Select.placeholder]] when the value isn't
+one of them.
 
 It's a select-only combobox, drawn by [[staticMethod:choiceView]]: a
 focusable `role="combobox"` that opens a `role="listbox"` popover, rather
@@ -317,15 +360,47 @@ than a native `<select>`, so its list looks like the picker's in every
 theme. Keys: ↓, ↑, Enter or Space open the list; in the list ↓/↑, Home and
 End move, a letter jumps to the next option starting with it, Enter or
 Space choose, Escape or Tab close. Leaving the control closes the list.
-Read-only, it stays focusable with `aria-readonly` and doesn't open.
+Read-only, it stays focusable with `aria-readonly` and doesn't open;
+disabled, it leaves the tab order with `aria-disabled` and doesn't open.
+
+With [[attr:Select.filter]], typed text narrows the list and Backspace edits
+it; Enter chooses the active option. With [[attr:Select.clearable]], a
+nullable field shows a clear button while it has a value.
 
 ```ts
-html`<aster-select .model=${edit} .field=${"health"} .labelled=${true}></aster-select>`;
+html`<aster-select .model=${edit} .field=${"health"} .labelled=${true} .filter=${true}></aster-select>`;
 ```
 
 ## method:Select.focus
 
 Focuses the combobox.
+
+## attr:Select.placeholder
+
+What the frame shows when no value is chosen, or the value isn't one of the
+options. Default "Choose…". [[object:FormField]] carries it as
+`placeholder`.
+
+```ts
+html`<aster-select .model=${edit} .field=${"health"} .placeholder=${"Pick a status"}></aster-select>`;
+```
+
+## attr:Select.filter
+
+Filters the allowed values as the person types. Default `false`. The
+combobox shows the typed text while the list is open; ↓/↑, Home and End move
+the active option, Enter chooses it, Backspace edits the text, and Escape
+closes and clears it.
+
+## attr:Select.clearable
+
+Shows a clear button in the frame while a value is chosen, which sets the
+value to `null` and emits no event of its own (the model write is the
+signal). Default `false`. It only acts on a nullable field.
+
+## attr:Select.noResults
+
+What the filtered list says when nothing matches. Default "No matches".
 
 ## attr:Select.choices
 
@@ -394,6 +469,39 @@ doesn't name it.
 Shown when [[attr:Choice.value]] is `null` or `undefined`. Default
 `"Choose…"`.
 
+## attr:Choice.filter
+
+Filters the options as the person types. Default `false`. The combobox shows
+the typed text while the list is open; ↓/↑, Home and End move the active
+option, Enter chooses it, Backspace edits the text, and Escape closes and
+clears it.
+
+```ts
+html`<aster-choice .label=${"Country"} .filter=${true} .options=${countries}></aster-choice>`;
+```
+
+## attr:Choice.clearable
+
+Shows a clear button in the frame while a value is chosen, which sets the
+value to `null` and emits [[event:Choice.change]] with `null`. Default
+`false`.
+
+## attr:Choice.noResults
+
+What the filtered list says when nothing matches. Default "No matches". A
+live region, so a screen reader announces the empty result.
+
+```ts
+html`<aster-choice .label=${"Client"} .filter=${true} .noResults=${"No clients match"}></aster-choice>`;
+```
+
+## attr:Choice.disabled
+
+Leaves the combobox out of the tab order and stops it opening or changing.
+Default `false`. It uses `aria-disabled`; use [[attr:ChoiceProps.readOnly]]
+for a control that stays focusable. The bound [[class:Select]] takes the
+same state from the edit model.
+
 ## event:Choice.change
 
 Fires when someone chooses an option, by click or keyboard, with the
@@ -403,10 +511,10 @@ It bubbles.
 
 ## class:ChoiceState
 
-Keep one per control, as a field of the element, so the list's open state and
-active option survive re-renders. Pass it to [[staticMethod:choiceView]] on
-every render. Both members are signals, so reading them in `render()` tracks
-them.
+Keep one per control, as a field of the element, so the list's open state,
+active option and filter text survive re-renders. Pass it to
+[[staticMethod:choiceView]] on every render. All members are signals, so
+reading them in `render()` tracks them.
 
 ```ts
 readonly #state = new ChoiceState();
@@ -421,6 +529,12 @@ close the list from outside, such as when the owner's row stops editing.
 
 A signal: the index of the active option in the open list. Default `0`.
 Opening the list sets it to the chosen option.
+
+## attr:ChoiceState.query
+
+A signal: the filter text while [[attr:ChoiceProps.filter]] is on. Default
+`""`. Typing appends to it, Backspace removes a character, and choosing,
+closing or opening clears it.
 
 ## staticMethod:choiceView
 
@@ -492,6 +606,25 @@ value that isn't among the options shows as its text instead.
 
 When `true`, the list doesn't open and the combobox is `aria-readonly`; it
 stays focusable. Default `false`.
+
+## attr:ChoiceProps.disabled
+
+When `true`, the list doesn't open, the combobox is `aria-disabled` and it
+leaves the tab order. Default `false`.
+
+## attr:ChoiceProps.filter
+
+When `true`, typed text narrows the list and the combobox shows it while
+open; Backspace edits it. Default `false`.
+
+## attr:ChoiceProps.clearable
+
+When `true` and a value is chosen, the frame draws a clear button that calls
+`choose(null)`. Default `false`.
+
+## attr:ChoiceProps.noResults
+
+What the empty filtered list says. Default "No matches".
 
 ## attr:ChoiceProps.label
 
@@ -1085,8 +1218,9 @@ Typing accepts the forms in [[staticMethod:parseDate]] and writes the date
 as it's typed: a recognised date as `YYYY-MM-DD`, empty as `null`, and
 anything else as the text, so the model's validation can say it isn't a
 date. While the input has focus it shows exactly what was typed; on leaving
-it shows the date as "7 Oct 2026". The placeholder is "None" on a nullable
-field and "A date, like 7 Oct" otherwise.
+it shows the date in [[attr:DateField.format]]. The placeholder is "None" on
+a nullable field and "A date, like 7 Oct" otherwise, or
+[[attr:DateField.placeholder]].
 
 The calendar button, named "Choose" and the label, opens a date-picker
 dialog under the input (the WAI-ARIA APG date picker dialog). The month
@@ -1097,23 +1231,79 @@ Up/Page Down a month and with Shift a year, Home/End go to Monday and Sunday
 of the week, Enter or Space choose. Tab cycles through the year and month
 buttons and the grid; Escape closes and returns focus to the button, and a
 press outside closes it. Choosing a day writes it and returns focus to the
-input. Read-only, there is no calendar button.
+input, or keeps the calendar open with [[attr:DateField.dismissOnSelect]]
+`false`. Days outside [[attr:DateField.min]] and [[attr:DateField.max]] are
+shown with `aria-disabled` and can't be chosen. Read-only, there is no
+calendar button; disabled, the input and the button are natively disabled.
+
+The field validates its own value against the bounds: a date before `min`
+says "Choose 5 Oct 2026 or later.", after `max` "Choose 20 Oct 2026 or
+earlier.". This check stays under the field; it isn't part of the model's
+error summary.
 
 ```ts
-html`<aster-date .model=${edit} .field=${"due"} .labelled=${true}></aster-date>`;
+html`<aster-date .model=${edit} .field=${"due"} .labelled=${true}
+  .min=${"2026-10-01"} .max=${"2026-12-31"} .format=${"short"}></aster-date>`;
 ```
 
 ## method:DateField.focus
 
 Focuses the text input.
 
+## attr:DateField.min
+
+The earliest date that can be chosen, as `YYYY-MM-DD`, inclusive. Default
+`undefined`. Invalid text throws when set. Bounds the calendar and validates
+a typed date.
+
+```ts
+date.min = "2026-10-01";
+```
+
+## attr:DateField.max
+
+The latest date that can be chosen, as `YYYY-MM-DD`, inclusive. Default
+`undefined`. Invalid text throws when set. Bounds the calendar and validates
+a typed date.
+
+## attr:DateField.format
+
+How a date is written in the input when it isn't being typed: `"medium"`
+(the default, "7 Oct 2026"), `"short"` ("7 Oct 26") or `"iso"`
+("2026-10-07"). It affects display only; typing accepts every form
+[[staticMethod:parseDate]] knows.
+
+```ts
+date.format = "iso";
+```
+
+## attr:DateField.placeholder
+
+Placeholder text. Default: "None" on a nullable field, "A date, like 7 Oct"
+otherwise. [[object:FormField]] carries it as `placeholder`.
+
+## attr:DateField.dismissOnSelect
+
+Whether choosing a day closes the calendar. Default `true`, which also
+returns focus to the input. With `false` the calendar stays open so several
+glances stay in place; the value updates each time.
+
+```ts
+date.dismissOnSelect = false;
+```
+
+## type:DateFormat
+
+How [[class:DateField]] writes a date: `"medium" | "short" | "iso"`.
+
 ## staticMethod:formatDate
 
 - `value`: a date as `YYYY-MM-DD`.
+- `format`: [[type:DateFormat]], default `"medium"`.
 
-Returns the day without a leading zero, the English short month name and
-the year. Text in any other form, including something typed that isn't a
-date, comes back unchanged, so it's safe to call on whatever a date field
+Returns the date in that format: "7 Oct 2026", "7 Oct 26" or
+"2026-10-07". Text in any other form, including something typed that isn't
+a date, comes back unchanged, so it's safe to call on whatever a date field
 holds.
 
 ```ts
@@ -1236,7 +1426,9 @@ save fails, the switch goes back and the row shows "Couldn’t turn this on:"
 with the service's message and "It’s back as it was." under it, with
 `role="alert"`. It's a `button` with `role="switch"` and `aria-checked`, so
 Space and Enter toggle it. No event is raised: the store changes, and
-everything showing the record follows.
+everything showing the record follows. Read-only or disabled, it shows the
+stored state but doesn't write; [[attr:Switch.onLabel]] and
+[[attr:Switch.offLabel]] reword the state beside the switch.
 
 ```ts
 import { keyText } from "@getaster/data";
@@ -1256,6 +1448,36 @@ The record and field to toggle, as a [[object:SwitchBinding]]. Default
 
 The row's text and the switch's accessible name. Default `""`, which uses
 the field's title, then its name.
+
+## attr:Switch.disabled
+
+The native disabled state: the switch leaves the tab order, the row doesn't
+toggle, and the row is dimmed. Default `false`. Use
+[[attr:Switch.readOnly]] to keep it focusable.
+
+```ts
+html`<aster-switch .binding=${binding} .disabled=${true}></aster-switch>`;
+```
+
+## attr:Switch.readOnly
+
+Stops the switch and its row toggling while keeping it focusable, with
+`aria-readonly="true"` and `aria-disabled="true"`. Default `false`.
+
+## attr:Switch.onLabel
+
+Text shown beside the switch while it's on, such as "Visible". Default: no
+state text, or "On" when [[attr:Switch.offLabel]] is given. The text is
+included in the switch's description.
+
+```ts
+html`<aster-switch .binding=${binding} .onLabel=${"Visible"} .offLabel=${"Hidden"}></aster-switch>`;
+```
+
+## attr:Switch.offLabel
+
+Text shown beside the switch while it's off, such as "Hidden". Default: no
+state text, or "Off" when [[attr:Switch.onLabel]] is given.
 
 ## object:SwitchBinding
 

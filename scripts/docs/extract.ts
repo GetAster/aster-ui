@@ -53,10 +53,11 @@ export interface Entry {
   readonly deprecated?: string;
 }
 
+/** Public entry modules; subpath exports join their package's entries. */
 const PACKAGES = [
-  { name: "data", index: "packages/data/src/index.ts" },
-  { name: "elements", index: "packages/elements/src/index.ts" },
-  { name: "mock", index: "packages/mock/src/index.ts" },
+  { name: "data", entries: ["packages/data/src/index.ts"] },
+  { name: "elements", entries: ["packages/elements/src/index.ts", "packages/elements/src/yaml.ts"] },
+  { name: "mock", entries: ["packages/mock/src/index.ts"] },
 ];
 
 /** Members every element has from HTMLElement or the base lifecycle; not part of an element's own API. */
@@ -143,7 +144,7 @@ function signature(checker: ts.TypeChecker, decl: ts.SignatureDeclaration, symbo
 
 export function extract(): Entry[] {
   const program = ts.createProgram(
-    PACKAGES.map((p) => join(ROOT, p.index)),
+    PACKAGES.flatMap((p) => p.entries.map((entry) => join(ROOT, entry))),
     { target: ts.ScriptTarget.ES2023, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, allowImportingTsExtensions: true, noEmit: true, strict: true, skipLibCheck: true, lib: ["lib.es2023.d.ts", "lib.dom.d.ts", "lib.dom.iterable.d.ts"], types: [], jsx: ts.JsxEmit.ReactJSX },
   );
   const checker = program.getTypeChecker();
@@ -156,8 +157,8 @@ export function extract(): Entry[] {
     out.push({ ...e, seeAlso: [], examples: [], groups: [] });
   };
 
-  for (const pkg of PACKAGES) {
-    const sf = program.getSourceFile(join(ROOT, pkg.index));
+  for (const pkg of PACKAGES) for (const entry of pkg.entries) {
+    const sf = program.getSourceFile(join(ROOT, entry));
     if (!sf) continue;
     const mod = checker.getSymbolAtLocation(sf);
     if (!mod) continue;

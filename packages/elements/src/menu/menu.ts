@@ -1,17 +1,19 @@
 import { html, nothing, type TemplateResult } from "lit-html";
 import { AsterElement, define, uid, type View } from "../base/element.ts";
 import { openWhen, placeStyle } from "../overlay/anchor.ts";
+import { ariaKeyshortcuts, hasMenuIcons } from "./config.ts";
 
 /** An entry of a menu. Without a `kind` it's an action. */
 export type MenuItem =
-  | { readonly kind?: "action"; readonly label: string; readonly run: () => void; readonly disabled?: string }
-  | { readonly kind: "link"; readonly label: string; readonly href: string; readonly activate?: (event: MouseEvent) => void }
-  | { readonly kind: "check" | "radio"; readonly label: string; readonly checked: boolean; readonly run: () => void }
-  | { readonly kind: "submenu"; readonly label: string; readonly items: readonly MenuItem[] }
+  | { readonly kind?: "action"; readonly label: string; readonly run: () => void; readonly disabled?: string; readonly icon?: View; readonly shortcut?: string }
+  | { readonly kind: "link"; readonly label: string; readonly href: string; readonly activate?: (event: MouseEvent) => void; readonly icon?: View; readonly shortcut?: string }
+  | { readonly kind: "check" | "radio"; readonly label: string; readonly checked: boolean; readonly run: () => void; readonly icon?: View; readonly shortcut?: string }
+  | { readonly kind: "submenu"; readonly label: string; readonly items: readonly MenuItem[]; readonly icon?: View; readonly shortcut?: string }
   | { readonly kind: "group"; readonly label: string; readonly items: readonly MenuItem[] }
   | { readonly kind: "separator" };
 
 type Focusable = Exclude<MenuItem, { kind: "separator" } | { kind: "group" }>;
+type Direction = "auto" | "start" | "end";
 
 /**
  * A menu in the top layer (Popover API), following the APG menu pattern: it
@@ -35,11 +37,42 @@ export class Menu extends AsterElement {
   readonly #anchor = this.prop<string | undefined>(undefined);
   /** Check and radio marks changed since the menu opened; items keep the state they were given. */
   readonly #marks = this.prop<ReadonlyMap<MenuItem, boolean>>(new Map());
+  readonly #showIcons = this.prop(true);
+  readonly #showShortcuts = this.prop(true);
+  readonly #submenuDirection = this.prop<Direction>("auto");
+  readonly #autoDismiss = this.prop(true);
+  readonly #emptyMessage = this.prop("");
   readonly #id = uid("aster-menu");
   #opener: HTMLElement | null = null;
   /** The item to focus once its menu has rendered and its popover is open. */
   #focusNext: { readonly depth: number; readonly index: number } | undefined;
   #stop: (() => void) | undefined;
+
+  /** Whether items with an `icon` draw it. Default `true`; an icon column appears only when one is set. */
+  get showIcons(): boolean { return this.#showIcons.value; }
+  set showIcons(v: boolean) { this.#showIcons.value = v === true; }
+
+  /** Whether items with a `shortcut` show its hint. Default `true`. */
+  get showShortcuts(): boolean { return this.#showShortcuts.value; }
+  set showShortcuts(v: boolean) { this.#showShortcuts.value = v === true; }
+
+  /** Where a submenu opens: `"auto"` flips at the edges (default), `"end"` or `"start"` fixes the side. */
+  get submenuDirection(): "auto" | "start" | "end" { return this.#submenuDirection.value; }
+  set submenuDirection(v: "auto" | "start" | "end") {
+    if (v !== "auto" && v !== "start" && v !== "end") throw new TypeError('submenuDirection must be "auto", "start" or "end"');
+    this.#submenuDirection.value = v;
+  }
+
+  /** Whether choosing an action closes the menu. Default `true`. */
+  get autoDismiss(): boolean { return this.#autoDismiss.value; }
+  set autoDismiss(v: boolean) { this.#autoDismiss.value = v === true; }
+
+  /** Text shown when the menu has nothing to choose. Default `""`: nothing is drawn. */
+  get emptyMessage(): string { return this.#emptyMessage.value; }
+  set emptyMessage(v: string) {
+    if (typeof v !== "string") throw new TypeError("emptyMessage must be a string");
+    this.#emptyMessage.value = v;
+  }
 
   /** Opens at a point, such as a right-click. */
   openAt(point: { x: number; y: number }, items: readonly MenuItem[], label: string, opener: HTMLElement | null): void {
@@ -72,53 +105,71 @@ export class Menu extends AsterElement {
       levels.push({ items: parent.items, label: parent.label });
     }
     const anchored = this.#anchor.value;
+    const direction = this.#submenuDirection.value;
+    const icons = this.#showIcons.value;
+    const shortcuts = this.#showShortcuts.value;
     return html`${levels.map((level, depth) => {
       const place =
         depth > 0 ? placeStyle(this.#itemId(depth - 1, path[depth - 1]!)) : anchored ? placeStyle(anchored) : nothing;
-      return html`<div class="aster-menu" popover="manual" role="menu" aria-label=${level.label || nothing}
-        data-depth=${depth} ?data-anchored=${depth > 0 || anchored !== undefined} style=${place} ${openWhen(true)}
+      const items = focusables(level.items);
+      const empty = items.length === 0;
+      return html`<div class="aster-menu" popover="manual" role=${empty ? nothing : "menu"} aria-label=${empty ? nothing : level.label || nothing}
+        data-depth=${depth} ?data-anchored=${depth > 0 || anchored !== undefined}
+        data-submenu=${depth > 0 && direction !== "auto" ? direction : nothing}
+        style=${place} tabindex="-1" ${openWhen(true)}
         @keydown=${(e: KeyboardEvent) => this.#key(e, depth)}>
-        ${this.#entries(level.items, depth, { next: 0 })}
+        ${empty ? this.#empty() : nothing}
+        ${this.#entries(level.items, depth, { next: 0 }, icons && hasMenuIcons(items), shortcuts)}
       </div>`;
     })}`;
   }
 
-  #entries(items: readonly MenuItem[], depth: number, counter: { next: number }): TemplateResult[] {
+  #empty(): View {
+    const message = this.#emptyMessage.value;
+    return message ? html`<div class="aster-menu-empty">${message}</div>` : nothing;
+  }
+
+  #entries(items: readonly MenuItem[], depth: number, counter: { next: number }, icons: boolean, shortcuts: boolean): TemplateResult[] {
     return items.map((item) => {
       if (item.kind === "separator") return html`<div role="separator" class="aster-menu-separator"></div>`;
       if (item.kind === "group") {
         const id = `${this.#id}-g${depth}-${counter.next}`;
         return html`<div role="group" aria-labelledby=${id}>
           <div class="aster-menu-heading" id=${id}>${item.label}</div>
-          ${this.#entries(item.items, depth, counter)}
+          ${this.#entries(item.items, depth, counter, icons, shortcuts)}
         </div>`;
       }
       const index = counter.next++;
       const id = this.#itemId(depth, index);
       const expanded = this.#path.value[depth] === index;
       const enter = () => this.#hover(depth, index, item);
+      const icon = icons ? html`<span class="aster-menu-icon" aria-hidden="true">${item.icon ?? nothing}</span>` : nothing;
+      const shortcut = shortcuts && item.shortcut
+        ? html`<span class="aster-menu-shortcut" aria-hidden="true">${item.shortcut}</span>`
+        : nothing;
+      const keys = shortcuts ? ariaKeyshortcuts(item.shortcut) : undefined;
       switch (item.kind) {
         case "link":
-          return html`<a role="menuitem" tabindex="-1" id=${id} href=${item.href} @pointerenter=${enter}
-            @click=${(event: MouseEvent) => { this.close(); item.activate?.(event); }}><span class="aster-menu-mark" aria-hidden="true"></span>${item.label}</a>`;
+          return html`<a role="menuitem" tabindex="-1" id=${id} href=${item.href} aria-keyshortcuts=${keys ?? nothing} @pointerenter=${enter}
+            @click=${(event: MouseEvent) => { if (this.#autoDismiss.peek()) this.close(); item.activate?.(event); }}><span class="aster-menu-mark" aria-hidden="true"></span>${icon}${item.label}${shortcut}</a>`;
         case "check":
         case "radio":
           {
             const checked = this.#marks.value.get(item) ?? item.checked;
             return html`<button type="button" role=${item.kind === "check" ? "menuitemcheckbox" : "menuitemradio"} tabindex="-1"
-              id=${id} aria-checked=${checked ? "true" : "false"} @pointerenter=${enter} @click=${() => this.#choose(item)}>
-              <span class="aster-menu-mark" aria-hidden="true">${checked ? (item.kind === "check" ? "✓" : "•") : ""}</span>${item.label}</button>`;
+              id=${id} aria-checked=${checked ? "true" : "false"} aria-keyshortcuts=${keys ?? nothing} @pointerenter=${enter} @click=${() => this.#choose(item)}>
+              <span class="aster-menu-mark" aria-hidden="true">${checked ? (item.kind === "check" ? "✓" : "•") : ""}</span>${icon}${item.label}${shortcut}</button>`;
           }
         case "submenu":
           return html`<button type="button" role="menuitem" tabindex="-1" id=${id} aria-haspopup="menu"
-            aria-expanded=${expanded ? "true" : "false"} style=${`anchor-name: --${id}`}
+            aria-expanded=${expanded ? "true" : "false"} aria-keyshortcuts=${keys ?? nothing} style=${`anchor-name: --${id}`}
             @pointerenter=${enter} @click=${() => this.#openSub(depth, index, true)}>
-            <span class="aster-menu-mark" aria-hidden="true"></span>${item.label}<span class="aster-menu-more" aria-hidden="true">›</span></button>`;
+            <span class="aster-menu-mark" aria-hidden="true"></span>${icon}${item.label}${shortcut}<span class="aster-menu-more" aria-hidden="true">›</span></button>`;
         default:
           return html`<button type="button" role="menuitem" tabindex="-1" id=${id}
-            aria-disabled=${item.disabled ? "true" : nothing} title=${item.disabled ?? nothing}
+            aria-disabled=${item.disabled ? "true" : nothing} aria-keyshortcuts=${keys ?? nothing} title=${item.disabled ?? nothing}
             @pointerenter=${enter} @click=${() => this.#choose(item)}>
-            <span class="aster-menu-mark" aria-hidden="true"></span>${item.label}</button>`;
+            <span class="aster-menu-mark" aria-hidden="true"></span>${icon}${item.label}${shortcut}</button>`;
       }
     });
   }
@@ -141,9 +192,9 @@ export class Menu extends AsterElement {
     // After the popovers this render opened (they open in a microtask too).
     queueMicrotask(() => {
       const target = this.#level(next.depth)[next.index];
-      if (!target) return;
       this.#focusNext = undefined;
-      target.focus();
+      if (target) target.focus();
+      else this.#container(next.depth)?.focus();
     });
   }
 
@@ -154,6 +205,10 @@ export class Menu extends AsterElement {
   #level(depth: number): HTMLElement[] {
     const menu = this.querySelector<HTMLElement>(`.aster-menu[data-depth="${depth}"]`);
     return menu ? [...menu.querySelectorAll<HTMLElement>(':scope > [role^="menuitem"], :scope > [role="group"] > [role^="menuitem"]')] : [];
+  }
+
+  #container(depth: number): HTMLElement | null {
+    return this.querySelector<HTMLElement>(`.aster-menu[data-depth="${depth}"]`);
   }
 
   #choose(item: Focusable): void {
@@ -167,7 +222,7 @@ export class Menu extends AsterElement {
       item.run();
       return;
     }
-    this.close();
+    if (this.#autoDismiss.peek()) this.close();
     item.run();
   }
 

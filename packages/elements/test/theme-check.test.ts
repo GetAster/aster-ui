@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { check, contrast, identities, parseColor } from "../tools/theme-check.ts";
+import { check, contrast, identities, parseColor, readWithImports } from "../tools/theme-check.ts";
 
 const styles = join(import.meta.dir, "../src/styles");
 const theme = (f: string) => identities(readFileSync(join(styles, f), "utf8"));
@@ -10,6 +10,14 @@ describe("theme check", () => {
   test("Lamplight and Harbour pass, in both schemes", () => {
     for (const identity of [...theme("lamplight.css"), ...theme("harbour.css")]) {
       expect([identity.name, check(identity).errors]).toEqual([identity.name, []]);
+    }
+  });
+
+  test("the composed theme entries pass the same checks", () => {
+    for (const [file, name] of [["theme-lamplight.css", ""], ["theme-harbour.css", "harbour"]] as const) {
+      const identitiesFound = identities(readWithImports(join(styles, file)));
+      expect(identitiesFound.map((identity) => identity.name)).toEqual([name]);
+      expect(check(identitiesFound[0]!).errors).toEqual([]);
     }
   });
 

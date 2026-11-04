@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync, copyFileSync, cpSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -11,7 +11,9 @@ test("Cloudflare resolves declared directory indexes while retaining explicit HT
     mkdirSync(join(root, "scripts"));
     copyFileSync(new URL("../../scripts/prepare-cloudflare.mjs", import.meta.url), join(root, "scripts/prepare-cloudflare.mjs"));
     copyFileSync(new URL("../../cloudflare.config.ts", import.meta.url), join(root, "cloudflare.config.ts"));
-    const assets = { "index.html": "Home", "docs/index.html": "Docs", "docs/guide/grid.html": "Grid", "404.html": "Missing" };
+    cpSync(new URL("../../scripts/analytics", import.meta.url), join(root, "scripts/analytics"), { recursive: true });
+    const page = (title: string) => `<html><head><title>${title}</title></head><body>${title}</body></html>`;
+    const assets = { "index.html": page("Home"), "docs/index.html": page("Docs"), "docs/guide/grid.html": page("Grid"), "404.html": page("Missing"), "app.js": "console.log('ready')" };
     const files = Object.fromEntries(Object.entries(assets).map(([path, text]) => {
       const file = join(root, "dist-site", path);
       mkdirSync(join(file, ".."), { recursive: true }); writeFileSync(file, text);
@@ -23,8 +25,20 @@ test("Cloudflare resolves declared directory indexes while retaining explicit HT
     expect(result.exitCode).toBe(0);
     const output = join(root, ".cloudflare/output/v0/workers/default/assets");
     expect(readFileSync(join(output, "_redirects"), "utf8")).toBe("/docs /docs/ 308\n/docs/ /docs/index.html 200\n/ /index.html 200\n");
-    for (const [path, text] of Object.entries(assets)) expect(readFileSync(join(output, path), "utf8")).toBe(text);
-    expect(readFileSync(join(output, "deployment.json"), "utf8")).toBe(receipt);
+    const published = JSON.parse(readFileSync(join(output, "deployment.json"), "utf8"));
+    expect(published.version).toBe("1.0.0");
+    expect(published.revision).toBe("a".repeat(40));
+    expect(published.analytics.websiteId).toBe("571af6eb-01db-4cb9-9e86-e2395590fc78");
+    for (const [path, text] of Object.entries(assets)) {
+      const result = readFileSync(join(output, path), "utf8");
+      expect(published.files[path]).toBe(createHash("sha256").update(result).digest("hex"));
+      expect(readFileSync(join(root, "dist-site", path), "utf8")).toBe(text);
+      if (path.endsWith(".html")) {
+        expect(result.match(/data-website-id=/g)?.length).toBe(1);
+        expect(result).toContain('data-domains="getaster.now,ax.getaster.now,downloads.getaster.now,sdk.getaster.now,webdata.getaster.now,ui.getaster.now"');
+        expect(result.replace(/<script[^>]*data-website-id[^>]*><\/script>/, "")).toBe(text);
+      } else expect(result).toBe(text);
+    }
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

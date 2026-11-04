@@ -20,6 +20,41 @@ or install script is required. It provides ES modules and TypeScript declaration
 Node.js use requires Node 22 or later. Browser builds must serve the WASM asset
 over HTTP or pass its bytes explicitly.
 
+### The WASM location and browser route
+
+The engine is `wasm/odata_mock.wasm` inside the installed package. The package
+exports the file, so `import.meta.resolve('@getaster/mock/wasm/odata_mock.wasm')`
+returns its location in Node.js and Bun.
+
+A browser page typically passes a URL and lets the development server serve it.
+The documented convention is the root-relative route:
+
+```js
+const mock = await createMockService({
+  metadata, data,
+  wasm: new URL('odata_mock.wasm', document.baseURI),
+});
+```
+
+The server must serve the installed file at `/odata_mock.wasm`:
+
+```js
+import { fileURLToPath } from 'node:url';
+const wasm = Bun.file(fileURLToPath(import.meta.resolve('@getaster/mock/wasm/odata_mock.wasm')));
+
+Bun.serve({
+  port: 4200,
+  routes: {
+    '/odata_mock.wasm': () => new Response(wasm, { headers: { 'content-type': 'application/wasm' } }),
+  },
+});
+```
+
+`apps/showcase/serve.ts` implements this route for the repository's demo, and
+`scripts/verify-wasm.ts` checks the binary's checksum, module and attribution
+files before distribution. Pass `wasm` bytes, a `URL` or a URL string instead
+when the file lives elsewhere; its default is the package-relative file.
+
 ## Run a local service in Node.js
 
 TypeScript projects using this Node.js example also need `@types/node` as a

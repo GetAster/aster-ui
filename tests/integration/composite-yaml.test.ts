@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { compileCompositeYaml } from "../../scripts/composite-yaml.ts";
+import { compileCompositeYaml } from "@getaster/elements/yaml";
 import { defineComposite, deriveComposite } from "../../packages/elements/src/composition/definition.ts";
 
 const yaml = `version: 1

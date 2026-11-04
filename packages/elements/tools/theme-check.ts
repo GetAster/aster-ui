@@ -1,4 +1,15 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve as resolvePath } from "node:path";
 import { TOKEN_NAMES } from "../src/styles/contract.ts";
+
+/** Reads a sheet with its relative `@import`s inlined, so a composed entry checks as one identity. */
+export function readWithImports(file: string, seen = new Set<string>()): string {
+  const path = resolvePath(file);
+  if (seen.has(path)) return "";
+  seen.add(path);
+  return readFileSync(path, "utf8").replace(/@import\s+(?:url\()?["']([^"']+)["']\)?[^;]*;/g, (rule, target: string) =>
+    target.startsWith(".") ? readWithImports(resolvePath(dirname(path), target), seen) : rule);
+}
 
 /** A colour as gamma-encoded sRGB channels and alpha, each 0–1. */
 export interface Rgba {
@@ -56,9 +67,23 @@ export const PAIRS: readonly (readonly [string, string, number])[] = [
   ["toast-action", "toast-bg", 4.5],
 ];
 
+/** The first `@layer aster.identity` block, so base and element rules in a composed sheet are ignored. */
+function identityLayer(css: string): string {
+  const text = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const start = /@layer\s+aster\.identity\s*\{/.exec(text)?.index;
+  if (start === undefined) return text;
+  const open = text.indexOf("{", start);
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === "{") depth++;
+    else if (text[i] === "}" && --depth === 0) return text.slice(open + 1, i);
+  }
+  return text.slice(open + 1);
+}
+
 /** The identities a theme file defines, from its `:root` rules. */
 export function identities(css: string): Identity[] {
-  const text = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const text = identityLayer(css);
   const found = new Map<string, { light: Map<string, string>; dark: Map<string, string> }>();
   for (const m of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const selector = m[1]!.trim();

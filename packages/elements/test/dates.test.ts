@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { formatDate, monthWeeks, parseDate, shift, weekBounds } from "../src/date/dates.ts";
+import { formatDate, isIsoDate, monthWeeks, parseDate, shift, weekBounds } from "../src/date/dates.ts";
 
 describe("dates", () => {
   test("typed dates in the forms people write them", () => {
@@ -16,6 +16,17 @@ describe("dates", () => {
       expect([text, parseDate(text, 2026)]).toEqual([text, want]);
     }
     expect(formatDate("2026-10-07")).toBe("7 Oct 2026");
+    expect(formatDate("2026-10-07", "short")).toBe("7 Oct 26");
+    expect(formatDate("2026-10-07", "iso")).toBe("2026-10-07");
+    expect(formatDate("not a date", "short")).toBe("not a date");
+  });
+
+  test("only real YYYY-MM-DD text is an ISO date", () => {
+    expect(isIsoDate("2026-10-07")).toBe(true);
+    expect(isIsoDate("2024-02-29")).toBe(true);
+    expect(isIsoDate("2026-02-29")).toBe(false);
+    expect(isIsoDate("2026-13-01")).toBe(false);
+    expect(isIsoDate("7 Oct 2026")).toBe(false);
   });
 
   test("moving by days, months (clamped) and years; weeks start on Monday", () => {

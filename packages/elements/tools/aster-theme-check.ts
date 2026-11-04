@@ -2,8 +2,7 @@
 // aster-theme-check <theme.css>…: checks each identity in a theme file
 // against the token contract and the contrast pairs (docs/guide/themes.md).
 // Exits 1 if any check fails.
-import { readFileSync } from "node:fs";
-import { check, identities } from "./theme-check.ts";
+import { check, identities, readWithImports } from "./theme-check.ts";
 
 const files = process.argv.slice(2);
 if (files.length === 0) {
@@ -12,7 +11,7 @@ if (files.length === 0) {
 }
 let failed = false;
 for (const file of files) {
-  const found = identities(readFileSync(file, "utf8"));
+  const found = identities(readWithImports(file));
   if (found.length === 0) {
     console.log(`✗ ${file}: no :root rule with --aster- tokens`);
     failed = true;

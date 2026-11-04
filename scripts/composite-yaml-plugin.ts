@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { compileCompositeYaml } from "./composite-yaml.ts";
+import { compileCompositeYaml } from "@getaster/elements/yaml";
 
 /** The browser receives a validated definition, never a YAML parser. */
 const compositeYamlPlugin: Bun.BunPlugin = {

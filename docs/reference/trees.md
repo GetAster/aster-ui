@@ -54,6 +54,29 @@ fires [[event:Grid.moved]]. Picking up a row, and a drag that ends without a
 move, are announced. Presses on buttons, inputs, an edited row, row controls
 and expanded content don't start a drag.
 
+Two drop rules narrow what `draggable` permits, and are host configuration,
+not view state: `reparent: false` refuses a drop that would change the row's
+parent (a drop on the current parent is still a no-op), and
+`dropOnLeaves: false` accepts folders and the top level only. Each refusal says
+why in the toolbar and to assistive technology.
+
+The toolbar has Expand all and Collapse all in a tree grid, unless
+[[attr:GridToolbar.expandAll]] is false. Expand all opens every folder on the
+levels' loaded pages, up to `openLimit`; it announces when it stops there.
+`autoOpen` opens a starting depth when the tree first builds, and the same
+limit applies. `showOpener: false` removes the disclosure buttons while keeping
+the indent; `folderIcon` and `nodeIcon` put a template before a folder's or a
+leaf's title.
+
+A tree grid can share a [[class:Selection]] over the same entity set to get
+`cascadeSelection`. The selection's collection is a flat membership query for
+the set (load it first, so its keys are known), not the grid's data binding:
+the tree still owns its level collections. Choosing a row then applies to its
+loaded descendants, and each ancestor is chosen only when all its loaded
+children are; a folder with some chosen descendants shows a mixed checkbox in
+[[attr:Grid.selectionColumn]]. Range selection doesn't cascade. For a tree
+without a shared selection, the owned active-row selection still works.
+
 ### A tree navigator
 
 The navigator shows the children of one node as a list. Each row has a choose
@@ -112,11 +135,15 @@ async function moveDialog(task: Entity, grid: Grid) {
 - The set needs a single-field key and a parent field holding that key; a
   `Tree` throws otherwise. A cycle in the parent links makes
   [[method:Tree.ancestors]] throw.
-- A tree grid can't also be grouped.
-- `GridTree` doesn't expose the `Tree`'s page size or its limits on matches
-  and opened folders when filtering; the `Tree` defaults apply.
-- The navigator lists only the levels of the tree it is given: it doesn't
-  search, and it has no multi-select.
+- A tree grid can't also be grouped, and a `page` feature doesn't page it:
+  levels keep loading as their rows come into view.
+- The tree's level page size and its match/open limits are host settings on
+  [[object:GridTree]]; the navigator's own tree is configured through
+  [[object:TreeOptions]].
+- The navigator shows one level at a time. [[attr:TreeNavigator.search]]
+  narrows the rows already loaded for that level; it does not query the server
+  or walk the whole tree, so a node in a page not yet loaded is not found. It
+  has no multi-select.
 
 ## object:GridTree
 
@@ -154,6 +181,64 @@ together with everything under it, even matching descendants. See
 [[attr:Grid.editable]] is also on. Default: off. Each drop is saved at once
 with [[method:Tree.move]], so offer Undo from [[event:Grid.moved]].
 
+## attr:GridTree.reparent
+
+`false` refuses a drop that would change a row's parent; a drop on its current
+parent is still a no-op. Default `true`. The refusal says why in the toolbar.
+Dragging still needs `draggable` and [[attr:Grid.editable]].
+
+## attr:GridTree.dropOnLeaves
+
+`false` accepts drops on folders and the top level only. Default `true`. A
+drop on a known leaf is refused with a reason.
+
+## attr:GridTree.autoOpen
+
+How many levels below the top open when the tree first builds. Default `0`.
+`1` opens the top level's folders, `2` also opens theirs, and so on. The work
+stops at [[attr:GridTree.openLimit]] and at each level's first loaded page. The
+initial open is asynchronous: the rows arrive as each level loads.
+
+## attr:GridTree.showOpener
+
+`true` (default) shows a disclosure button on folders. `false` removes the
+buttons while keeping the level indent; Expand all and Collapse all still
+work. A leaf has no opener either way.
+
+## attr:GridTree.folderIcon
+
+A template shown before a folder's title, such as a folder SVG. Default:
+nothing. It is a lit-html `TemplateResult`, so it is JavaScript-only and not
+carried by the YAML catalog. The icon is decorative; the title names the row.
+
+## attr:GridTree.nodeIcon
+
+A template shown before a leaf's title. Default: nothing, as
+[[attr:GridTree.folderIcon]].
+
+## attr:GridTree.cascadeSelection
+
+`true` makes a pick apply to the row's loaded descendants, and settles each
+ancestor on whether all its loaded children are chosen. Default `false`. It
+needs a multiple shared [[class:Selection]] over the same set (a flat
+membership collection, loaded first); range selections don't cascade. With
+[[attr:Grid.selectionColumn]] a partly chosen folder shows a mixed checkbox.
+
+## attr:GridTree.pageSize
+
+Rows loaded per level. Default: the data core's 100. It reaches
+[[attr:TreeOptions.pageSize]].
+
+## attr:GridTree.matchLimit
+
+Matches beyond this make keep-ancestors give up with its "too broad" message.
+Default: the data core's 8000. It reaches [[attr:TreeOptions.matchLimit]].
+
+## attr:GridTree.openLimit
+
+Folders opened at most to show where matches are, and the bound on Expand all
+and `autoOpen`. Default `200`. It reaches [[attr:TreeOptions.openLimit]].
+
 ## class:TreeNavigator
 
 Tag: `aster-tree-navigator`. Bind `tree` to a [[class:Tree]]; everything else is
@@ -171,7 +256,9 @@ the list scrolls near its end, with "Loading…", "Nothing here." and "20 of
 85…" shown as status rows.
 
 Keyboard: the buttons are in the Tab order; Escape fires `cancel`; Backspace
-goes up a level unless focus is in an input or a text area.
+goes up a level unless focus is in an input or a text area. With
+[[attr:TreeNavigator.search]], Escape first clears a non-empty search and only
+then fires `cancel`.
 
 Opening a level slides it in from the right and the old one out to the left,
 in 240 ms; going back reverses it. Under `prefers-reduced-motion: reduce`
@@ -254,6 +341,17 @@ The button's accessible name is this text and the node's name, so make it the
 action: "Move under", "Edit". The visible button shows the node's name and an
 icon. Default `"Choose"`.
 
+## attr:TreeNavigator.search
+
+Whether the bar carries a search field that narrows the rows of the level
+shown. Default `false`, which draws no field. Matching is case-insensitive on
+the row's displayed name and applies to the rows already loaded for that level;
+scrolling to load further pages is unchanged, and the field clears when the
+person moves to another level. While a search is active the list shows
+"Nothing matches." when no loaded row matches, and the trailing "N of M…" row
+is suppressed. `aria-label` names the field "Search" plus the navigator's
+label. Reactive.
+
 ## event:TreeNavigator.choose
 
 Fired when the person presses a node's choose button and `choosable` allows
@@ -267,9 +365,10 @@ html`<aster-tree-navigator .tree=${tree}
 
 ## event:TreeNavigator.cancel
 
-Fired on Escape anywhere inside the navigator, with no `detail`. The navigator
-stops the Escape key from reaching its ancestors, so an enclosing dialog
-doesn't see it: close the dialog from this event.
+Fired on Escape anywhere inside the navigator, with no `detail`. When a search
+field has text, the first Escape clears it instead. The navigator stops the
+Escape key from reaching its ancestors, so an enclosing dialog doesn't see it:
+close the dialog from this event.
 
 ```ts
 html`<aster-tree-navigator .tree=${tree} @cancel=${() => dialog.close()}></aster-tree-navigator>`;
