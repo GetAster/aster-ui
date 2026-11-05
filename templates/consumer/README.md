@@ -83,8 +83,21 @@ There is nothing to unwrap. Copy this directory into your application, remove
 `node_modules/`, `dist/` and any repository remote you do not want, rename the
 `package.json`, and keep the files you use. The template pins the 0.4 release
 line (`^0.4.0`, the first release of that line); `bun update @getaster/data
-@getaster/elements @getaster/mock` moves within it. Aster is pre-1.0, so read the release notes before a minor
-upgrade.
+@getaster/elements @getaster/mock` moves within it. Aster is pre-1.0, so read
+the release notes before a minor upgrade.
+
+All four packages, `@getaster/data`, `@getaster/elements`,
+`@getaster/elements-preview` and `@getaster/mock`, are released together at one
+version and pin each other exactly; keep them at the same version. The template
+leaves out the experimental `@getaster/elements-preview`; add it at the same
+version when you need it.
+
+A dependency cooldown (in your package manager or a guard such as PMG) can hide
+a new release for several days: installs resolve the previous version and
+`npm view` does not list the new one. Exempt the `@getaster` packages from the
+cooldown while keeping malware checks, or install each package's tarball URL,
+`https://registry.npmjs.org/@getaster/<name>/-/<name>-<version>.tgz`, e.g.
+`bun add https://registry.npmjs.org/@getaster/elements-preview/-/elements-preview-0.4.0.tgz`.
 
 ## License
 

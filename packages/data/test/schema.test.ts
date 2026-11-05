@@ -182,6 +182,25 @@ describe("parseCsdl: rules", () => {
     expect(schema.skipped).toEqual([]);
   });
 
+  test("actions, functions and their imports are ignored; the rest stands", () => {
+    const j = clone();
+    j.AsterDemo.changeKey = [
+      {
+        $Kind: "Action",
+        $IsBound: true,
+        $Parameter: [{ $Name: "person", $Type: "AsterDemo.Person" }, { $Name: "key", $Type: "Edm.String" }],
+      },
+      { $Kind: "Action", $Parameter: [{ $Name: "key", $Type: "Edm.String" }] },
+    ];
+    j.AsterDemo.busiest = [{ $Kind: "Function", $ReturnType: { $Type: "AsterDemo.Person" } }];
+    j.AsterDemo.Container.ChangeKey = { $Action: "AsterDemo.changeKey" };
+    j.AsterDemo.Container.Busiest = { $Function: "AsterDemo.busiest", $EntitySet: "People" };
+    const s = parseCsdl(j);
+    expect(s.skipped).toEqual([]);
+    expect(s.set("People").type.field("name")).toBeDefined();
+    expect(() => s.set("ChangeKey")).toThrow();
+  });
+
   test("a derived type has its base type's key and properties", () => {
     const j = clone();
     j.AsterDemo.Party = { $Kind: "EntityType", $Abstract: true, $Key: ["id"], id: { $Type: "Edm.Int32" }, note: { $Nullable: true } };
@@ -214,6 +233,14 @@ describe("parseCsdl: rules", () => {
 describe("parseCsdl: errors carry paths", () => {
   test("not an object", () => {
     expect(failure(null).path).toBe("");
+  });
+
+  test("an array member that isn't an operation", () => {
+    const j = clone();
+    j.AsterDemo.changeKey = [{ $Kind: "Action" }, { unexpected: true }];
+    expect(failure(j).path).toBe("/AsterDemo/changeKey");
+    j.AsterDemo.changeKey = [];
+    expect(failure(j).path).toBe("/AsterDemo/changeKey");
   });
 
   test("missing container", () => {

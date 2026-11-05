@@ -31,7 +31,7 @@ while (pending.length) {
     if (!archive.ok) throw new Error(`Cannot download ${plan.name}: HTTP ${archive.status}`);
     const actual = `sha512-${createHash("sha512").update(Buffer.from(await archive.arrayBuffer())).digest("base64")}`;
     if (actual !== plan.integrity) throw new Error(`Downloaded tarball differs for ${plan.name}`);
-    console.log(`Verified ${plan.name}@${plan.version}: registry, ${plan.tag} tag and downloaded tarball match`);
+    console.log(`Verified ${plan.name}@${plan.version}: registry, ${plan.tag} tag and downloaded tarball match (${tarball.href})`);
     pending.splice(pending.indexOf(plan), 1);
   }
   if (!pending.length) break;

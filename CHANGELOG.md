@@ -3,7 +3,9 @@
 Aster UI publishes one version across `@getaster/data`, `@getaster/elements`,
 `@getaster/elements-preview` and `@getaster/mock`. The patch number is derived
 from the commit count at the release commit (see `VERSION`). The previous
-published release is 0.3.0.
+published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
+but its installs were still inside the registry's dependency cooldown when
+0.4.0 shipped.
 
 ## 0.4.0
 

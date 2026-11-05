@@ -23,11 +23,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "f174f743b00f3fcc707c98b05e3208bf5c74844705e71ea1c37c4105c7b5a703"
+      "sha256": "3fd73c76dbb0414be1e7f5ad353ae43c89c55454adad30f8d0f0a74d8f702708"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "1dc9a6b6b28d1949a426b8cec4fbf6777f826df2112361d38fcf1eb74295e9f4"
+      "sha256": "92e0c7d6d2b284aa0c70c04f067a762c8c2949c7aff2f8e50e4777d74391b809"
     },
     {
       "path": "LICENSE",
@@ -715,7 +715,7 @@
     },
     {
       "path": "docs/guide/library.md",
-      "sha256": "a10810264c1b31eb0db2932a01c9f97787feecc3252aa82f8021e523910a7b3e"
+      "sha256": "eef4c26f1e8ce3a7d7fa9df011566564c7b06ef264d41d305c3975a7dbda94d1"
     },
     {
       "path": "docs/guide/managed-workspace.md",
@@ -1011,7 +1011,7 @@
     },
     {
       "path": "packages/data/src/schema/csdl.ts",
-      "sha256": "fd0cba71e841fabafe89f7154781623ab40d00c8520b60f1aa3fda6fea14e1bf"
+      "sha256": "979574bbd84982b084f370412d0eb571ae7315f8f3a6806e3d4c117f647c8e5d"
     },
     {
       "path": "packages/data/src/schema/model.ts",
@@ -1091,7 +1091,7 @@
     },
     {
       "path": "packages/data/test/schema.test.ts",
-      "sha256": "7ede14473e0ed32b48385d09178e38d50617ff3400190ede6f0b507705219aae"
+      "sha256": "3390040c48630566ecb78d8f0eeefbf6df85c1106c7a5d064b74d83d84a2c777"
     },
     {
       "path": "packages/data/test/sessions.test.ts",
@@ -2259,7 +2259,7 @@
     },
     {
       "path": "scripts/verify-package-registry.mjs",
-      "sha256": "8919e492c00085986c431898ee2565a14c821305cd68dcb7854395a7f3f8c9a5"
+      "sha256": "e5d370b06a8184a8289eca240a03bfdddecc1224006738b8e28791108fb9fa80"
     },
     {
       "path": "scripts/verify-wasm.ts",
@@ -2275,7 +2275,7 @@
     },
     {
       "path": "templates/consumer/README.md",
-      "sha256": "ae46716acf7cac1e1304addb998f71acd991acfaaaeccedb0c4b85c294aa9536"
+      "sha256": "52294edf553b62521bee859010b3ad0d1716e24a4143e937e8287c30a196f755"
     },
     {
       "path": "templates/consumer/build.ts",
@@ -2495,7 +2495,7 @@
     },
     {
       "path": "tests/e2e/docs.spec.ts",
-      "sha256": "217a1f7e9bc20a1681dd08d3b99bbf7079b15b0e04efadcad5a819c20ff40804"
+      "sha256": "cc22f742e8174e0e72ed5acddeeb01bb4187d7e572a6693a41c1f3e9d0fe31d8"
     },
     {
       "path": "tests/e2e/docs.spec.ts-snapshots/scheme-menu-dark-chromium-darwin.png",

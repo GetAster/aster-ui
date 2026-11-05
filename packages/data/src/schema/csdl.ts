@@ -88,6 +88,15 @@ function isObject(v: unknown): v is Json {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
+/** An action or function: CSDL JSON writes it as an array of its overloads. */
+function isOperation(v: unknown): boolean {
+  return (
+    Array.isArray(v) &&
+    v.length > 0 &&
+    v.every((o) => isObject(o) && (o["$Kind"] === "Action" || o["$Kind"] === "Function"))
+  );
+}
+
 function obj(v: unknown, path: string): Json {
   if (!isObject(v)) throw new SchemaError("expected an object", path);
   return v;
@@ -243,6 +252,7 @@ export function parseCsdl(json: unknown): Schema {
     for (const [name, member] of Object.entries(obj(root[ns], `/${ns}`))) {
       if (name.startsWith("$") || name.startsWith("@")) continue;
       const p = `/${ns}/${name}`;
+      if (isOperation(member)) continue;
       const o = obj(member, p);
       if (o["$Kind"] === "EntityType") typeDrafts.set(`${ns}.${name}`, { qualified: `${ns}.${name}`, name, namespace: ns, path: p, json: o });
       else if (o["$Kind"] === "EntityContainer" && ns === namespace && name === containerName) containerJson = o;

@@ -1,7 +1,11 @@
 # Installation and distribution
 
-Aster UI is available on npm under the **`@getaster` organization**. The **0.3 release line** is published under the default `latest` tag. Aster is
+Aster UI is available on npm under the **`@getaster` organization**. The **0.4 release line** is published under the default `latest` tag. Aster is
 still pre-1.0; production API stability is not yet promised.
+
+The four packages are released together at one version and pin each other
+exactly. Install them at the same version; mixing versions installs two copies
+of the data model and its element registrations.
 
 ## Install the npm packages
 
@@ -48,9 +52,12 @@ the development or static server must serve the installed file at
 URL string to `createMockService`; see the
 [mock reference](../reference/#attr:MockServiceOptions.wasm).
 
-Teams with a dependency cooldown policy may need an exception for these newly
-published first-party versions. Keep malware checks enabled when granting an
-exception. You can also evaluate the browser distribution built from source.
+A dependency cooldown policy can hide a new release for several days: installs
+resolve the previous version and `npm view` does not list the new one. Exempt
+the four `@getaster` packages from the cooldown while keeping malware checks
+enabled, or install each package from its tarball URL,
+`https://registry.npmjs.org/@getaster/<name>/-/<name>-<version>.tgz`. You can
+also evaluate the browser distribution built from source.
 
 ## Build the browser distribution
 
