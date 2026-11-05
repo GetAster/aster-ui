@@ -131,6 +131,28 @@ describe("loading alongside other collections", () => {
     await loading;
     expect(open.complete.value).toBe(true);
   });
+
+  test("loadAll completes when the refresh that interrupts it answers first", async () => {
+    // Hold loadAll's first page until the refresh's page has been answered.
+    let release!: () => void;
+    const held = new Promise<void>((r) => (release = r));
+    let requests = 0;
+    const gated = await DataContext.connect(async (r) => {
+      const first = r.url.startsWith("Tasks") && requests++ === 0;
+      const res = await mock.transport(r);
+      if (first) await held;
+      return res;
+    });
+    const open = gated.collection({ set: "Tasks", filter: { op: "eq", field: "done", value: false } }, { pageSize: 300 });
+    const loading = open.loadAll();
+    await Bun.sleep(0);
+    await open.refresh();
+    expect(open.complete.value).toBe(false);
+    release();
+    await loading;
+    expect(open.complete.value).toBe(true);
+    expect(open.keys.value.length).toBe(open.count.value!);
+  });
 });
 
 describe("edit model", () => {

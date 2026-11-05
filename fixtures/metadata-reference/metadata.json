@@ -1,0 +1,825 @@
+{
+  "$EntityContainer": "Reference.Container",
+  "$Reference": {
+    "https://metadata.example.invalid/vocabularies/Aster.Data.V1.json": {
+      "$Include": [
+        {
+          "$Alias": "AsterData",
+          "$Namespace": "Aster.Data.V1"
+        }
+      ]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Aggregation.V1.json": {
+      "$Include": [
+        {
+          "$Alias": "Aggregation",
+          "$Namespace": "Org.OData.Aggregation.V1"
+        }
+      ]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.json": {
+      "$Include": [
+        {
+          "$Alias": "Capabilities",
+          "$Namespace": "Org.OData.Capabilities.V1"
+        }
+      ]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.json": {
+      "$Include": [
+        {
+          "$Alias": "Core",
+          "$Namespace": "Org.OData.Core.V1"
+        }
+      ]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Validation.V1.json": {
+      "$Include": [
+        {
+          "$Alias": "Validation",
+          "$Namespace": "Org.OData.Validation.V1"
+        }
+      ]
+    }
+  },
+  "$Version": "4.01",
+  "Reference": {
+    "Container": {
+      "$Kind": "EntityContainer",
+      "@AsterData.Preferences": [
+        {
+          "Description": "An IANA time zone name; date functions the server evaluates (`hour`, `day`, ...) use it instead of UTC",
+          "Name": "aster.timezone",
+          "Values": []
+        },
+        {
+          "Description": "How much of the written record the response carries for the client's cache",
+          "Name": "aster.cacheSyncStrategy",
+          "Values": [
+            "none",
+            "refetch",
+            "requestValuesPlusSequences",
+            "responseValues"
+          ]
+        },
+        {
+          "Description": "On a DELETE: the most rows its cascade may remove (a whole number). If the cascade would now reach more, nothing is deleted and the answer is 409 PreviewStale",
+          "Name": "aster.max-affected",
+          "Values": []
+        }
+      ],
+      "@Capabilities.FilterFunctions": [
+        "AsterData.icontains",
+        "AsterData.iendswith",
+        "AsterData.ilike",
+        "AsterData.istartswith",
+        "AsterData.like",
+        "AsterData.regexp",
+        "add",
+        "and",
+        "cast",
+        "ceiling",
+        "concat",
+        "contains",
+        "date",
+        "day",
+        "div",
+        "divby",
+        "endswith",
+        "eq",
+        "floor",
+        "fractionalseconds",
+        "ge",
+        "gt",
+        "has",
+        "hassubsequence",
+        "hassubset",
+        "hour",
+        "in",
+        "indexof",
+        "isof",
+        "le",
+        "length",
+        "lt",
+        "matchesPattern",
+        "maxdatetime",
+        "mindatetime",
+        "minute",
+        "mod",
+        "month",
+        "mul",
+        "ne",
+        "not",
+        "now",
+        "or",
+        "round",
+        "second",
+        "startswith",
+        "sub",
+        "substring",
+        "time",
+        "tolower",
+        "totaloffsetminutes",
+        "totalseconds",
+        "toupper",
+        "trim",
+        "year"
+      ],
+      "Groups": {
+        "$Collection": true,
+        "$NavigationPropertyBinding": {
+          "items": "Items",
+          "items_groupId": "SpecialItems"
+        },
+        "$Type": "Reference.Groups",
+        "@Aggregation.ApplySupported": {
+          "CustomAggregationMethods": [
+            "Aster.Data.V1.first",
+            "Aster.Data.V1.concat",
+            "Aster.Data.V1.concatDistinct",
+            "Aster.Data.V1.count"
+          ],
+          "Transformations": [
+            "aggregate",
+            "groupby",
+            "filter"
+          ]
+        },
+        "@AsterData.AtomicGroup": "g1",
+        "@Capabilities.ChangeTracking": {
+          "Supported": false
+        },
+        "@Capabilities.CountRestrictions": {
+          "Countable": true
+        },
+        "@Capabilities.ExpandRestrictions": {
+          "Expandable": true,
+          "MaxLevels": 8
+        },
+        "@Capabilities.NavigationRestrictions": {
+          "RestrictedProperties": [
+            {
+              "CountRestrictions": {
+                "Countable": true
+              },
+              "FilterRestrictions": {
+                "Filterable": true
+              },
+              "Navigability": "Recursive",
+              "NavigationProperty": {
+                "$NavigationPropertyPath": "items"
+              },
+              "SkipSupported": true,
+              "SortRestrictions": {
+                "Sortable": true
+              },
+              "TopSupported": true
+            },
+            {
+              "CountRestrictions": {
+                "Countable": true
+              },
+              "FilterRestrictions": {
+                "Filterable": true
+              },
+              "Navigability": "Recursive",
+              "NavigationProperty": {
+                "$NavigationPropertyPath": "items_groupId"
+              },
+              "SkipSupported": true,
+              "SortRestrictions": {
+                "Sortable": true
+              },
+              "TopSupported": true
+            }
+          ]
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        },
+        "@Capabilities.SkipSupported": true,
+        "@Capabilities.TopSupported": true
+      },
+      "Items": {
+        "$Collection": true,
+        "$NavigationPropertyBinding": {
+          "group": "Groups",
+          "tags": "Tags"
+        },
+        "$Type": "Reference.Items",
+        "@Aggregation.ApplySupported": {
+          "CustomAggregationMethods": [
+            "Aster.Data.V1.first",
+            "Aster.Data.V1.concat",
+            "Aster.Data.V1.concatDistinct",
+            "Aster.Data.V1.count"
+          ],
+          "Transformations": [
+            "aggregate",
+            "groupby",
+            "filter"
+          ]
+        },
+        "@AsterData.AtomicGroup": "g1",
+        "@Capabilities.ChangeTracking": {
+          "Supported": false
+        },
+        "@Capabilities.CountRestrictions": {
+          "Countable": true
+        },
+        "@Capabilities.ExpandRestrictions": {
+          "Expandable": true,
+          "MaxLevels": 8
+        },
+        "@Capabilities.NavigationRestrictions": {
+          "RestrictedProperties": [
+            {
+              "FilterRestrictions": {
+                "Filterable": true
+              },
+              "Navigability": "Recursive",
+              "NavigationProperty": {
+                "$NavigationPropertyPath": "group"
+              }
+            },
+            {
+              "CountRestrictions": {
+                "Countable": true
+              },
+              "FilterRestrictions": {
+                "Filterable": true
+              },
+              "Navigability": "Recursive",
+              "NavigationProperty": {
+                "$NavigationPropertyPath": "tags"
+              },
+              "SkipSupported": true,
+              "SortRestrictions": {
+                "Sortable": true
+              },
+              "TopSupported": true
+            }
+          ]
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        },
+        "@Capabilities.SkipSupported": true,
+        "@Capabilities.TopSupported": true
+      },
+      "SpecialItems": {
+        "$Collection": true,
+        "$NavigationPropertyBinding": {
+          "group": "Groups"
+        },
+        "$Type": "Reference.SpecialItems",
+        "@Aggregation.ApplySupported": {
+          "CustomAggregationMethods": [
+            "Aster.Data.V1.first",
+            "Aster.Data.V1.concat",
+            "Aster.Data.V1.concatDistinct",
+            "Aster.Data.V1.count"
+          ],
+          "Transformations": [
+            "aggregate",
+            "groupby",
+            "filter"
+          ]
+        },
+        "@AsterData.AtomicGroup": "g1",
+        "@Capabilities.ChangeTracking": {
+          "Supported": false
+        },
+        "@Capabilities.CountRestrictions": {
+          "Countable": true
+        },
+        "@Capabilities.ExpandRestrictions": {
+          "Expandable": true,
+          "MaxLevels": 8
+        },
+        "@Capabilities.NavigationRestrictions": {
+          "RestrictedProperties": [
+            {
+              "FilterRestrictions": {
+                "Filterable": true
+              },
+              "Navigability": "Recursive",
+              "NavigationProperty": {
+                "$NavigationPropertyPath": "group"
+              }
+            }
+          ]
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        },
+        "@Capabilities.SkipSupported": true,
+        "@Capabilities.TopSupported": true
+      },
+      "Summary": {
+        "$Function": "Reference.Summary",
+        "$IncludeInServiceDocument": true
+      },
+      "Tags": {
+        "$Collection": true,
+        "$NavigationPropertyBinding": {
+          "items": "Items"
+        },
+        "$Type": "Reference.Tags",
+        "@Aggregation.ApplySupported": {
+          "CustomAggregationMethods": [
+            "Aster.Data.V1.first",
+            "Aster.Data.V1.concat",
+            "Aster.Data.V1.concatDistinct",
+            "Aster.Data.V1.count"
+          ],
+          "Transformations": [
+            "aggregate",
+            "groupby",
+            "filter"
+          ]
+        },
+        "@AsterData.AtomicGroup": "g1",
+        "@Capabilities.ChangeTracking": {
+          "Supported": false
+        },
+        "@Capabilities.CountRestrictions": {
+          "Countable": true
+        },
+        "@Capabilities.ExpandRestrictions": {
+          "Expandable": true,
+          "MaxLevels": 8
+        },
+        "@Capabilities.NavigationRestrictions": {
+          "RestrictedProperties": [
+            {
+              "CountRestrictions": {
+                "Countable": true
+              },
+              "FilterRestrictions": {
+                "Filterable": true
+              },
+              "Navigability": "Recursive",
+              "NavigationProperty": {
+                "$NavigationPropertyPath": "items"
+              },
+              "SkipSupported": true,
+              "SortRestrictions": {
+                "Sortable": true
+              },
+              "TopSupported": true
+            }
+          ]
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        },
+        "@Capabilities.SkipSupported": true,
+        "@Capabilities.TopSupported": true
+      }
+    },
+    "Groups": {
+      "$Key": [
+        "id"
+      ],
+      "$Kind": "EntityType",
+      "@AsterData.OperationBindings": [
+        {
+          "operationId": "preview",
+          "operationType": "fetch"
+        },
+        {
+          "operationId": "revise",
+          "operationType": "update"
+        }
+      ],
+      "id": {
+        "$Type": "Edm.Int32"
+      },
+      "items": {
+        "$Collection": true,
+        "$Kind": "NavigationProperty",
+        "$Partner": "group",
+        "$Type": "Reference.Items"
+      },
+      "items_groupId": {
+        "$Collection": true,
+        "$Kind": "NavigationProperty",
+        "$Partner": "group",
+        "$Type": "Reference.SpecialItems"
+      },
+      "name": {
+        "$Nullable": true
+      }
+    },
+    "Int64Text": {
+      "$Kind": "TypeDefinition",
+      "$UnderlyingType": "Edm.String",
+      "@AsterData.Encoding": "decimal",
+      "@AsterData.StoredType": "Int64"
+    },
+    "Items": {
+      "$Key": [
+        "id"
+      ],
+      "$Kind": "EntityType",
+      "@AsterData.OperationBindings": [
+        {
+          "operationId": "preview",
+          "operationType": "fetch"
+        },
+        {
+          "operationId": "revise",
+          "operationType": "update"
+        }
+      ],
+      "@AsterData.TitleField": "name",
+      "@Core.Description": "Items",
+      "created": {
+        "$Nullable": true,
+        "$Type": "Edm.Date"
+      },
+      "group": {
+        "$Kind": "NavigationProperty",
+        "$Nullable": true,
+        "$Partner": "items",
+        "$ReferentialConstraint": {
+          "groupId": "id"
+        },
+        "$Type": "Reference.Groups"
+      },
+      "groupId": {
+        "$Nullable": true,
+        "$Type": "Edm.Int32",
+        "@AsterData.DisplayField": "name",
+        "@AsterData.ForeignKey": "Groups.id"
+      },
+      "id": {
+        "$Type": "Edm.Int32"
+      },
+      "name": {
+        "$MaxLength": 120,
+        "@Core.Description": "Name",
+        "@Core.LongDescription": "Display name"
+      },
+      "price": {
+        "$Nullable": true,
+        "$Precision": 12,
+        "$Scale": 2,
+        "$Type": "Edm.Decimal",
+        "@AsterData.Attributes": {
+          "scale": 2
+        },
+        "@AsterData.Precision": 12,
+        "@AsterData.Validators": [
+          {
+            "max": 10000,
+            "min": 0,
+            "type": "floatRange"
+          }
+        ],
+        "@Validation.Maximum": 10000,
+        "@Validation.Minimum": 0
+      },
+      "reference": {
+        "$Nullable": true,
+        "$Type": "Reference.Int64Text",
+        "@AsterData.Encoding": "decimal",
+        "@AsterData.Type": "long"
+      },
+      "status": {
+        "$Nullable": true,
+        "@Validation.AllowedValues": [
+          {
+            "@Core.Description": "Draft",
+            "Value": "draft"
+          },
+          {
+            "@Core.Description": "Ready",
+            "Value": "ready"
+          }
+        ]
+      },
+      "tags": {
+        "$Collection": true,
+        "$Kind": "NavigationProperty",
+        "$Partner": "items",
+        "$Type": "Reference.Tags"
+      }
+    },
+    "SpecialItems": {
+      "$Key": [
+        "id"
+      ],
+      "$Kind": "EntityType",
+      "@AsterData.OperationBindings": [
+        {
+          "operationId": "preview",
+          "operationType": "fetch"
+        },
+        {
+          "operationId": "revise",
+          "operationType": "update"
+        }
+      ],
+      "@AsterData.TitleField": "name",
+      "@Core.Description": "Items",
+      "created": {
+        "$Nullable": true,
+        "$Type": "Edm.Date"
+      },
+      "group": {
+        "$Kind": "NavigationProperty",
+        "$Nullable": true,
+        "$Partner": "items_groupId",
+        "$ReferentialConstraint": {
+          "groupId": "id"
+        },
+        "$Type": "Reference.Groups"
+      },
+      "groupId": {
+        "$Nullable": true,
+        "$Type": "Edm.Int32",
+        "@AsterData.DisplayField": "name",
+        "@AsterData.ForeignKey": "Groups.id"
+      },
+      "id": {
+        "$Type": "Edm.Int32"
+      },
+      "name": {
+        "$MaxLength": 120,
+        "@Core.Description": "Name",
+        "@Core.LongDescription": "Display name"
+      },
+      "note": {
+        "$Nullable": true
+      },
+      "price": {
+        "$Nullable": true,
+        "$Precision": 12,
+        "$Scale": 2,
+        "$Type": "Edm.Decimal",
+        "@AsterData.Attributes": {
+          "scale": 2
+        },
+        "@AsterData.Precision": 12,
+        "@AsterData.Validators": [
+          {
+            "max": 10000,
+            "min": 0,
+            "type": "floatRange"
+          }
+        ],
+        "@Validation.Maximum": 10000,
+        "@Validation.Minimum": 0
+      },
+      "reference": {
+        "$Nullable": true,
+        "$Type": "Reference.Int64Text",
+        "@AsterData.Encoding": "decimal",
+        "@AsterData.Type": "long"
+      },
+      "status": {
+        "$Nullable": true,
+        "@Validation.AllowedValues": [
+          {
+            "@Core.Description": "Draft",
+            "Value": "draft"
+          },
+          {
+            "@Core.Description": "Ready",
+            "Value": "ready"
+          }
+        ]
+      }
+    },
+    "Summary": [
+      {
+        "$IsComposable": true,
+        "$Kind": "Function",
+        "$ReturnType": {
+          "$Collection": true,
+          "$Type": "Reference.SummaryRow"
+        }
+      }
+    ],
+    "SummaryRow": {
+      "$Kind": "ComplexType",
+      "label": {
+        "$Nullable": true
+      },
+      "total": {
+        "$Nullable": true,
+        "$Type": "Edm.Int32"
+      }
+    },
+    "Tags": {
+      "$Key": [
+        "id"
+      ],
+      "$Kind": "EntityType",
+      "id": {
+        "$Type": "Edm.Int32"
+      },
+      "items": {
+        "$Collection": true,
+        "$Kind": "NavigationProperty",
+        "$Partner": "tags",
+        "$Type": "Reference.Items"
+      },
+      "label": {
+        "$Nullable": true
+      }
+    },
+    "changeKey": [
+      {
+        "$IsBound": true,
+        "$Kind": "Action",
+        "$Parameter": [
+          {
+            "$Name": "_it",
+            "$Type": "Reference.Groups"
+          },
+          {
+            "$Name": "NewKey",
+            "$Nullable": true,
+            "$Type": "Edm.Untyped"
+          }
+        ],
+        "$ReturnType": {
+          "$Type": "Reference.Groups"
+        },
+        "@Core.Description": "Changes the primary key of the entity to NewKey (every key property) and returns it; PATCH cannot"
+      },
+      {
+        "$IsBound": true,
+        "$Kind": "Action",
+        "$Parameter": [
+          {
+            "$Name": "_it",
+            "$Type": "Reference.Items"
+          },
+          {
+            "$Name": "NewKey",
+            "$Nullable": true,
+            "$Type": "Edm.Untyped"
+          }
+        ],
+        "$ReturnType": {
+          "$Type": "Reference.Items"
+        },
+        "@Core.Description": "Changes the primary key of the entity to NewKey (every key property) and returns it; PATCH cannot"
+      },
+      {
+        "$IsBound": true,
+        "$Kind": "Action",
+        "$Parameter": [
+          {
+            "$Name": "_it",
+            "$Type": "Reference.SpecialItems"
+          },
+          {
+            "$Name": "NewKey",
+            "$Nullable": true,
+            "$Type": "Edm.Untyped"
+          }
+        ],
+        "$ReturnType": {
+          "$Type": "Reference.SpecialItems"
+        },
+        "@Core.Description": "Changes the primary key of the entity to NewKey (every key property) and returns it; PATCH cannot"
+      },
+      {
+        "$IsBound": true,
+        "$Kind": "Action",
+        "$Parameter": [
+          {
+            "$Name": "_it",
+            "$Type": "Reference.Tags"
+          },
+          {
+            "$Name": "NewKey",
+            "$Nullable": true,
+            "$Type": "Edm.Untyped"
+          }
+        ],
+        "$ReturnType": {
+          "$Type": "Reference.Tags"
+        },
+        "@Core.Description": "Changes the primary key of the entity to NewKey (every key property) and returns it; PATCH cannot"
+      }
+    ],
+    "preview": [
+      {
+        "$IsBound": true,
+        "$IsComposable": true,
+        "$Kind": "Function",
+        "$Parameter": [
+          {
+            "$Collection": true,
+            "$Name": "_it",
+            "$Type": "Reference.Groups"
+          }
+        ],
+        "$ReturnType": {
+          "$Collection": true,
+          "$Type": "Reference.Groups"
+        },
+        "@Core.Description": "The named operation binding `preview` of the DataSource"
+      },
+      {
+        "$IsBound": true,
+        "$IsComposable": true,
+        "$Kind": "Function",
+        "$Parameter": [
+          {
+            "$Collection": true,
+            "$Name": "_it",
+            "$Type": "Reference.Items"
+          }
+        ],
+        "$ReturnType": {
+          "$Collection": true,
+          "$Type": "Reference.Items"
+        },
+        "@Core.Description": "The named operation binding `preview` of the DataSource"
+      },
+      {
+        "$IsBound": true,
+        "$IsComposable": true,
+        "$Kind": "Function",
+        "$Parameter": [
+          {
+            "$Collection": true,
+            "$Name": "_it",
+            "$Type": "Reference.SpecialItems"
+          }
+        ],
+        "$ReturnType": {
+          "$Collection": true,
+          "$Type": "Reference.SpecialItems"
+        },
+        "@Core.Description": "The named operation binding `preview` of the DataSource"
+      }
+    ],
+    "revise": [
+      {
+        "$IsBound": true,
+        "$Kind": "Action",
+        "$Parameter": [
+          {
+            "$Name": "_it",
+            "$Type": "Reference.Groups"
+          },
+          {
+            "$Name": "Record",
+            "$Nullable": true,
+            "$Type": "Reference.Groups"
+          }
+        ],
+        "$ReturnType": {
+          "$Type": "Reference.Groups"
+        },
+        "@Core.Description": "The named operation binding `revise` of the DataSource"
+      },
+      {
+        "$IsBound": true,
+        "$Kind": "Action",
+        "$Parameter": [
+          {
+            "$Name": "_it",
+            "$Type": "Reference.Items"
+          },
+          {
+            "$Name": "Record",
+            "$Nullable": true,
+            "$Type": "Reference.Items"
+          }
+        ],
+        "$ReturnType": {
+          "$Type": "Reference.Items"
+        },
+        "@Core.Description": "The named operation binding `revise` of the DataSource"
+      },
+      {
+        "$IsBound": true,
+        "$Kind": "Action",
+        "$Parameter": [
+          {
+            "$Name": "_it",
+            "$Type": "Reference.SpecialItems"
+          },
+          {
+            "$Name": "Record",
+            "$Nullable": true,
+            "$Type": "Reference.SpecialItems"
+          }
+        ],
+        "$ReturnType": {
+          "$Type": "Reference.SpecialItems"
+        },
+        "@Core.Description": "The named operation binding `revise` of the DataSource"
+      }
+    ]
+  }
+}

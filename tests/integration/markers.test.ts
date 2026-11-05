@@ -25,7 +25,9 @@ async function connect(edit: (m: any) => void = () => {}, countEstimate?: number
 
 const people = data.People.length;
 
-describe("estimated counts", () => {
+// Estimates are a mock control: aster-webdata-server's counts are always
+// exact, and its harness (which sets ASTER_UI_BACKEND) refuses `countEstimate`.
+describe.skipIf(process.env.ASTER_UI_BACKEND !== undefined)("estimated counts", () => {
   test("an estimate sizes a collection, marked, until a short page shows the end", async () => {
     const ctx = await connect(() => {}, 1.5);
     const c = ctx.collection({ set: "People", orderBy: [{ field: "id" }] }, { pageSize: 5 });

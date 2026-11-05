@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "3fd73c76dbb0414be1e7f5ad353ae43c89c55454adad30f8d0f0a74d8f702708"
+      "sha256": "0ef4e1a6f9e2e77d081c8943f03b3df5fc6339e2690024c928a14f3e04ea7954"
     },
     {
       "path": "CHANGELOG.md",
@@ -851,7 +851,7 @@
     },
     {
       "path": "docs/reference/schema.md",
-      "sha256": "33a15c668a89d02f17aa64102fd491420edf906321461484bd1001ca37c04e8e"
+      "sha256": "814a46414211a87fb7df0ada50d3c50cd98939a78a6cc6593ccbfcd22ca29f0b"
     },
     {
       "path": "docs/reference/tiles.md",
@@ -890,6 +890,26 @@
       "sha256": "534cab70b8bd8b1ece2b4504fc35f8b12c5d984b0883beb2f1bdb76b0c44c759"
     },
     {
+      "path": "fixtures/metadata-reference/LICENSE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    {
+      "path": "fixtures/metadata-reference/NOTICE",
+      "sha256": "7a1414a1e91dbe0264b7d8a046f6a02dbed102227724fb1c4debcce0574c1931"
+    },
+    {
+      "path": "fixtures/metadata-reference/README.md",
+      "sha256": "28022b70da22d459fe25fd0112782d09b58559fe076c69646fbeacb165d346f1"
+    },
+    {
+      "path": "fixtures/metadata-reference/manifest.json",
+      "sha256": "9bd3d68b921f257673bed413031647de4619f141d5de6804d69c5a4496bd5760"
+    },
+    {
+      "path": "fixtures/metadata-reference/metadata.json",
+      "sha256": "c61ddaecca1371a46038a5556949e915f3f333755b9122cf86cc4f0e4ebe7060"
+    },
+    {
       "path": "package.json",
       "sha256": "a43f7011abfdc6539869a84a862cf042b52d35c6131beaa24c37f4293eeef0c2"
     },
@@ -919,7 +939,7 @@
     },
     {
       "path": "packages/data/src/collection/collection.ts",
-      "sha256": "a7f605eba9f88af72e75c536225b795a08f009755d8306872dd922b2d0f0c105"
+      "sha256": "46fe1e5611f438b4debcf07caf41d8a05274f06760f35c88142a7dec91c3e14b"
     },
     {
       "path": "packages/data/src/collection/grouping.ts",
@@ -1011,7 +1031,7 @@
     },
     {
       "path": "packages/data/src/schema/csdl.ts",
-      "sha256": "979574bbd84982b084f370412d0eb571ae7315f8f3a6806e3d4c117f647c8e5d"
+      "sha256": "58665c3f9cfec6ef33e1cb6ba58057d61499cb32f7bb7d442c1af89afda48590"
     },
     {
       "path": "packages/data/src/schema/model.ts",
@@ -1091,7 +1111,11 @@
     },
     {
       "path": "packages/data/test/schema.test.ts",
-      "sha256": "3390040c48630566ecb78d8f0eeefbf6df85c1106c7a5d064b74d83d84a2c777"
+      "sha256": "aacf3889a007b1d27f26211624492daf2e8972ba8b9deeb9f692f3b2bee9b735"
+    },
+    {
+      "path": "packages/data/test/server-reference.test.ts",
+      "sha256": "118345fe7f8266d12c200e9ab13d765eb8148644e5cac945f927f2bb659eac97"
     },
     {
       "path": "packages/data/test/sessions.test.ts",
@@ -2871,7 +2895,7 @@
     },
     {
       "path": "tests/integration/data-core.test.ts",
-      "sha256": "0b3bfe93d9987f89a769331ccaff964c2067d7ea24e282bd01c71798997d7da1"
+      "sha256": "9376f28c86cfa5d1bbf8127fc0ebdb30638f27856f897ee15f6550fc9a77c4e7"
     },
     {
       "path": "tests/integration/derived-values.test.ts",
@@ -2895,7 +2919,7 @@
     },
     {
       "path": "tests/integration/markers.test.ts",
-      "sha256": "2cbcf623c1701768020e87776cfc6d59da890da4055731f5946b9c54e68b700b"
+      "sha256": "cdc162d939b654a1ad4c8641748af0f81914cb27fbfc341882ad5bc569c10b05"
     },
     {
       "path": "tests/integration/page-rules-contract.test.ts",

@@ -238,6 +238,26 @@ export function parseCsdl(json: unknown): Schema {
     return `${ns}.${name.slice(dot + 1)}`;
   };
 
+  /**
+   * A property of a type definition takes its underlying type, facets and
+   * annotations; the property's own facets and annotations win.
+   */
+  const withTypeDefinition = (o: Json): Json => {
+    const t = o["$Type"];
+    if (typeof t !== "string") return o;
+    const dot = t.lastIndexOf(".");
+    const ns = dot < 0 ? undefined : byAlias.get(t.slice(0, dot));
+    const def = ns === undefined ? undefined : typeDefinitions.get(`${ns}.${t.slice(dot + 1)}`);
+    if (!def) return o;
+    const underlying = def["$UnderlyingType"];
+    if (typeof underlying !== "string") {
+      throw new SchemaError("missing $UnderlyingType", `/${ns}/${t.slice(dot + 1)}/$UnderlyingType`);
+    }
+    const inherited: Json = {};
+    for (const [k, v] of Object.entries(def)) if (k !== "$Kind" && k !== "$UnderlyingType") inherited[k] = v;
+    return { ...inherited, ...o, $Type: underlying };
+  };
+
   const containerRef = root["$EntityContainer"];
   if (typeof containerRef !== "string") {
     throw new SchemaError("missing $EntityContainer", "/$EntityContainer");
@@ -247,6 +267,8 @@ export function parseCsdl(json: unknown): Schema {
   const containerName = containerQualified.slice(namespace.length + 1);
 
   const typeDrafts = new Map<string, TypeDraft>();
+  /** Primitive type definitions by qualified name. */
+  const typeDefinitions = new Map<string, Json>();
   let containerJson: Json | undefined;
   for (const ns of namespaces) {
     for (const [name, member] of Object.entries(obj(root[ns], `/${ns}`))) {
@@ -254,7 +276,8 @@ export function parseCsdl(json: unknown): Schema {
       const p = `/${ns}/${name}`;
       if (isOperation(member)) continue;
       const o = obj(member, p);
-      if (o["$Kind"] === "EntityType") typeDrafts.set(`${ns}.${name}`, { qualified: `${ns}.${name}`, name, namespace: ns, path: p, json: o });
+      if (o["$Kind"] === "TypeDefinition") typeDefinitions.set(`${ns}.${name}`, o);
+      else if (o["$Kind"] === "EntityType") typeDrafts.set(`${ns}.${name}`, { qualified: `${ns}.${name}`, name, namespace: ns, path: p, json: o });
       else if (o["$Kind"] === "EntityContainer" && ns === namespace && name === containerName) containerJson = o;
     }
   }
@@ -302,9 +325,10 @@ export function parseCsdl(json: unknown): Schema {
           navs.push({ typeName: qualified, name, path: p, raw: o, targetType: qualify(t, `${p}/$Type`) });
           continue;
         }
-        const reason = unmodelled(o);
+        const field = withTypeDefinition(o);
+        const reason = unmodelled(field);
         if (reason) skipped.push({ path: p, reason });
-        else fields.push(parseField(name, o, p, resolve));
+        else fields.push(parseField(name, field, p, resolve));
       }
     }
 

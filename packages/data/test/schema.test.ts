@@ -182,6 +182,29 @@ describe("parseCsdl: rules", () => {
     expect(schema.skipped).toEqual([]);
   });
 
+  test("a type definition gives its property the underlying type, facets and annotations", () => {
+    const j = clone();
+    j.AsterDemo.$Alias = "AD";
+    j.AsterDemo.Code = {
+      $Kind: "TypeDefinition",
+      $UnderlyingType: "Edm.String",
+      $MaxLength: 8,
+      "@Core.Description": "Code",
+      "@Validation.Pattern": "^[A-Z]+$",
+    };
+    j.AsterDemo.Person.code = { $Type: "AD.Code", $Nullable: true, "@Core.Description": "Person code" };
+    j.AsterDemo.Person.blob = { $Type: "AsterDemo.Blob" };
+    j.AsterDemo.Blob = { $Kind: "TypeDefinition", $UnderlyingType: "Edm.Stream" };
+    const s = parseCsdl(j);
+    const code = s.set("People").type.field("code")!;
+    expect(code.type).toBe("Edm.String");
+    expect(code.maxLength).toBe(8);
+    expect(code.nullable).toBe(true);
+    expect(code.title).toBe("Person code");
+    expect(code.pattern).toBe("^[A-Z]+$");
+    expect(s.skipped).toEqual([{ path: "/AsterDemo/Person/blob", reason: "a stream" }]);
+  });
+
   test("actions, functions and their imports are ignored; the rest stands", () => {
     const j = clone();
     j.AsterDemo.changeKey = [
@@ -241,6 +264,13 @@ describe("parseCsdl: errors carry paths", () => {
     expect(failure(j).path).toBe("/AsterDemo/changeKey");
     j.AsterDemo.changeKey = [];
     expect(failure(j).path).toBe("/AsterDemo/changeKey");
+  });
+
+  test("a type definition without an underlying type", () => {
+    const j = clone();
+    j.AsterDemo.Code = { $Kind: "TypeDefinition" };
+    j.AsterDemo.Person.code = { $Type: "AsterDemo.Code" };
+    expect(failure(j).path).toBe("/AsterDemo/Code/$UnderlyingType");
   });
 
   test("missing container", () => {

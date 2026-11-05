@@ -230,10 +230,17 @@ export class Collection {
     if (forgotten) this.#publish();
   }
 
-  /** Loads every page; without a server count, page after page until one comes back short. */
+  /**
+   * Loads every page; without a server count, page after page until one comes
+   * back short. A refresh or query change during a pass drops that pass's
+   * answers, so the pass runs again.
+   */
   async loadAll(): Promise<void> {
-    do await this.ensure(0, Number.POSITIVE_INFINITY);
-    while (!this.#counted.peek());
+    for (;;) {
+      const generation = this.#generation;
+      await this.ensure(0, Number.POSITIVE_INFINITY);
+      if (generation === this.#generation && this.#counted.peek()) return;
+    }
   }
 
   /**

@@ -121,6 +121,11 @@ try {
 - Only entity sets are modelled. Singletons, actions, functions, complex types
   and enumeration types are ignored; a property of a complex or enumeration type
   is left out and listed in [[attr:Schema.skipped]].
+- A property of a primitive type definition is read as the definition's
+  underlying type, with the definition's facets and annotations; the property's
+  own facets and annotations take precedence. Its values are those of the
+  underlying type: an `Edm.String` definition holding an encoded number is
+  compared and sorted as text on the client.
 - Keys are lists of property names. A key written as an alias to a path through
   a navigation is rejected with a [[class:SchemaError]].
 - A property that is a stream, untyped, collection-valued or of a type that is
