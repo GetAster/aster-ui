@@ -1,6 +1,7 @@
-/* The faces Lamplight names, Latin subsets only. Bun's CSS minifier drops the
-   `+` from `unicode-range`, so the files are declared per subset instead; it
-   also unquotes `format("woff2")`, which stays valid. */
+/* The faces Lamplight names, Latin subsets only, and the local faces that
+   stand in while they download. Bun's CSS minifier drops the `+` from
+   `unicode-range`, so the files are declared per subset instead; it also
+   unquotes `format("woff2")`, which stays valid. */
 @font-face {
   font-family: "Bricolage Grotesque Variable";
   font-style: normal;
@@ -14,4 +15,43 @@
   font-display: swap;
   font-weight: 100 900;
   src: url("./fonts/fraunces-latin-full-normal.woff2") format("woff2");
+}
+
+/* Metric-matched fallbacks, so the swap moves nothing. Each is a local face
+   scaled to the web face's advance widths, with the web face's vertical
+   metrics, measured over a sample of UI text at the instance the stylesheet
+   uses most: Bricolage at the body size and weight, Fraunces at the page-title
+   settings (opsz 144, weight 380), the one place its width decides wrapping;
+   figures sit in sized tracks at a numeric line height. Liberation and
+   Croscore faces share Arial's and Times' metrics, so they reuse the same
+   numbers. */
+@font-face {
+  font-family: "Bricolage Grotesque Fallback";
+  font-style: normal;
+  font-weight: 100 900;
+  src: local("Arial"), local("Liberation Sans"), local("Arimo");
+  size-adjust: 105.4%;
+  ascent-override: 88.3%;
+  descent-override: 25.6%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Fraunces Fallback";
+  font-style: normal;
+  font-weight: 100 900;
+  src: local("Georgia");
+  size-adjust: 84.8%;
+  ascent-override: 115.3%;
+  descent-override: 30.1%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Fraunces Fallback Times";
+  font-style: normal;
+  font-weight: 100 900;
+  src: local("Times New Roman"), local("Liberation Serif"), local("Tinos");
+  size-adjust: 91.7%;
+  ascent-override: 106.7%;
+  descent-override: 27.8%;
+  line-gap-override: 0%;
 }

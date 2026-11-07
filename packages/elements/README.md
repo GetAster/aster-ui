@@ -21,8 +21,9 @@ Its main entry registers browser elements and requires a DOM; use
 `@getaster/elements/styles/theme-lamplight.css` and
 `@getaster/elements/styles/theme-harbour.css` each compose the base primitives,
 element styles and one identity. Lamplight's entry also loads the packaged
-Bricolage Grotesque and Fraunces Latin faces from
-`@getaster/elements/styles/fonts.css`. Import one composed entry, not the parts.
+Bricolage Grotesque and Fraunces Latin faces, with metric-matched local
+fallbacks, from `@getaster/elements/styles/fonts.css`. Import one composed
+entry, not the parts.
 
 ## Connect a grid
 

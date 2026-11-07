@@ -43,6 +43,12 @@ was written from this guide alone. The guide is enough to write another.
   and `var()`; anything else it reports as unchecked, not wrong.
 - **Fonts are the page's job.** A theme names typefaces and the page loads
   them, so end every stack with a generic family (`system-ui, sans-serif`).
+  A web face swaps in after it downloads; name a metric-matched local face
+  before the generics (`size-adjust` and the `*-override` descriptors on a
+  `local()` `@font-face`) so the swap moves nothing. `fonts.css` declares
+  Lamplight's: `"Bricolage Grotesque Fallback"` scales Arial to Bricolage at
+  the body size, `"Fraunces Fallback"` scales Georgia (and `"Fraunces Fallback
+  Times"` Times) to Fraunces at the page-title settings.
   Weights between the named ones (450) suit variable fonts; system fonts
   round them. Line heights from 1.35 to 1.6 fit the layouts, and body sizes
   from 12px to 15px fit the controls, whose heights come from density.
@@ -171,8 +177,8 @@ theme, which measures the text as it's actually drawn.
 
 | Token | Role | Lamplight | Lamplight dark | Harbour | Harbour dark |
 |---|---|---|---|---|---|
-| `--aster-font-ui` | Typeface for everything but figures. | `"Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif` |  | `ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif` |  |
-| `--aster-font-figure` | Typeface for figures (amounts, counts) and page titles. | `"Fraunces Variable", "Fraunces", ui-serif, Georgia, serif` |  | `ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif` |  |
+| `--aster-font-ui` | Typeface for everything but figures. | `"Bricolage Grotesque Variable", "Bricolage Grotesque", "Bricolage Grotesque Fallback", ui-sans-serif, system-ui, sans-serif` |  | `ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif` |  |
+| `--aster-font-figure` | Typeface for figures (amounts, counts) and page titles. | `"Fraunces Variable", "Fraunces", "Fraunces Fallback", "Fraunces Fallback Times", ui-serif, Georgia, serif` |  | `ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif` |  |
 | `--aster-font-size` | Body text size; other sizes are set relative to the layout, not to this. | `13px` |  | `14px` |  |
 | `--aster-line` | Body line height. | `1.45` |  | `1.5` |  |
 | `--aster-weight` | Body text weight. | `450` |  | `420` |  |

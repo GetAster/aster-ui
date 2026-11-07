@@ -38,7 +38,8 @@ Import one composed theme entry and then your application CSS:
 `theme-lamplight.css` and `theme-harbour.css` each compose `base.css`,
 `elements.css` and that identity in order. `theme-lamplight.css` also imports
 `fonts.css`, which declares the Bricolage Grotesque and Fraunces Latin faces
-shipped with the package. Import both composed entries only when the
+shipped with the package and the metric-matched local fallbacks that hold
+the layout while they download. Import both composed entries only when the
 application lets people switch identity.
 
 ### The mock's WASM file

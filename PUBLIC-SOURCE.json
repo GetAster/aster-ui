@@ -23,11 +23,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "0ef4e1a6f9e2e77d081c8943f03b3df5fc6339e2690024c928a14f3e04ea7954"
+      "sha256": "cc8153d5ad2763d9c094089908671d86d0dba25b58441ddb3f89c5a6596a8aa2"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "92e0c7d6d2b284aa0c70c04f067a762c8c2949c7aff2f8e50e4777d74391b809"
+      "sha256": "86ea14e026d36ffec7865e5cfc1054aa3d457d1c805b52c9fd83a0fb6dd9397f"
     },
     {
       "path": "LICENSE",
@@ -175,7 +175,7 @@
     },
     {
       "path": "apps/showcase/package.json",
-      "sha256": "03b432378bc9e421e2ca314dce0bea24acdae7ed377d4b3e770960db3a94b017"
+      "sha256": "4dcfb7d4d39de074ea3d25dfad4fe1e96610de27d2f59c308ea1f0ae9aebe99f"
     },
     {
       "path": "apps/showcase/serve.ts",
@@ -546,10 +546,6 @@
       "sha256": "3fa23fbf2db27147052b3a126cdd4b198dcaf520823064871f9920d9e5c36478"
     },
     {
-      "path": "apps/showcase/src/workspace/fonts.css",
-      "sha256": "08ca38da721fcd5a0ffad98f8199e13f9e8029e64620250bc2ea2d223ccf7d53"
-    },
-    {
       "path": "apps/showcase/src/workspace/icons.ts",
       "sha256": "e604716f5661285aca5533b8888282d18d85375dd220c4c748ad1bcfd93c5c40"
     },
@@ -579,7 +575,7 @@
     },
     {
       "path": "apps/showcase/src/workspace/styles.css",
-      "sha256": "2c4419faad6c27bb789cb6eb69a77ab8af6916b4729b9a92229341758d2474c2"
+      "sha256": "08d258032048c036c0e0fa9cc0752ad04685c697499cb84f54798ce2b3fee506"
     },
     {
       "path": "apps/showcase/src/workspace/themes.ts",
@@ -591,7 +587,7 @@
     },
     {
       "path": "bun.lock",
-      "sha256": "6d9ea0a87e1c014d39bd5b4fc446efd483b8d7d60085be1ad6b3960b02e82c24"
+      "sha256": "0ffb9f2bbc69b73bcc9ffa8fdd25678221fcd50df6b1c883a448d0fa5c704f27"
     },
     {
       "path": "bunfig.toml",
@@ -715,7 +711,7 @@
     },
     {
       "path": "docs/guide/library.md",
-      "sha256": "eef4c26f1e8ce3a7d7fa9df011566564c7b06ef264d41d305c3975a7dbda94d1"
+      "sha256": "a794632c804e69ca61580a5a1a1ede342d98bcd2859f174be14702cc35e5f4b2"
     },
     {
       "path": "docs/guide/managed-workspace.md",
@@ -735,7 +731,7 @@
     },
     {
       "path": "docs/guide/themes.md",
-      "sha256": "e4e0175490ac3a883c9d386b2c94f926b9709997442b1c7807455ac33fee0a2c"
+      "sha256": "af59f8b72138c10c5e5d63ae247358111e6ea4e01fae29b11df408b58586ce2f"
     },
     {
       "path": "docs/guide/why-aster.md",
@@ -1319,7 +1315,7 @@
     },
     {
       "path": "packages/elements/README.md",
-      "sha256": "2d5bc6fa685f064b7435a3fd20730e0595f28aebe65887e7de269a2150eab543"
+      "sha256": "ce9e919aa3d3313aebeff6a14d9f35d2dd37faa759df949b7efd252389b06826"
     },
     {
       "path": "packages/elements/package.json",
@@ -1643,7 +1639,7 @@
     },
     {
       "path": "packages/elements/src/styles/fonts.css",
-      "sha256": "2350569f3de81ab67503460c7039f7ff06024875ca641909adfe73f9a60c31b7"
+      "sha256": "e351c8be80155780823116ade275d035850b093c45e5d22b4dd05d1ffab8d99c"
     },
     {
       "path": "packages/elements/src/styles/fonts/OFL-bricolage-grotesque.txt",
@@ -1667,7 +1663,7 @@
     },
     {
       "path": "packages/elements/src/styles/lamplight.css",
-      "sha256": "396a159df725653df552337fc3f0b3b51e85dc52d26fa90a319fb719bee1e10f"
+      "sha256": "46dbbdd73498d6eec1b938ea17c460d7748118e5f0c3b2399d1c11773f6021ac"
     },
     {
       "path": "packages/elements/src/styles/theme-harbour.css",
@@ -2627,7 +2623,7 @@
     },
     {
       "path": "tests/e2e/polish.spec.ts",
-      "sha256": "f1c24c8c8d25d1687ec60c2b09e9ac4eae9e48789521dfcea6d99ddd0a65c354"
+      "sha256": "9f27981ce4f4639c1a0778d1d89eff6505facd8f8555f9d6d1dfe67c81645c19"
     },
     {
       "path": "tests/e2e/progress.spec.ts",

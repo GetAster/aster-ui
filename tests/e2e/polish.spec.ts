@@ -20,6 +20,39 @@ test("Lamplight's faces load and set the figures", async ({ page }) => {
   expect(await page.evaluate(() => document.fonts.check('380 32px "Fraunces Variable"'))).toBe(true);
 });
 
+// The fallbacks are local faces scaled to the web faces, so text set in either
+// takes the same width; a swap then moves nothing. Measured where the
+// stylesheet sets each face's size: UI text at the body font, titles at the
+// title font and settings. Skips where the machine lacks the local face.
+test("Lamplight's fallback faces take the width of the web faces", async ({ page }) => {
+  const pairs = [
+    { web: "Bricolage Grotesque Variable", fallback: "Bricolage Grotesque Fallback", font: "450 13px", settings: "normal" },
+    { web: "Fraunces Variable", fallback: "Fraunces Fallback", font: "380 32px", settings: '"opsz" 144, "SOFT" 30, "WONK" 1' },
+  ];
+  const ratios = await page.evaluate(async (pairs) => {
+    const measure = (family: string, font: string, settings: string) => {
+      const span = document.createElement("span");
+      span.style.cssText = `position:absolute; white-space:nowrap; font: ${font} "${family}"; font-variation-settings: ${settings}`;
+      span.textContent = "Choose how to sign in to your Aster account. Welcome back. 0123456789";
+      document.body.append(span);
+      const width = span.getBoundingClientRect().width;
+      span.remove();
+      return width;
+    };
+    const out: Record<string, number | null> = {};
+    for (const { web, fallback, font, settings } of pairs) {
+      await document.fonts.load(`${font} "${web}"`);
+      const faces = await document.fonts.load(`${font} "${fallback}"`).catch(() => []);
+      out[fallback] = faces.some((f) => f.status === "loaded") ? measure(fallback, font, settings) / measure(web, font, settings) : null;
+    }
+    return out;
+  }, pairs);
+  const available = Object.entries(ratios).filter(([, ratio]) => ratio !== null);
+  test.skip(available.length === 0, "no local fallback face on this machine");
+  for (const [fallback, ratio] of available) expect(ratio, fallback).toBeGreaterThan(0.98);
+  for (const [fallback, ratio] of available) expect(ratio, fallback).toBeLessThan(1.02);
+});
+
 test("one flush ring on keyboard focus, none on click", async ({ page, browserName }) => {
   const newButton = page.locator("aster-button.new button");
   await tabTo(page, newButton);

@@ -7,6 +7,19 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.13
+
+Lamplight's web fonts no longer shift the page when they arrive. `fonts.css`
+now declares metric-matched local fallbacks (`"Bricolage Grotesque Fallback"`
+over Arial, `"Fraunces Fallback"` over Georgia and `"Fraunces Fallback Times"`
+over Times New Roman), scaled with `size-adjust` and the ascent, descent and
+line-gap overrides to the web faces, and Lamplight's `--aster-font-ui` and
+`--aster-font-figure` stacks name them ahead of the generic families. Text
+set in a fallback takes the width and vertical metrics of the web face, so
+the swap moves nothing (`@getaster/elements`). Pages that import
+`theme-lamplight.css` or `fonts.css` get this without changes; a page that
+preloads the two woff2 files still removes the swap on most connections.
+
 ## 0.4.0
 
 This release finishes the host-configuration work: a host can now shape a grid's

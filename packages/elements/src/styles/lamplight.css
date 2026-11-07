@@ -1,13 +1,14 @@
 /* Lamplight: one warm lamp at the upper left, cool shadows (x = y / 2),
    stone paper with grain, ink rules, serif ledger figures, and one green
    ink that acts. Dark is the lamp dimmed, not a grey theme.
-   Fonts are loaded by the app; this sheet names them. */
+   Fonts are loaded by the app; this sheet names them, and the metric-matched
+   fallbacks that fonts.css declares. */
 @property --aster-glow { syntax: "<number>"; inherits: true; initial-value: 1; }
 
 @layer aster.identity {
   :root {
-    --aster-font-ui: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-    --aster-font-figure: "Fraunces Variable", "Fraunces", ui-serif, Georgia, serif;
+    --aster-font-ui: "Bricolage Grotesque Variable", "Bricolage Grotesque", "Bricolage Grotesque Fallback", ui-sans-serif, system-ui, sans-serif;
+    --aster-font-figure: "Fraunces Variable", "Fraunces", "Fraunces Fallback", "Fraunces Fallback Times", ui-serif, Georgia, serif;
     --aster-font-size: 13px;
     --aster-line: 1.45;
     --aster-weight: 450;

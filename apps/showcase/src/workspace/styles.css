@@ -1,4 +1,4 @@
-@import "./fonts.css";
+@import "@getaster/elements/styles/fonts.css";
 @import "@getaster/elements/styles/lamplight.css";
 @import "@getaster/elements/styles/harbour.css";
 @import "@getaster/elements/styles/base.css";
