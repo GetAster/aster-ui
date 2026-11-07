@@ -326,6 +326,7 @@
   :dir(rtl) .aster-menu[data-depth]:not([data-depth="0"])[data-submenu="end"] { position-area: left span-bottom; }
   :dir(rtl) .aster-menu[data-depth]:not([data-depth="0"])[data-submenu="start"] { position-area: right span-bottom; }
   .aster-menu [role^="menuitem"] { display: flex; align-items: center; gap: 6px; min-height: var(--aster-menu-cell-height); padding: var(--aster-row-y) 10px var(--aster-row-y) 6px; border-radius: var(--aster-r-ctl); text-align: left; }
+  .aster-menu [role="group"] > [role^="menuitem"] { width: 100%; }
   .aster-menu [role^="menuitem"]:hover, .aster-menu [role^="menuitem"]:focus, .aster-menu [aria-expanded="true"] { background: var(--aster-accent-soft); outline: none; }
   .aster-menu [role^="menuitem"]:focus-visible { outline: 2px solid var(--aster-focus); outline-offset: -2px; }
   .aster-menu [aria-disabled="true"] { color: var(--aster-text-3); }

@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "cc8153d5ad2763d9c094089908671d86d0dba25b58441ddb3f89c5a6596a8aa2"
+      "sha256": "a4a144adfc7753e93682285733402c2cc2afa2af9cd933aa06ea5f39d33fa6b8"
     },
     {
       "path": "CHANGELOG.md",
@@ -1635,7 +1635,7 @@
     },
     {
       "path": "packages/elements/src/styles/elements.css",
-      "sha256": "c392cfea635049bd1e773b24385fc3f1291880c15144a6c4505ffd55034720ad"
+      "sha256": "fab33450c433168cdf59e551fe32ddc8e61c60cb3ac89cd66a05da161e3a1736"
     },
     {
       "path": "packages/elements/src/styles/fonts.css",
