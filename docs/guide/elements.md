@@ -186,8 +186,10 @@ under both.
 
 ### `aster-check` (`field/check.ts`)
 
-A Boolean field as a checkbox. A null value shows as mixed until it's set
-(`:17`). Read-only disables it.
+A Boolean field as a checkbox. A null value shows as mixed until it's set.
+Read-only disables it. With `labelled`, `labelPosition` puts the label above
+the box (the default), or beside it with `"start"` or `"end"`, on one line,
+as a toolbar toggle wants.
 
 ### `aster-select` (`select/select.ts`, `select/choice.ts`)
 
@@ -370,11 +372,15 @@ opens (`:67`). `summary` shows beside the heading while collapsed.
 
 Two panes (`start`, `end`) with a resize bar. The bar is a focusable ARIA
 `separator` with `aria-valuenow`, `min` and `max`: drag it, or use ←/→ in
-16px steps and Home/End for the limits (`:102`). JS writes only the start
-pane's width, as `--split-start` (`:75`); CSS lays out the panes and stacks
+16px steps and Home/End for the limits. `pane` picks which pane is sized and
+collapses (start by default, or end for an inspector). JS writes only that
+pane's width, as `--split-start` or `--split-end`; CSS lays out the panes and stacks
 them at phone width, hiding the bar. Dragging follows the text direction.
 With `persist`, the width is kept per viewer in local storage, and storage
-failures are ignored.
+failures are ignored. With `collapsible`, `chrome.collapse` places the
+collapse control in a row above the panes (the default), as a chevron on the
+bar (`"bar"`), or nowhere (`false`, for a host's own control); `labels` names
+it, such as `{ collapse: "Hide the inspector", restore: "Show the inspector" }`.
 
 ### `aster-list-editor` (`list-edit/list-edit.ts`)
 

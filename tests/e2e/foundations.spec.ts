@@ -154,6 +154,120 @@ test("split axes, collapse and narrow-container adaptation retain DOM and drafts
   await expect(split).toHaveJSProperty("collapsed", false);
 });
 
+test("an end-pane split sizes, resizes, persists and collapses the end pane", async ({ page }) => {
+  await open(page);
+  const split = page.locator("#inspector-split");
+  const layout = split.locator(":scope > .aster-split-layout");
+  const bar = layout.locator(":scope > [role=separator]");
+  const end = layout.locator(":scope > [data-pane=end]"), start = layout.locator(":scope > [data-pane=start]");
+  await expect(bar).toHaveAttribute("aria-controls", (await end.getAttribute("id"))!);
+  await expect.poll(() => end.evaluate(el => Math.round(el.getBoundingClientRect().width))).toBe(260);
+  await expect(split).toHaveCSS("--split-end", "260px");
+  const widen = async () => {
+    const before = await end.evaluate(el => el.getBoundingClientRect().width);
+    await page.setViewportSize({ width: 1400, height: 900 });
+    await expect.poll(() => end.evaluate(el => el.getBoundingClientRect().width)).toBe(before);
+  };
+  await widen();
+  await bar.focus();
+  await bar.press("ArrowLeft");
+  await expect(split).toHaveJSProperty("size", 276);
+  await bar.press("ArrowRight"); await bar.press("ArrowRight");
+  await expect(split).toHaveJSProperty("size", 244);
+  await bar.press("End");
+  await expect(bar).toHaveAttribute("aria-valuenow", "420");
+  const rect = (await bar.boundingBox())!;
+  // Below the collapse button, which sits at the top of the bar.
+  await page.mouse.move(rect.x + rect.width / 2, rect.y + 60);
+  await page.mouse.down();
+  await page.mouse.move(rect.x + rect.width / 2 + 100, rect.y + 60);
+  await page.mouse.up();
+  await expect(split).toHaveJSProperty("size", 320);
+  await page.locator("#inspector-split").evaluate((el: any) => { el.persist = "inspector-test"; el.size = 300; });
+  await bar.press("ArrowLeft");
+  expect(await page.evaluate(() => localStorage.getItem("aster-split:inspector-test"))).toBe("316");
+  const input = end.getByRole("textbox", { name: "Series label" });
+  await input.fill("Kept while collapsed");
+  await input.focus();
+  await split.getByRole("button", { name: "Hide the inspector" }).click();
+  await expect(bar).toHaveAttribute("aria-valuetext", "Collapsed");
+  await expect(end).toHaveAttribute("inert", "");
+  await expect(start).not.toHaveAttribute("inert", "");
+  await expect.poll(() => end.evaluate(el => el.getBoundingClientRect().width)).toBe(0);
+  await split.getByRole("button", { name: "Show the inspector" }).click();
+  await expect(input).toHaveValue("Kept while collapsed");
+  await expect.poll(() => end.evaluate(el => Math.round(el.getBoundingClientRect().width))).toBe(316);
+  await split.evaluate((el: any) => el.pane = "start");
+  await expect(bar).toHaveAttribute("aria-controls", (await start.getAttribute("id"))!);
+  await expect.poll(() => start.evaluate(el => Math.round(el.getBoundingClientRect().width))).toBe(316);
+  await page.evaluate(() => localStorage.removeItem("aster-split:inspector-test"));
+});
+
+test("a split's collapse control sits on the bar, in a toolbar or with the host", async ({ page }) => {
+  await open(page);
+  const split = page.locator("#inspector-split");
+  const layout = split.locator(":scope > .aster-split-layout");
+  const bar = layout.locator(":scope > [role=separator]");
+  const end = layout.locator(":scope > [data-pane=end]");
+  const edge = layout.locator(":scope > .aster-split-edge");
+  const chevron = edge.locator("svg");
+  await expect(split.locator(":scope > .aster-split-tools")).toHaveCount(0);
+  await expect(edge).toHaveAccessibleName("Hide the inspector");
+  await expect(edge).toHaveAttribute("title", "Hide the inspector");
+  await expect(edge).toHaveAttribute("aria-expanded", "true");
+  await expect(edge).toHaveAttribute("aria-controls", (await end.getAttribute("id"))!);
+  const centre = async (locator: typeof edge) => { const box = (await locator.boundingBox())!; return box.x + box.width / 2; };
+  expect(Math.abs(await centre(edge) - await centre(bar))).toBeLessThan(1);
+  await expect(chevron).toHaveCSS("rotate", "180deg");
+  // The button follows the separator in the Tab order.
+  await bar.focus(); await page.keyboard.press("Tab");
+  await expect(edge).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(split).toHaveJSProperty("collapsed", true);
+  await expect(edge).toHaveAccessibleName("Show the inspector");
+  await expect(edge).toHaveAttribute("aria-expanded", "false");
+  await expect(chevron).toHaveCSS("rotate", "0deg");
+  const splitBox = (await split.boundingBox())!, edgeBox = (await edge.boundingBox())!;
+  expect(edgeBox.x + edgeBox.width).toBeLessThanOrEqual(splitBox.x + splitBox.width + 0.5);
+  expect(edgeBox.x + edgeBox.width).toBeGreaterThan(splitBox.x + splitBox.width - 30);
+  await edge.click();
+  await expect(split).toHaveJSProperty("collapsed", false);
+  // Collapsing focused content moves focus to the bar while it is shown.
+  await end.getByRole("textbox", { name: "Series label" }).focus();
+  await split.evaluate((el: any) => { el.collapsed = true; });
+  await expect(bar).toBeFocused();
+  await split.evaluate((el: any) => { el.collapsed = false; });
+  // Right to left mirrors the chevron.
+  await split.evaluate(el => el.setAttribute("dir", "rtl"));
+  await expect(chevron).toHaveCSS("scale", "-1 1");
+  await split.evaluate(el => el.removeAttribute("dir"));
+  // Stacked, the button sits between the panes and points down for the end pane.
+  await split.evaluate(el => { el.style.maxWidth = "460px"; });
+  await expect(bar).toBeHidden();
+  await expect(edge).toBeVisible();
+  await expect(chevron).toHaveCSS("rotate", "270deg");
+  const start = layout.locator(":scope > [data-pane=start]");
+  expect((await edge.boundingBox())!.y).toBeGreaterThanOrEqual((await start.boundingBox())!.y + (await start.boundingBox())!.height - 0.5);
+  await end.getByRole("textbox", { name: "Series label" }).focus();
+  await split.evaluate((el: any) => { el.collapsed = true; });
+  await expect(edge).toBeFocused();
+  await edge.click();
+  await split.evaluate(el => { el.style.maxWidth = ""; });
+  // A toolbar control takes the labels; with no control the host drives `collapsed`.
+  await split.evaluate((el: any) => { el.chrome = { collapse: "toolbar" }; });
+  await expect(edge).toHaveCount(0);
+  await expect(split.locator(":scope > .aster-split-tools button")).toHaveText("Hide the inspector");
+  await split.evaluate((el: any) => { el.chrome = { collapse: false }; });
+  await expect(split.getByRole("button")).toHaveCount(0);
+  await bar.focus(); await bar.press("Enter");
+  await expect(split).toHaveJSProperty("collapsed", true);
+  await bar.press("Enter");
+  const errors = await split.evaluate((el: any) => [() => { el.chrome = { collapse: "side" }; }, () => { el.chrome = { place: "bar" }; }, () => { el.labels = { hide: "x" }; }, () => { el.labels = { collapse: 1 }; }]
+    .map(set => { try { set(); return "accepted"; } catch (error) { return (error as Error).name; } }));
+  expect(errors).toEqual(["TypeError", "TypeError", "TypeError", "TypeError"]);
+  await expect(split).toHaveJSProperty("chrome", { collapse: false });
+});
+
 test("breadcrumb overflow and hierarchy restore context, draft, focus and scroll", async ({ page }) => {
   await open(page);
   const path = page.locator("#path"), hierarchy = page.locator("#hierarchy");

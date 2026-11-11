@@ -128,6 +128,9 @@ export abstract class BoundField extends AsterElement {
   /** Control-specific validation supplements the model's errors. */
   protected validation(_meta: FieldMeta | undefined, _value: Value | undefined): string | undefined { return undefined; }
 
+  /** True when the control draws a shown label itself, on its own line, instead of the head above. */
+  protected labelBeside(): boolean { return false; }
+
   /** The frame and anything beside it; a subclass can wrap the control. */
   protected row(c: ControlContext): View {
     return this.control(c);
@@ -208,14 +211,16 @@ export abstract class BoundField extends AsterElement {
             aria-label=${`Revert ${label} to ${was}`}
             @click=${() => model?.revert(name)}>Revert</button>`
         : nothing;
-    return html`${this.#labelled.value
+    const beside = this.#labelled.value && this.labelBeside();
+    const row = hidden ? this.#hiddenValue(c) : this.row(c);
+    return html`${this.#labelled.value && !beside
         ? html`<div class="aster-field-head">
             <label class="aster-field-label" id=${`${this.#uid}-label`} for=${this.#uid}>${label}</label>
             ${meta && !state.required && !state.readOnly ? html`<span class="aster-optional">Optional</span>` : nothing}
             ${revert}
           </div>`
         : nothing}
-      ${hidden ? this.#hiddenValue(c) : this.row(c)}
+      ${beside ? html`<div class="aster-field-line">${row}${revert}</div>` : row}
       ${hint && hintId ? html`<p class="aster-hint" id=${hintId}>${hint}</p>` : nothing}
       ${suggested ? html`<p class="aster-hint" id=${suggestedId}>Suggested value</p>` : nothing}
       ${changed ? html`<span class="aster-sr-only" id=${pendingId}>${pendingText}</span>` : nothing}

@@ -294,6 +294,27 @@ it carries `aria-readonly="true"` and ignores clicks.
 html`<aster-check .model=${edit} .field=${"done"} .labelled=${true}></aster-check>`;
 ```
 
+## attr:Check.labelPosition
+
+Where a shown label sits, a [[type:CheckLabelPosition]]: `"above"` (default),
+as on other fields; `"start"`, before the box; or `"end"`, after it. Beside the
+box, the label is part of the checkbox's own `label`, so clicking the text
+toggles it, and it follows the text direction. It applies only with
+[[attr:BoundField.labelled]]; without it the label stays the accessible name.
+Beside the box there's no "Optional" marker, and the pending dot and Revert
+follow the label on the same line; hints, reasons and errors stay below. Use
+it for a toggle in a toolbar or a single option such as "Remember me". Any
+other value throws a `TypeError`. Reactive.
+
+```ts
+html`<aster-check .model=${view} .field=${"onlyToReview"} .label=${"Only rows to review"}
+  .labelled=${true} .labelPosition=${"end"}></aster-check>`;
+```
+
+## type:CheckLabelPosition
+
+`"above" | "start" | "end"`; see [[attr:Check.labelPosition]].
+
 ## method:Check.focus
 
 Focuses the checkbox.

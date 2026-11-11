@@ -1,6 +1,7 @@
 /* These variables are read only on their owning elements. */
 @property --grid-columns { syntax: "*"; inherits: false; }
 @property --split-start { syntax: "<length>"; inherits: false; initial-value: 320px; }
+@property --split-end { syntax: "<length>"; inherits: false; initial-value: 320px; }
 
 @layer aster.elements {
   :is(aster-stack, aster-horizontal-layout, aster-vertical-layout) { display:block; min-width:0; min-height:0; container-type:inline-size; }
@@ -48,7 +49,7 @@
   .aster-menu a[role=menuitem] { color:inherit; text-decoration:none; }
   @media (pointer:coarse) {
     .aster-number:has(.aster-number-steps) { height:auto; min-height:48px; }
-    .aster-number-steps button, .aster-split-tools button, .aster-breadcrumbs :is(a,button) { min-width:44px; min-height:44px; }
+    .aster-number-steps button, .aster-split-tools button, .aster-split-edge, .aster-breadcrumbs :is(a,button) { min-width:44px; min-height:44px; }
     .aster-accordion > .aster-accordion-item > aster-section > .aster-section-head button { min-height:44px; }
     .aster-accordion-reorder button { width:44px; height:44px; }
     .aster-section-head > .aster-section-close { width:44px; height:44px; }
@@ -81,6 +82,8 @@
     transition: left var(--aster-t-caret) var(--aster-ease), width var(--aster-t-caret) var(--aster-ease), opacity 120ms;
   }
   .aster-caret[data-instant] { transition: none; }
+  /* Forced colours replace backgrounds; the caret keeps the system highlight. */
+  @media (forced-colors: active) { .aster-caret { forced-color-adjust: none; background: Highlight; box-shadow: none; } }
 
   /* ── nav ── */
   .aster-nav { display: grid; gap: 1px; }
@@ -368,6 +371,14 @@
   aster-check { display: grid; gap: 6px; }
   .aster-check { display: inline-flex; align-items: center; min-height: var(--aster-ctl); }
   .aster-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--aster-accent); }
+  /* A label beside the box is part of the click target and keeps to one line with the revert. */
+  .aster-check:has(.aster-check-label) { gap: 8px; }
+  .aster-check-label { color: var(--aster-text); }
+  .aster-field-line { display: flex; align-items: center; gap: 8px; }
+  .aster-field-line .aster-revert { margin-left: 0; }
+  [data-pending] .aster-check-label::after { content: ""; display: inline-block; width: 5px; height: 5px; margin-inline-start: 6px; border-radius: 50%; background: var(--aster-accent); translate: 0 -2px; }
+  [data-disabled] .aster-check-label { opacity: .6; }
+  [data-readonly] .aster-check-label { color: var(--aster-text-2); }
 
   /* ── select ── */
   .aster-select-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; outline: none; user-select: none; }
@@ -627,6 +638,12 @@
   aster-split { display:flex; flex-direction:column; container-type:inline-size; min-width:0; min-height:0; }
   .aster-split-layout { --split-handle:9px; display:grid; flex:1; min-height:0; min-width:0; grid-template-columns:minmax(0,min(var(--split-start),calc(100% - var(--split-handle) - 44px))) var(--split-handle) minmax(44px,1fr); }
   .aster-split-pane { min-width:0; min-height:0; overflow:auto; }
+  /* Placed explicitly so the collapse button can share the bar's cell. */
+  .aster-split-layout > [data-pane=start] { grid-area:1 / 1; }
+  .aster-split-layout > :is(.aster-split-bar, .aster-split-edge) { grid-area:1 / 2; }
+  .aster-split-layout > [data-pane=end] { grid-area:1 / 3; }
+  .aster-split-layout[data-orientation=vertical] > :is(.aster-split-bar, .aster-split-edge) { grid-area:2 / 1; }
+  .aster-split-layout[data-orientation=vertical] > [data-pane=end] { grid-area:3 / 1; }
   .aster-split-bar { position:relative; touch-action:none; cursor:col-resize; }
   .aster-split-bar::before { content:""; position:absolute; inset:0 calc((var(--split-handle) - 1px) / 2); background:var(--aster-rule-2); transition:background var(--aster-t-micro); }
   .aster-split-bar:hover::before, .aster-split-bar:focus-visible::before { background:var(--aster-accent); }
@@ -636,13 +653,37 @@
   .aster-split-layout[data-orientation=vertical] > .aster-split-bar::before { inset:calc((var(--split-handle) - 1px) / 2) 0; }
   .aster-split-layout[data-collapsed]:not([data-orientation=vertical]) { grid-template-columns:0 var(--split-handle) minmax(0,1fr); }
   .aster-split-layout[data-collapsed][data-orientation=vertical] { grid-template-rows:0 var(--split-handle) minmax(0,1fr); }
-  .aster-split-layout[data-collapsed] > [data-pane=start] { visibility:hidden; }
+  .aster-split-layout[data-sized=end][data-orientation=horizontal] { grid-template-columns:minmax(44px,1fr) var(--split-handle) minmax(0,min(var(--split-end),calc(100% - var(--split-handle) - 44px))); }
+  .aster-split-layout[data-sized=end][data-orientation=vertical] { grid-template-rows:minmax(44px,1fr) var(--split-handle) minmax(0,min(var(--split-end),calc(100% - var(--split-handle) - 44px))); }
+  .aster-split-layout[data-collapsed][data-sized=end][data-orientation=horizontal] { grid-template-columns:minmax(0,1fr) var(--split-handle) 0; }
+  .aster-split-layout[data-collapsed][data-sized=end][data-orientation=vertical] { grid-template-rows:minmax(0,1fr) var(--split-handle) 0; }
+  .aster-split-layout[data-collapsed] > [data-sized] { visibility:hidden; }
   .aster-split-tools { display:flex; justify-content:flex-end; padding:4px; }
   .aster-split-tools button { color:var(--aster-accent); font-size:12px; min-height:var(--aster-ctl-tight); }
+  /* The chevron points where the bar will move: --edge-axis turns it for stacked panes, --edge-turn for the end pane and the collapsed state. */
+  .aster-split-edge { --edge-axis:0deg; --edge-turn:0deg; position:relative; z-index:1; display:grid; place-items:center; inline-size:22px; block-size:22px; justify-self:center; align-self:start; margin-block-start:8px;
+    border:1px solid var(--aster-rule-2); border-radius:999px; background:var(--aster-surface); color:var(--aster-text-2); box-shadow:var(--aster-e1); transition:background var(--aster-t-micro), color var(--aster-t-micro); }
+  .aster-split-edge:hover { background:var(--aster-accent-soft); color:var(--aster-text); }
+  .aster-split-edge svg { inline-size:10px; block-size:10px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; rotate:calc(var(--edge-axis) + var(--edge-turn)); }
+  .aster-split-layout[data-sized=end] > .aster-split-edge { --edge-turn:180deg; }
+  /* Collapsed, the bar is at the container's edge; the button stays inside it, clear of its focus ring. */
+  .aster-split-layout[data-collapsed] > .aster-split-edge { --edge-turn:180deg; justify-self:start; margin-inline-start:4px; }
+  .aster-split-layout[data-collapsed][data-sized=end] > .aster-split-edge { --edge-turn:0deg; justify-self:end; margin-inline:0 4px; }
+  .aster-split-layout[data-orientation=horizontal]:dir(rtl) > .aster-split-edge svg { scale:-1 1; }
+  .aster-split-layout[data-orientation=vertical] > .aster-split-edge { --edge-axis:90deg; justify-self:end; align-self:center; margin-block-start:0; margin-inline-end:8px; }
+  .aster-split-layout[data-orientation=vertical][data-collapsed] > .aster-split-edge { justify-self:end; align-self:start; margin-block-start:4px; margin-inline:0 8px; }
+  .aster-split-layout[data-orientation=vertical][data-collapsed][data-sized=end] > .aster-split-edge { align-self:end; margin-block:0 4px; }
   @container (max-width:720px) {
-    .aster-split-layout[data-responsive][data-orientation=horizontal] { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); }
+    .aster-split-layout[data-responsive][data-orientation=horizontal] { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto minmax(0,1fr); }
     .aster-split-layout[data-responsive][data-orientation=horizontal] > .aster-split-bar { display:none; }
-    .aster-split-layout[data-responsive][data-collapsed][data-orientation=horizontal] { grid-template-rows:0 minmax(0,1fr); }
+    .aster-split-layout[data-responsive][data-orientation=horizontal] > :is(.aster-split-bar, .aster-split-edge) { grid-area:2 / 1; }
+    .aster-split-layout[data-responsive][data-orientation=horizontal] > [data-pane=end] { grid-area:3 / 1; }
+    .aster-split-layout[data-responsive][data-collapsed][data-orientation=horizontal] { grid-template-rows:0 auto minmax(0,1fr); }
+    .aster-split-layout[data-responsive][data-sized=end][data-orientation=horizontal] { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; }
+    .aster-split-layout[data-responsive][data-collapsed][data-sized=end][data-orientation=horizontal] { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto 0; }
+    /* Stacked, the button sits between the panes at the inline end. */
+    .aster-split-layout[data-responsive][data-orientation=horizontal] > .aster-split-edge { --edge-axis:90deg; justify-self:end; align-self:center; margin-block:4px; margin-inline-end:8px; }
+    .aster-split-layout[data-responsive][data-orientation=horizontal]:dir(rtl) > .aster-split-edge svg { scale:1; }
   }
 
   /* ── list editor ── */
@@ -1207,35 +1248,32 @@
 .aster-command-error:empty { display:none; }
 
 @layer aster.elements {
+  /* Sidebar draws the shared nav look (.aster-nav, .aster-nav-item, .aster-nav-label) with a caret on the current item. */
   aster-sidebar { display: block; min-inline-size: 0; }
-  .aster-sidebar ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+  .aster-sidebar ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 1px; }
   .aster-sidebar li { min-inline-size: 0; }
-  .aster-sidebar .aster-sidebar-item, .aster-sidebar summary {
-    display: flex; align-items: center; gap: 10px; min-block-size: 44px; inline-size: 100%;
-    padding: 10px 12px; box-sizing: border-box; border: 1px solid transparent;
-    border-radius: var(--aster-r-ctl); background: transparent; color: var(--aster-text-2);
-    font: inherit; text-align: start; text-decoration: none; cursor: pointer;
-  }
-  .aster-sidebar summary { font-weight: var(--aster-weight-label); }
-  .aster-sidebar details > ul { padding-inline-start: 16px; margin-block: 4px; }
+  .aster-sidebar .aster-nav-item { box-sizing: border-box; font: inherit; text-decoration: none; cursor: pointer; }
+  .aster-sidebar summary { list-style: none; }
   .aster-sidebar summary::marker { content: ""; }
   .aster-sidebar summary::-webkit-details-marker { display: none; }
-  .aster-sidebar summary::after { content: "⌄"; margin-inline-start: auto; }
+  .aster-sidebar summary::after { content: "⌄"; flex: none; inline-size: 1em; margin-inline-start: auto; text-align: center; color: var(--aster-text-3); }
   .aster-sidebar details:not([open]) > summary::after { content: "›"; }
-  .aster-sidebar-item:hover, .aster-sidebar summary:hover { background: var(--aster-sunk); color: var(--aster-text); }
-  .aster-sidebar-item[aria-current="page"] { color: var(--aster-accent); background: var(--aster-accent-soft); font-weight: var(--aster-weight-label); }
-  .aster-sidebar-item:focus-visible, .aster-sidebar summary:focus-visible { outline: 2px solid var(--aster-accent); outline-offset: 2px; }
+  .aster-sidebar summary .aster-count { margin-inline-start: auto; }
+  .aster-sidebar details > ul { padding-inline-start: 14px; margin-block: 1px; }
+  .aster-sidebar-section:not(:first-child) > .aster-nav-label { margin-block-start: 16px; }
+  .aster-sidebar-section:first-child > .aster-nav-label { margin-block-start: 4px; }
   .aster-sidebar-item:disabled, .aster-sidebar-item[aria-disabled="true"] { opacity: .6; cursor: default; }
-  .aster-sidebar-icon { inline-size: 20px; flex: none; text-align: center; font-size: 18px; line-height: 1; }
-  .aster-sidebar-icon svg { display: block; inline-size: 18px; block-size: 18px; margin-inline: auto; }
+  .aster-sidebar-item:disabled:hover, .aster-sidebar-item[aria-disabled="true"]:hover { background: none; color: var(--aster-text-2); }
+  .aster-sidebar-icon { display: grid; place-items: center; inline-size: 16px; flex: none; font-size: 13px; line-height: 1; }
+  .aster-sidebar-icon svg { display: block; inline-size: 15px; block-size: 15px; }
   .aster-sidebar-label { overflow-wrap: anywhere; }
-  .aster-sidebar-badge { margin-inline-start: auto; padding: 1px 6px; border-radius: var(--aster-r-ctl); background: var(--aster-sunk); font-size: .8em; }
+  @media (pointer: coarse) { .aster-sidebar .aster-nav-item { min-block-size: 44px; } }
   .aster-sidebar[data-compact] { inline-size: 52px; }
-  .aster-sidebar[data-compact] .aster-sidebar-label, .aster-sidebar[data-compact] .aster-sidebar-badge { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
-  .aster-sidebar[data-compact] .aster-sidebar-item { justify-content: center; }
+  .aster-sidebar[data-compact] .aster-sidebar-label, .aster-sidebar[data-compact] .aster-sidebar-badge, .aster-sidebar[data-compact] .aster-nav-label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+  .aster-sidebar[data-compact] .aster-nav-item { justify-content: center; padding-inline: 8px; }
+  .aster-sidebar[data-compact] summary::after { display: none; }
   .aster-sidebar[data-compact] details > ul { padding-inline-start: 0; }
   @media (forced-colors: active) {
-    .aster-sidebar-item[aria-current="page"] { border-color: Highlight; }
     .aster-sidebar-item:disabled, .aster-sidebar-item[aria-disabled="true"] { color: GrayText; opacity: 1; }
   }
 }

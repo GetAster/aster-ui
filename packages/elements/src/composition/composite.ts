@@ -45,6 +45,8 @@ export class Composite<I extends CompositeContract = CompositeContract> {
   readonly definition: CompositeDefinition;
   readonly #refs = new Map<string, unknown>();
   readonly #sources: CompositeSources;
+  /** Set when a placement must be checked for containment at mount. */
+  #placed: Readonly<Record<string, Child>> | undefined;
 
   constructor(definition: CompositeDefinition, readonly registry: CompositeResolver<I>, ...args: CompositeArguments<NoInfer<I>>) {
     const options: CompositeOptions = args[0] ?? {};
@@ -132,7 +134,8 @@ export class Composite<I extends CompositeContract = CompositeContract> {
         });
         render(template, this.element);
         this.lifetime.defer(() => render(nothing, this.element));
-        for (const key of Object.keys(children)) if (!placed.has(key) || !this.element.contains(children[key]!.element)) throw new CompositeError("placement", `child '${key}' has no placement`);
+        for (const key of Object.keys(children)) if (!placed.has(key)) throw new CompositeError("placement", `child '${key}' has no placement`);
+        this.#placed = children;
       } else this.element.append(this.#layout(definition.layout, children));
       for (const activate of activations) activate();
     } catch (error) {
@@ -141,9 +144,22 @@ export class Composite<I extends CompositeContract = CompositeContract> {
     }
   }
 
+  /**
+   * Elements render their content when they connect, so a placement's
+   * containment is checked here, once the whole tree has rendered.
+   */
   mount(target: HTMLElement): this {
     if (this.lifetime.disposed) throw new Error("Composite is disposed");
-    target.append(this.element); return this;
+    if (this.#placed && !target.isConnected) throw located(new CompositeError("placement", "a placed composite must mount into the document"), this.#sources);
+    target.append(this.element);
+    if (this.#placed) {
+      const lost = Object.entries(this.#placed).find(([, child]) => !this.element.contains(child.element));
+      if (lost) {
+        this.dispose();
+        throw located(new CompositeError("placement", `child '${lost[0]}' has no placement`), this.#sources);
+      }
+    }
+    return this;
   }
 
   /** The caller performs close/draft guards before unconditional teardown. */

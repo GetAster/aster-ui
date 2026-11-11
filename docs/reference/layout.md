@@ -71,8 +71,9 @@ render(
 - Layout elements don't set a height. A split's panes each scroll on their own
   (`overflow: auto`), so give the split a height, such as a flex or grid cell,
   or its panes grow to their contents.
-- A split has two panes and resizes/collapses its first pane. Use `orientation`
-  for either axis and nest splits for more panes.
+- A split has two panes and resizes/collapses one of them: the start pane by
+  default, or the end pane with `pane="end"` (an inspector, say). Use
+  `orientation` for either axis and nest splits for more panes.
 - A carousel does not rotate by itself and has no autoplay, dots or looping.
 - A carousel fires no event. Read its `index` to follow it.
 
@@ -244,21 +245,23 @@ close policy, and otherwise the host decides what happens next.
 Tag: `aster-split`. Set `start` and `end` to the two panes' contents; the
 element needs nothing else.
 
-The bar between the panes is a focusable `role="separator"` with
-`aria-orientation="vertical"`, `aria-valuenow` (the start pane's width in
-pixels), `aria-valuemin` and `aria-valuemax`, and `aria-controls` pointing at the
-start pane. Name it with `label`.
+One pane is sized, chosen by [[attr:Split.pane]] (the start pane by default);
+the other takes the rest. The bar between the panes is a focusable
+`role="separator"` with `aria-orientation="vertical"`, `aria-valuenow` (the
+sized pane's width in pixels), `aria-valuemin` and `aria-valuemax`, and
+`aria-controls` pointing at the sized pane. Name it with `label`.
 
 | Input | Effect |
 |---|---|
-| Drag the bar | Resizes the start pane, clamped to `min` and `max`. Follows the text direction. |
-| Left and Right | Narrow and widen the start pane by 16 px. In right-to-left text they are reversed. |
-| Home and End | Go to `min` and to `max`. |
+| Drag the bar | Moves the bar, resizing the sized pane, clamped to `min` and `max`. Follows the text direction. |
+| Left and Right | Move the bar 16 px. With the start pane sized, Right widens it; with the end pane sized, Left widens it. In right-to-left text they are reversed. |
+| Home and End | Size the pane to `min` and to `max`. |
 
-JS writes only the start pane's width, on the element as the custom property
-`--split-start`; CSS lays out the panes and gives each its own scrolling.
+JS writes only the sized pane's width, on the element as the custom property
+`--split-start` or `--split-end`; CSS lays out the panes and gives each its own scrolling.
 At container widths of 720 px and under, responsive horizontal panes stack,
-start first, with the bar hidden. Vertical splits keep their axis. Requested
+start first, with the bar hidden; a bar collapse button
+([[object:SplitChrome]]) then sits between them. Vertical splits keep their axis. Requested
 sizes are whole pixels; CSS constrains the rendered track to available space.
 Scrollable panes are keyboard focusable.
 
@@ -288,21 +291,31 @@ it isn't a size; the size is `width`. Reactive.
 The second pane's contents, a [[type:View]]. Default `nothing`. It takes the
 space the start pane leaves. Reactive.
 
+## attr:Split.pane
+
+`"start"` (default) or `"end"`: the pane that `width`, `min`, `max`, `persist`
+and collapsing apply to. The other pane takes the remaining space, so an
+end-sized split keeps a fixed-width inspector on the trailing side while the
+start pane grows with the page. Any other value throws a `TypeError`. Panes
+keep their DOM when this changes; the requested size carries over to the newly
+sized pane. In a narrow responsive container the panes still stack start first.
+Reactive.
+
 ## attr:Split.width
 
-The start pane's width in pixels. Default `320`. Setting it rounds it and
+The sized pane's width in pixels. Default `320`. Setting it rounds it and
 clamps it to `min` and `max`; the getter returns the clamped preferred value. Changes to min/max re-clamp
 it immediately. CSS may render a smaller track to fit the available space. Reactive; it also changes as the person
 drags.
 
 ## attr:Split.min
 
-The least width of the start pane, in pixels. Default `220`. Also the bar's
+The least width of the sized pane, in pixels. Default `220`. Also the bar's
 `aria-valuemin` and where Home goes. Reactive; re-clamps the preferred size. See [[attr:Split.width]].
 
 ## attr:Split.max
 
-The greatest width of the start pane, in pixels. Default `560`. Also the bar's
+The greatest width of the sized pane, in pixels. Default `560`. Also the bar's
 `aria-valuemax` and where End goes. Reactive; re-clamps the preferred size. See [[attr:Split.width]].
 
 ## attr:Split.label
@@ -422,7 +435,8 @@ text direction. Home/End select limits.
 
 ## attr:Split.size
 
-Axis-neutral alias of width. Preferred expanded first-pane size in pixels.
+Axis-neutral alias of width. Preferred expanded size of the sized pane
+([[attr:Split.pane]]) in pixels.
 
 ## attr:Split.responsive
 
@@ -431,13 +445,48 @@ Set false to retain a side-by-side resize bar in a narrow region.
 
 ## attr:Split.collapsible
 
-Default false. Enables an explicit collapse/restore control and Enter on the
-separator. Only the first pane collapses.
+Default false. Enables a collapse/restore control and Enter on the separator.
+The sized pane ([[attr:Split.pane]]) collapses. Where the control sits is
+[[attr:Split.chrome]]; its text is [[attr:Split.labels]].
 
 ## attr:Split.collapsed
 
 Default false. Collapsed pane DOM remains mounted and inert; the preferred
-expanded size is preserved. Collapsing focused content returns focus to the bar.
+expanded size is preserved. Collapsing focused content moves focus to the bar,
+or, where the bar is hidden, to the collapse control or the other pane.
+
+## object:SplitChrome
+
+The plain-data chrome object behind [[attr:Split.chrome]]. Every field is
+optional.
+
+| Field | Default | Effect |
+|---|---|---|
+| `collapse` | `"toolbar"` | Where a collapsible split's collapse control sits. `"toolbar"` is a text button in a row above both panes. `"bar"` is a small chevron button on the resize bar, which stays at the edge where the pane was when it collapses; stacked panes show it between them. `false` draws no control: the host provides its own and sets [[attr:Split.collapsed]], and Enter on the separator still toggles. |
+
+The control is a `button` with `aria-expanded` and `aria-controls` naming the
+sized pane. The bar button is a sibling of the separator, not inside it, and
+follows it in the Tab order; its accessible name and tooltip come from
+[[attr:Split.labels]]. Its chevron points the way the bar will move, for either
+pane, orientation and text direction.
+
+## attr:Split.chrome
+
+Presentational chrome. Default `{}`. See [[object:SplitChrome]]. Unknown fields
+and other `collapse` values throw a `TypeError`. Reactive: assign a new object;
+the stored object is frozen. YAML: `chrome: { collapse: bar }`.
+
+## object:SplitLabels
+
+Text for the collapse control: `collapse` (default `"Collapse pane"`) while the
+pane is shown, `restore` (default `"Restore pane"`) while it is collapsed. Name
+the pane, such as `"Hide the chart list"` and `"Show the chart list"`.
+
+## attr:Split.labels
+
+The collapse control's text, a [[object:SplitLabels]]. Default `{}`. Unknown
+fields or non-string values throw a `TypeError`. Reactive: assign a new object.
+The separator's own name stays [[attr:Split.label]].
 
 ## attr:Section.disabled
 

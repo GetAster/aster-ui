@@ -58,11 +58,13 @@ for (const name of packages) {
       manifest.exports["./styles/*"] = "./styles/*";
       manifest.exports["./yaml"] = { types: "./dist/yaml.d.ts", import: "./dist/yaml.js", default: "./dist/yaml.js" };
       manifest.sideEffects = ["./dist/index.js", "./dist/**/*.js", "./styles/*.css"];
-      const cli = await Bun.build({ entrypoints: [join(source, "tools/aster-theme-check.ts")], target: "node", outdir: join(destination, "bin"), minify: false });
-      if (!cli.success) throw new AggregateError(cli.logs, "Theme CLI build failed");
-      const path = join(destination, "bin/aster-theme-check.js");
-      writeFileSync(path, readFileSync(path, "utf8").replace(/^#![^\n]+/, "#!/usr/bin/env node"), { mode: 0o755 });
-      manifest.bin = { "aster-theme-check": "./bin/aster-theme-check.js" };
+      for (const tool of ["aster-theme-check", "aster-lint"]) {
+        const cli = await Bun.build({ entrypoints: [join(source, `tools/${tool}.ts`)], target: "node", outdir: join(destination, "bin"), minify: false });
+        if (!cli.success) throw new AggregateError(cli.logs, `${tool} build failed`);
+        const path = join(destination, `bin/${tool}.js`);
+        writeFileSync(path, readFileSync(path, "utf8").replace(/^#![^\n]+/, "#!/usr/bin/env node"), { mode: 0o755 });
+      }
+      manifest.bin = { "aster-theme-check": "./bin/aster-theme-check.js", "aster-lint": "./bin/aster-lint.js" };
       break;
     }
     case "elements-preview":

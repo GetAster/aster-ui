@@ -1,5 +1,7 @@
+import { signal, type Signal } from "@preact/signals-core";
 import { html, nothing } from "lit-html";
 import { each, type View } from "../base/element.ts";
+import "../caret/caret-group.ts";
 import { defineElement, elementProperty } from "../composition/element.ts";
 import { compositeTypes as t } from "../composition/contracts.ts";
 
@@ -13,6 +15,8 @@ export interface SidebarItem {
   readonly disabled?: boolean;
   readonly reason?: string;
   readonly children?: readonly SidebarItem[];
+  /** For a group: `false` shows it as a labelled section that doesn't fold. Default `true`. */
+  readonly collapsible?: boolean;
 }
 
 /** Navigation URLs are limited to web, relative and fragment destinations. */
@@ -26,10 +30,11 @@ function itemsValid(value: unknown): value is readonly SidebarItem[] {
   const visit = (items: unknown, depth: number): boolean => Array.isArray(items) && depth < 16 && items.every(item => {
     if (!item || typeof item !== "object" || typeof item.id !== "string" || !item.id || ids.has(item.id) || typeof item.label !== "string" || !item.label.trim()) return false;
     ids.add(item.id);
-    const keys = ["id", "label", "href", "badge", "icon", "hidden", "disabled", "reason", "children"];
+    const keys = ["id", "label", "href", "badge", "icon", "hidden", "disabled", "reason", "children", "collapsible"];
     return Object.keys(item).every(key => keys.includes(key))
       && ["badge", "icon", "reason"].every(key => item[key] === undefined || typeof item[key] === "string")
-      && ["hidden", "disabled"].every(key => item[key] === undefined || typeof item[key] === "boolean")
+      && ["hidden", "disabled", "collapsible"].every(key => item[key] === undefined || typeof item[key] === "boolean")
+      && (item.collapsible === undefined || item.children !== undefined)
       && (item.href === undefined || typeof item.href === "string" && sidebarHref(item.href))
       && (item.children === undefined || item.href === undefined && visit(item.children, depth + 1));
   });
@@ -41,7 +46,7 @@ const itemSchema = {
   properties: {
     id: { type: "string", minLength: 1 }, label: { type: "string", minLength: 1 },
     href: { type: "string" }, badge: { type: "string" }, icon: { type: "string" },
-    hidden: { type: "boolean" }, disabled: { type: "boolean" }, reason: { type: "string" },
+    hidden: { type: "boolean" }, disabled: { type: "boolean" }, reason: { type: "string" }, collapsible: { type: "boolean" },
     children: { type: "array", items: { type: "object" } },
   },
 };
@@ -49,7 +54,18 @@ export const sidebarItems = t.custom("navigation items with unique IDs and safe 
   type: "array", items: itemSchema,
 });
 
-/** Controlled navigation: hosts own routing, permissions and selection policy. */
+/** Folded groups, by element: view state the host doesn't control. */
+const folded = new WeakMap<HTMLElement, Signal<ReadonlySet<string>>>();
+
+function contains(items: readonly SidebarItem[], id: string | undefined): boolean {
+  return id !== undefined && items.some(item => !item.hidden && (item.id === id || (item.children !== undefined && contains(item.children, id))));
+}
+
+/**
+ * Controlled navigation: hosts own routing, permissions and selection policy.
+ * A caret marks the current item; a folded group that hides it carries the
+ * caret instead.
+ */
 export const Sidebar = defineElement({
   tag: "aster-sidebar",
   properties: {
@@ -60,6 +76,15 @@ export const Sidebar = defineElement({
     compact: elementProperty(t.boolean, () => false, "Use an icon rail with accessible labels"),
   },
   render: ({ label, items, value, compact, renderIcon }, element) => {
+    let closed = folded.get(element);
+    if (!closed) folded.set(element, closed = signal<ReadonlySet<string>>(new Set()));
+    const shut = closed.value;
+    const toggle = (id: string, open: boolean) => {
+      if (open === !closed.peek().has(id)) return;
+      const next = new Set(closed.peek());
+      if (open) next.delete(id); else next.add(id);
+      closed.value = next;
+    };
     const choose = (event: MouseEvent, item: SidebarItem) => {
       if (item.disabled) { event.preventDefault(); return; }
       // Modified link clicks keep native open-in-new-tab behaviour.
@@ -67,18 +92,26 @@ export const Sidebar = defineElement({
       const allowed = element.dispatchEvent(new CustomEvent("navigate", { detail: item.id, bubbles: true, cancelable: true }));
       if (!allowed) event.preventDefault();
     };
-    const list = (entries: readonly SidebarItem[], unavailable = false): unknown => html`<ul>
+    const list = (entries: readonly SidebarItem[], unavailable = false, name?: string): unknown => html`<ul aria-label=${name ?? nothing}>
       ${each(entries.filter(item => !item.hidden), item => item.id, item => {
         const disabled = unavailable || !!item.disabled;
         const effective = disabled ? { ...item, disabled: true } : item;
-        const content = html`<span class="aster-sidebar-icon" aria-hidden="true">${renderIcon ? renderIcon(item) : item.icon ?? item.label.slice(0, 1)}</span>
-          <span class="aster-sidebar-label">${item.label}</span>${item.badge ? html`<span class="aster-sidebar-badge">${item.badge}</span>` : nothing}`;
-        return html`<li>${item.children ? html`<details open><summary title=${compact ? item.label : nothing}>${content}</summary>${list(item.children, disabled)}</details>`
-          : item.href ? html`<a class="aster-sidebar-item" href=${disabled ? nothing : item.href}
+        // The compact rail needs a mark for every item, so it falls back to the initial.
+        const glyph = renderIcon ? renderIcon(item) : item.icon ?? (compact ? item.label.slice(0, 1) : undefined);
+        const content = html`${glyph === undefined ? nothing : html`<span class="aster-sidebar-icon" aria-hidden="true">${glyph}</span>`}
+          <span class="aster-sidebar-label">${item.label}</span>${item.badge ? html`<span class="aster-count aster-figure-text aster-sidebar-badge">${item.badge}</span>` : nothing}`;
+        if (item.children && item.collapsible === false) {
+          return html`<li class="aster-sidebar-section"><div class="aster-nav-label" aria-hidden="true">${item.label}</div>${list(item.children, disabled, item.label)}</li>`;
+        }
+        // A folded group that hides the current item stands in for it.
+        const open = !shut.has(item.id);
+        return html`<li>${item.children ? html`<details ?open=${open} @toggle=${(event: Event) => toggle(item.id, (event.currentTarget as HTMLDetailsElement).open)}>
+            <summary class="aster-nav-item" title=${compact ? item.label : nothing} aria-current=${!open && contains(item.children, value) ? "true" : nothing}>${content}</summary>${list(item.children, disabled)}</details>`
+          : item.href ? html`<a class="aster-nav-item aster-sidebar-item" href=${disabled ? nothing : item.href}
             aria-disabled=${disabled ? "true" : nothing} aria-current=${item.id === value ? "page" : nothing}
             tabindex=${disabled ? "-1" : nothing} title=${item.reason ?? (compact ? item.label : nothing)}
             @click=${(event: MouseEvent) => choose(event, effective)}>${content}${item.reason ? html`<span class="aster-sr-only"> ${item.reason}</span>` : nothing}</a>`
-          : html`<button class="aster-sidebar-item" type="button" ?disabled=${disabled}
+          : html`<button class="aster-nav-item aster-sidebar-item" type="button" ?disabled=${disabled}
             aria-current=${item.id === value ? "page" : nothing} title=${item.reason ?? (compact ? item.label : nothing)}
             @click=${(event: MouseEvent) => choose(event, effective)}>${content}${item.reason ? html`<span class="aster-sr-only"> ${item.reason}</span>` : nothing}</button>`}</li>`;
       })}</ul>`;
@@ -96,6 +129,6 @@ export const Sidebar = defineElement({
           default: return;
         }
         event.preventDefault(); controls[next]?.focus();
-      }}>${list(items)}</nav>`;
+      }}><aster-caret-group class="aster-nav">${list(items)}</aster-caret-group></nav>`;
   },
 });

@@ -25,7 +25,11 @@ const json = async name => {
 const mock = await createMockService({ metadata: await json("metadata"), data: await json("data"), wasm: new URL("../lib/odata_mock.wasm", import.meta.url) });
 const context = await DataContext.connect(mock.transport);
 const models = [false, true, null].map(done => new EditModel(context, "Tasks", undefined, { done }));
+// Toolbar-style checks: the label beside the box, on one line.
+const beside = [true, false].map(done => new EditModel(context, "Tasks", undefined, { done }));
 render(html`${models.map((model, index) => html`<aster-check .model=${model} .field=${"done"}
-  .label=${["Unchecked", "Checked", "Mixed"][index]} .labelled=${true}></aster-check>`)}`, document.querySelector("#checks"));
-addEventListener("pagehide", () => models.forEach(model => model.dispose()));
+  .label=${["Unchecked", "Checked", "Mixed"][index]} .labelled=${true}></aster-check>`)}
+  <aster-check .model=${beside[0]} .field=${"done"} .label=${"Label after"} .labelled=${true} .labelPosition=${"end"}></aster-check>
+  <aster-check .model=${beside[1]} .field=${"done"} .label=${"Label before"} .labelled=${true} .labelPosition=${"start"}></aster-check>`, document.querySelector("#checks"));
+addEventListener("pagehide", () => [...models, ...beside].forEach(model => model.dispose()));
 document.querySelector("#controls").dataset.ready = "true";

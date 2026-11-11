@@ -239,6 +239,7 @@ export const asterComponents = Object.freeze({
   }),
   Check: element<Check>()("aster-check", {
     ...bound,
+    labelPosition: literals("above", "start", "end"),
   }),
   Select: element<Select>()("aster-select", {
     ...bound,
@@ -442,7 +443,7 @@ export const asterComponents = Object.freeze({
     canClose: t.boolean,
   }),
   Split: element<Split>()("aster-split", {
-    orientation: literals("horizontal", "vertical"), size: t.number, collapsible: t.boolean, collapsed: t.boolean, responsive: t.boolean,
+    orientation: literals("horizontal", "vertical"), pane: literals("start", "end"), size: t.number, collapsible: t.boolean, collapsed: t.boolean, responsive: t.boolean,
     start: checked<Split["start"]>("Split.start", view),
     end: checked<Split["end"]>("Split.end", view),
     width: t.number,
@@ -450,6 +451,8 @@ export const asterComponents = Object.freeze({
     max: t.number,
     label: t.string,
     persist: t.string,
+    chrome: t.object({ collapse: t.optional(t.custom<"toolbar" | "bar" | false>("toolbar, bar or false", (v): v is "toolbar" | "bar" | false => v === "toolbar" || v === "bar" || v === false, { enum: ["toolbar", "bar", false] })) }),
+    labels: t.object({ collapse: t.optional(t.string), restore: t.optional(t.string) }),
   }),
   Carousel: element<Carousel>()("aster-carousel", {
     slides: checked<Carousel["slides"]>("Carousel.slides", v => Array.isArray(v) && new Set(v.filter(s => s?.id !== undefined).map(s => s.id)).size === v.filter(s => s?.id !== undefined).length && v.every(s => object(s) && typeof s.label === "string" && (s.id === undefined || typeof s.id === "string") && view(s.view))),

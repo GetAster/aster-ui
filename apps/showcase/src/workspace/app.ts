@@ -24,6 +24,7 @@ import {
   type Menu,
   type MenuItem,
   type RowMenuDetail,
+  type SidebarItem,
   type Toaster,
   type View,
 } from "@getaster/elements";
@@ -70,6 +71,13 @@ interface Rename {
  * show and which write to make; every count, figure and row follows the
  * store through the model's collections.
  */
+
+/** The sidebar's pages, in order. */
+const NAV_PAGES = ["home", "projects", "people", "tasks", "model", "helpdesk", "time", "reports", "showcase"] as const;
+const NAV_LABELS: Record<(typeof NAV_PAGES)[number], string> = {
+  home: "Home", projects: "Projects", people: "People", tasks: "Tasks", model: "Model",
+  helpdesk: "Helpdesk", time: "Time", reports: "Reports", showcase: "Showcase",
+};
 export class AsterDemo extends AsterElement {
   #setup!: AppSetup;
   #share!: Share;
@@ -151,34 +159,36 @@ export class AsterDemo extends AsterElement {
       : `${PAGE_TITLES[page]} – Aster`;
   }
 
+  /** Pinned projects by their Sidebar item id. */
+  #pins = new Map<string, Entity>();
+  readonly #navIcon = (item: SidebarItem): View => {
+    const pin = this.#pins.get(item.id);
+    if (pin) return html`<i class="aster-dot" style=${`--hue:${pin.hue}`}></i>`;
+    return (NAV_PAGES as readonly string[]).includes(item.id) ? icons[item.id as (typeof NAV_PAGES)[number]] : nothing;
+  };
+  readonly #navigate = (event: CustomEvent<string>): void => {
+    const pin = this.#pins.get(event.detail);
+    if (!pin) return;
+    event.preventDefault();
+    this.#reveal(keyText([pin.id!]));
+  };
+
   #sidebar(page: Page): View {
     const { model } = this.#setup;
     const pinned = model.pinned.items.value.filter((p): p is Entity => p !== undefined);
-    const item = (to: "home" | "projects" | "people" | "tasks" | "model" | "helpdesk" | "time" | "reports" | "showcase", label: string, extra: View = nothing) =>
-      html`<a class="aster-nav-item" href=${`#${to === "projects" ? `projects/${model.route.value.tab}` : to}`}
-        aria-current=${page === to || (to === "projects" && page === "project") ? "page" : nothing}>${icons[to]}${label}${extra}</a>`;
+    this.#pins = new Map(pinned.map(p => [`pin-${String(p.id)}`, p]));
+    const count = model.activeCount.value;
+    const items: SidebarItem[] = [
+      ...NAV_PAGES.map((to): SidebarItem => ({ label: NAV_LABELS[to],
+        id: to, href: `#${to === "projects" ? `projects/${model.route.value.tab}` : to}`,
+        ...(to === "projects" && count !== undefined ? { badge: String(count) } : {}),
+      })),
+      { id: "pinned", label: "Pinned", collapsible: false, children: pinned.map(p => ({ id: `pin-${String(p.id)}`, label: String(p.name) })) },
+    ];
     return html`<aside class="sidebar">
       <div class="brand">${asterMark}Aster</div>
-      <nav aria-label="Main">
-        <aster-caret-group class="aster-nav">
-          ${item("home", "Home")}
-          ${item("projects", "Projects", html`<span class="aster-count aster-figure-text">${model.activeCount.value ?? ""}</span>`)}
-          ${item("people", "People")}
-          ${item("tasks", "Tasks")}
-          ${item("model", "Model")}
-          ${item("helpdesk", "Helpdesk")}
-          ${item("time", "Time")}
-          ${item("reports", "Reports")}
-          ${item("showcase", "Showcase")}
-          <div class="aster-nav-label" id="pinned-label">Pinned</div>
-          ${each(
-            pinned,
-            (p) => String(p.id),
-            (p) => html`<button type="button" class="aster-nav-item" title=${`Show ${p.name} in Projects`}
-              @click=${() => this.#reveal(keyText([p.id!]))}><i class="aster-dot" style=${`--hue:${p.hue}`}></i>${p.name}</button>`,
-          )}
-        </aster-caret-group>
-      </nav>
+      <aster-sidebar .label=${"Main"} .items=${items} .value=${page === "project" ? "projects" : page}
+        .renderIcon=${this.#navIcon} @navigate=${this.#navigate}></aster-sidebar>
       <footer>
         <span>Ada Lovelace</span>
         ${this.#densitySwitch()}

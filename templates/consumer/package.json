@@ -5,14 +5,15 @@
   "scripts": {
     "dev": "bun --hot serve.ts",
     "build": "bun build.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "aster-lint src index.html"
   },
   "dependencies": {
-    "@getaster/data": "^0.4.0",
-    "@getaster/elements": "^0.4.0"
+    "@getaster/data": "^0.4.23",
+    "@getaster/elements": "^0.4.23"
   },
   "devDependencies": {
-    "@getaster/mock": "^0.4.0",
+    "@getaster/mock": "^0.4.23",
     "@types/bun": "^1.2.15",
     "typescript": "^5.9.3"
   }

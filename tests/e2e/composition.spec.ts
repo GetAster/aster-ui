@@ -392,25 +392,32 @@ test("semantic placement keeps activation, retained drafts, scope and ownership"
     const url = "/lib/aster-ui.js"; const { Composite, html } = await import(url);
     const demo = (globalThis as any).compositionDemo;
     const results = [];
-    for (const kind of ["missing", "duplicate", "unknown", "unused"]) {
+    const host = document.createElement("div"); document.body.append(host);
+    for (const kind of ["missing", "duplicate", "unknown", "unused", "detached"]) {
       try {
-        new Composite(demo.definition, demo.registry, { inputs: { ctx: demo.ctx }, ctx: demo.ctx,
+        const instance = new Composite(demo.definition, demo.registry, { inputs: { ctx: demo.ctx }, ctx: demo.ctx,
           placement: (place: any) => {
             if (kind === "missing") return html`<section></section>`;
             if (kind === "duplicate") return html`${place("status")}${place("status")}`;
             if (kind === "unknown") return html`${place("missing")}`;
+            if (kind === "detached") return html`${place()}`;
             Object.keys(demo.definition.children).forEach(place); return html`<section></section>`;
           },
         });
+        try { instance.mount(kind === "detached" ? document.createElement("div") : host); }
+        finally { if (kind === "detached") instance.dispose(); }
         results.push("unexpected");
       } catch (error) { results.push(String(error)); }
     }
+    results.push(String(host.childElementCount)); host.remove();
     return results;
   });
   expect(failures[0]).toContain("has no placement");
   expect(failures[1]).toContain("duplicate placement");
   expect(failures[2]).toContain("unknown child");
   expect(failures[3]).toContain("has no placement");
+  expect(failures[4]).toContain("must mount into the document");
+  expect(failures[5]).toBe("0");
   expect((await new AxeBuilder({ page }).include("#workspace").analyze()).violations).toEqual([]);
 });
 
@@ -438,6 +445,29 @@ test("catalog host inputs fail before factories and catalog capabilities stay se
   expect(result.failures[1]).toContain("inputs.label");
   expect(result.failures[2]).toContain("inputs.extra");
   expect(result.sealed).toContain("Registry is sealed");
+});
+
+test("placement can put children inside a split's panes", async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const url = "/lib/aster-ui.js";
+    const { Composite, defineCompositeRegistry, defineCompositeModel, compositeTypes: t, html, compositeElement } = await import(url);
+    const authoring = defineCompositeRegistry({ models: { shell: defineCompositeModel({ inputs: {}, exports: {}, commands: {}, create: () => ({ values: {}, commands: {} }) }) }, components: { Text: compositeElement("output", { textContent: t.string }) } });
+    const definition = { version: 1, name: "Panes", model: { type: "shell" }, children: { navigation: { type: "Text", props: { textContent: "List" } }, chart: { type: "Text", props: { textContent: "Chart" } } }, layout: { type: "stack", items: [{ child: "navigation" }, { child: "chart" }] } };
+    const host = document.createElement("div"); document.body.append(host);
+    const instance = new Composite(definition, authoring.registry, { placement: authoring.placement(definition, (place: any) =>
+      html`<aster-split .collapsible=${true} .start=${html`<aside>${place("navigation")}</aside>`} .end=${html`<main>${place("chart")}</main>`}></aster-split>`) }).mount(host);
+    await instance.children.navigation.ensure(); await instance.children.chart.ensure();
+    const split = host.querySelector("aster-split") as any;
+    const text = (selector: string) => host.querySelector(selector)?.textContent;
+    const before = { navigation: text("aster-split aside output"), chart: text("aster-split main output") };
+    split.collapsed = true; await new Promise(requestAnimationFrame);
+    const hidden = (host.querySelector("aster-split aside")!.closest("[data-sized]") as HTMLElement).inert;
+    instance.dispose(); host.remove();
+    return { before, hidden };
+  });
+  expect(result.before).toEqual({ navigation: "List", chart: "Chart" });
+  expect(result.hidden).toBe(true);
 });
 
 test("forward command aliases resolve consistently and root placement reuses the declared layout", async ({ page }) => {

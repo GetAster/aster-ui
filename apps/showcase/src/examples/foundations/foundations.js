@@ -27,6 +27,11 @@ Object.assign(split, { size: 280, min: 160, max: 520, label: "Resize project nav
   end: html`<aster-split id="level-split" .orientation=${"vertical"} .size=${135} .min=${80} .max=${240} .label=${"Resize project notes"}
     .start=${html`<div class="layout-content"><h3>Project notes</h3><label class="demo-note">Working note<span class="aster-field aster-field-prose" data-ring-owner><textarea aria-label="Working note" placeholder="This note survives resizing and collapse"></textarea></span></label></div>`}
     .end=${html`<div class="layout-content"><aster-horizontal-layout .gap=${"large"} .content=${html`<div><strong>Budget review</strong><p>Friday, 10:00</p></div><div><strong>Owner</strong><p>Alex Morgan</p></div>`}></aster-horizontal-layout></div>`}></aster-split>` });
+const inspector = byId("inspector-split");
+Object.assign(inspector, { pane: "end", size: 260, min: 200, max: 420, label: "Resize the inspector", collapsible: true,
+  chrome: { collapse: "bar" }, labels: { collapse: "Hide the inspector", restore: "Show the inspector" },
+  start: html`<div class="layout-content"><h3>Weekly throughput</h3><p>The work area takes whatever the inspector leaves.</p></div>`,
+  end: html`<div class="layout-content"><h3>Inspector</h3><label class="demo-note">Series label<span class="aster-field" data-ring-owner><input aria-label="Series label" value="Throughput"></span></label></div>` });
 byId("responsive").onchange = e => split.responsive = e.target.checked;
 byId("narrow").onclick = () => { const narrow = split.style.maxWidth !== "460px"; split.style.maxWidth = narrow ? "460px" : ""; byId("narrow").textContent = narrow ? "Use full container" : "Use narrow container"; };
 
@@ -100,5 +105,5 @@ try {
   byId("lock-group").onchange = e => byId("budget-group").disabled = e.target.checked;
   byId("validate").onclick = () => { const valid = model.validate(); byId("group-output").textContent = valid ? "Project values are valid" : "Review the highlighted fields"; if (!valid) byId("budget-group").focus(); };
 } catch (error) { byId("group").textContent = error.message; byId("group").setAttribute("role", "alert"); }
-window.foundationsDemo = { exact, quantity, split, accordion, hierarchy, rail, get model() { return model; }, get lazyCalls() { return lazyCalls; } };
+window.foundationsDemo = { exact, quantity, split, inspector, accordion, hierarchy, rail, get model() { return model; }, get lazyCalls() { return lazyCalls; } };
 addEventListener("pagehide", () => { model?.dispose(); if (collection) ctx.release(collection); });

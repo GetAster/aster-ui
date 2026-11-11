@@ -28,6 +28,15 @@ after deactivation. Registration contracts validate resolved props before lazy
 module loading. Custom factories must honour their lifetime's abort signal and
 release partial resources if they fail. Late sessions are released automatically.
 
+## method:Composite.mount
+
+`mount(target)` appends the composite's element to `target` and returns the
+composite. A composite with a `placement` must mount into an element in the
+document, because elements in the placement render their content, such as a
+Split's panes, only when they connect. Mounting then checks that every placed
+child is inside the composite; if one is not, the composite is disposed and
+`mount` throws a `placement` error.
+
 ## method:Composite.dispose
 
 Unconditional teardown, idempotent. The application decides whether a dirty or
@@ -219,7 +228,11 @@ navigation are not supplied by this method.
 child keys. Pass its returned function as `CompositeOptions.placement`. The
 callback runs once and returns a Lit template. `place()` reuses the complete
 declared layout; `place(name)` places an existing child container. Every child
-must be covered exactly once. Named placement does not allocate unused default
+must be covered exactly once. Children can be placed inside elements that take
+their content as properties, such as a Split's `start` and `end`, if those
+elements keep the content rendered. Unknown, duplicate and missing names fail
+when the composite is created; a placed child that the rendered template drops
+fails at [[method:Composite.mount]]. Named placement does not allocate unused default
 layout wrappers. Definitions continue to own activation,
 rules, lazy creation, retention and disposal; CSS owns responsive geometry.
 

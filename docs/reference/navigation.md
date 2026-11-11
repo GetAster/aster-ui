@@ -14,8 +14,16 @@ with `new Sidebar()` or declare a child using `asterComponents.Sidebar`.
 | `items` | readonly SidebarItem[] | `[]` | Navigation items with unique nonempty IDs. |
 | `value` | string or undefined | undefined | Current item ID, controlled by the host. |
 | `label` | string | Navigation | Accessible name of the navigation landmark. |
-| `renderIcon` | function or undefined | undefined | Trusted icon template; default uses the item glyph or initial. |
+| `renderIcon` | function or undefined | undefined | Trusted icon template; default uses the item's `icon` glyph, or its initial in the compact rail. |
 | `compact` | boolean | false | Icon rail; labels remain accessible. |
+
+It draws the shared navigation look, the one the showcase workspace uses: quiet
+items, the current one in the strong weight with a caret beside it that slides
+when the current item changes ([[class:CaretGroup]]), counts in the figure
+face, and quiet section labels. A folded group that hides the current item
+carries the caret, with `aria-current="true"` on its summary, until it opens.
+Use Sidebar for an application's navigation rather than composing the
+`.aster-nav` classes by hand.
 
 Emits a bubbling, cancelable `navigate` event with the item ID as `detail`.
 Prevent default for application routing; otherwise links follow their URLs.
@@ -33,8 +41,12 @@ remain available without animation.
 
 An item with required `id` and `label`. Optional `href` makes it a link; absent
 `href` makes it a button. `children` makes a disclosure group and cannot coexist
-with `href`. Optional `icon` is a text glyph, `badge` is text, `hidden` omits the
-item, `disabled` prevents navigation and `reason` explains unavailability.
+with `href`; groups start open, and folding is the viewer's choice, kept while
+the element stays connected. `collapsible: false` on a group shows it instead as
+a section that doesn't fold: a quiet label over a list named by it, such as
+"Pinned". `collapsible` is allowed only on a group. Optional `icon` is a text
+glyph, `badge` is text shown as a count, `hidden` omits the item, `disabled`
+prevents navigation and `reason` explains unavailability.
 Disabling a group disables its descendants. IDs are unique across all groups.
 Nesting is bounded; links accept relative, fragment, HTTP and HTTPS URLs.
 Executable URL schemes are rejected. Labels and icons are rendered as text.

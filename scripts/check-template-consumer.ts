@@ -44,6 +44,7 @@ try {
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
   run(["bun", "install", "--ignore-scripts"]);
   run(["bun", "run", "typecheck"]);
+  run(["bun", "run", "lint"]);
   run(["bun", "run", "build"]);
   if (!existsSync(join(project, "dist/index.html"))) throw new Error("The static build did not emit dist/index.html");
   const wasm = readFileSync(join(project, "dist/odata_mock.wasm"));
@@ -75,7 +76,7 @@ try {
       throw new Error("The development server did not serve /odata_mock.wasm");
     if (!statSync(join(project, "node_modules/@getaster/mock/wasm/odata_mock.wasm")).isFile())
       throw new Error("The mock package did not install its wasm file");
-    console.log("Template consumer: install, typecheck, build, served page, styles and /odata_mock.wasm passed");
+    console.log("Template consumer: install, typecheck, lint, build, served page, styles and /odata_mock.wasm passed");
   } finally {
     server.kill();
     await server.exited;

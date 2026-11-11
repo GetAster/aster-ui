@@ -67,16 +67,53 @@ test("Sidebar supports controlled navigation, permission changes, groups and nat
   await expect(nav.getByRole("link", { name: "Home 3", exact: true })).toHaveAttribute("href", "#home");
   await expect(nav.getByRole("button", { name: "Hidden", exact: true })).toHaveCount(0);
   await expect(nav.getByRole("button", { name: /Admin/ })).toBeDisabled();
+  const chevron = () => nav.locator("summary").first().evaluate(el => {
+    const after = getComputedStyle(el, "::after");
+    return { content: after.content, width: parseFloat(after.width), em: parseFloat(after.fontSize) };
+  });
+  await nav.locator("summary").first().evaluate(el => (el.parentElement as HTMLDetailsElement).open = false);
+  const closed = await chevron();
+  expect(closed.content).toBe('"›"');
+  // A flex item that may shrink clips the glyph; the chevron keeps a whole em.
+  expect(closed.width).toBeGreaterThanOrEqual(closed.em * 0.99);
+  await nav.locator("summary").first().evaluate(el => (el.parentElement as HTMLDetailsElement).open = true);
   await nav.getByRole("button", { name: "Devices", exact: true }).click();
   await expect(nav.getByRole("button", { name: "Devices", exact: true })).toHaveAttribute("aria-current", "page");
   await nav.getByRole("button", { name: "Devices", exact: true }).press("Home");
   await expect(nav.getByRole("link", { name: "Home 3", exact: true })).toBeFocused();
+  // The caret marks the current item; a folded group that hides it carries the caret instead.
+  const caret = nav.locator("aster-caret-group > .aster-caret");
+  await expect(caret).toHaveCSS("opacity", "1");
+  const caretTop = async () => (await caret.boundingBox())!.y;
+  const devices = nav.getByRole("button", { name: "Devices", exact: true });
+  await expect.poll(async () => Math.abs(await caretTop() - (await devices.boundingBox())!.y)).toBeLessThan(12);
+  const group = nav.locator("summary").first();
+  await group.click();
+  await expect(group).toHaveAttribute("aria-current", "true");
+  await expect.poll(async () => Math.abs(await caretTop() - (await group.boundingBox())!.y)).toBeLessThan(12);
+  await group.click();
+  await expect(group).not.toHaveAttribute("aria-current");
+  // Counts use the figure face; an item without an icon shows none outside the compact rail.
+  await expect(nav.locator(".aster-count").first()).toHaveClass(/aster-figure-text/);
+  await expect(nav.getByRole("link", { name: "Home 3", exact: true }).locator(".aster-sidebar-icon")).toHaveCount(0);
+  // A group that doesn't fold is a labelled section.
+  await page.locator("#test-sidebar").evaluate((element: any) => {
+    element.items = [{ id: "home", label: "Home", href: "#home" }, { id: "pinned", label: "Pinned", collapsible: false, children: [{ id: "spring", label: "Spring launch" }] }];
+  });
+  await expect(nav.locator("summary")).toHaveCount(0);
+  await expect(nav.getByRole("list", { name: "Pinned", exact: true }).getByRole("button", { name: "Spring launch", exact: true })).toBeVisible();
+  await expect(nav.locator(".aster-nav-label")).toHaveText("Pinned");
+  const invalid = await page.locator("#test-sidebar").evaluate((element: any) => {
+    try { element.items = [{ id: "home", label: "Home", href: "#home", collapsible: false }]; return "accepted"; } catch (error) { return (error as Error).name; }
+  });
+  expect(invalid).toBe("TypeError");
   await page.locator("#test-sidebar").evaluate((element: any) => {
     element.compact = true;
     element.items = [{ id: "home", label: "Home", href: "#home" }, { id: "devices", label: "Devices", disabled: true, reason: "Access revoked" }];
   });
   await expect(nav.getByRole("button", { name: /Devices.*Access revoked/ })).toBeDisabled();
   await expect(nav.getByRole("link", { name: "Home", exact: true })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Home", exact: true }).locator(".aster-sidebar-icon")).toHaveText("H");
   const violations = (await new AxeBuilder({ page }).include("#test-sidebar").analyze()).violations;
   expect(violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([]);
 });

@@ -17,7 +17,6 @@
   }
   .brand { display: flex; align-items: center; gap: 9px; padding: 2px 8px 16px; font-weight: 620; letter-spacing: -.005em; }
   .brand-mark { width: 20px; height: 20px; flex: none; }
-  .sidebar a.aster-nav-item { text-decoration: none; }
   .sidebar footer { margin-top: auto; padding: calc(var(--aster-pad) - 4px); color: var(--aster-text-3); font-size: 12px; display: flex; align-items: center; justify-content: space-between; }
 
   .sidebar footer { gap: 2px; }

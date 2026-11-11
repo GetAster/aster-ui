@@ -7,6 +7,74 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.23
+
+Layout and navigation controls cover more of an application shell, and a new
+check keeps applications on Aster's elements and theme. A split can size and
+collapse its end pane, for an inspector beside the work, and its collapse
+control can sit on the resize bar. Composite placement can put children inside
+a split. A checkbox's label can sit beside the box. Sidebar now draws the same
+navigation as the showcase, with a caret on the current item. All changes are
+in `@getaster/elements`.
+
+### Behaviour changes
+
+- **A composite with a `placement` must mount into the document.** Before, the
+  constructor checked that every placed child was inside the composite, so a
+  child placed inside an element that renders its content when it connects,
+  such as a split's panes, failed with "has no placement", and mounting into a
+  detached element worked. Now unknown, duplicate and missing names still fail
+  in the constructor, and containment is checked by `Composite.mount()`: a
+  child the template drops fails there and the composite is disposed, and
+  mounting into an element that isn't in the document throws a `placement`
+  error. Mount into an element in the page; composites without a placement are
+  unchanged.
+- **Sidebar draws the shared navigation look.** The current item is in the
+  strong weight with a caret beside it, in place of a filled highlight; badges
+  show as counts in the figure face, not pills; and an item without an `icon`
+  or `renderIcon` no longer shows its initial, except in the compact rail. A
+  folded group that hides the current item carries the caret. Give items icons
+  if you relied on the initials, and remove application CSS that restyled the
+  sidebar.
+
+### Added
+
+- **`Split.pane`** chooses the sized pane: `"start"` (default) or `"end"`.
+  `size`, `min`, `max`, `persist` and collapsing apply to it, and the other
+  pane takes the rest, so an end pane keeps its width as the page widens.
+- **`Split.chrome.collapse`** places a collapsible split's control: the
+  toolbar row above the panes (default), a chevron button on the resize bar
+  (`"bar"`), which stays at the edge when the pane collapses, or none
+  (`false`), with the host driving `collapsed`. **`Split.labels`** names it,
+  such as "Hide the inspector".
+- **`Check.labelPosition`** puts a shown label above the box (default), or
+  beside it with `"start"` or `"end"`, inside the checkbox's own label, for a
+  toolbar toggle or a single option.
+- **`SidebarItem.collapsible: false`** shows a group as a labelled section
+  that doesn't fold, such as "Pinned".
+- **`aster-lint`**, a command in `@getaster/elements`, reports native controls
+  and hand-made ARIA widgets that Aster provides as elements, and CSS that
+  restyles Aster's markup, uses fixed colours or fonts, or sets theme tokens
+  outside a theme file. Each finding names the element and its reference
+  entry; an `aster-allow` comment with a reason records an exception. See
+  [Check an application](docs/guide/aster-lint.md). The consumer template
+  runs it as `bun run lint`.
+
+### Fixed
+
+- A collapsed sidebar group's "›" chevron is no longer clipped.
+- Composite placement can put children inside a split's panes and other
+  elements that take their content as properties.
+- The caret of a caret group, as in tabs and navigation, stays visible in
+  forced colours.
+
+## 0.4.14
+
+Grouped menu items now fill the menu row, so hover and keyboard-focus
+highlights and pointer targets extend across the available width. This fixes
+short action, checkbox, radio and submenu buttons inside menu groups
+(`@getaster/elements`). No API changes or migration are required.
+
 ## 0.4.13
 
 Lamplight's web fonts no longer shift the page when they arrive. `fonts.css`

@@ -34,7 +34,7 @@ export { Stack, HorizontalLayout, VerticalLayout } from "./layout/stack.ts";
 export { Breadcrumbs, type BreadcrumbItem } from "./breadcrumbs/breadcrumbs.ts";
 export { Accordion, type AccordionItem, type AccordionReorderDetail } from "./section/accordion.ts";
 export type { VisibilityMode } from "./section/policy.ts";
-export { Check } from "./field/check.ts";
+export { Check, type CheckLabelPosition } from "./field/check.ts";
 export { formatValue, parseInput } from "./field/values.ts";
 export { Select } from "./select/select.ts";
 export { Choice } from "./select/choice-element.ts";
@@ -48,7 +48,7 @@ export { formatDate, parseDate, setClock, type DateFormat } from "./date/dates.t
 export { Section, type SectionChrome } from "./section/section.ts";
 export { Form, type FormChrome, type FormFeature, type FormField, type FormItem, type FormPolicy, type FormSection, type FormSubmitDetail, type FormValue } from "./form/form.ts";
 export { controlFor, type FormControl, type FormControlContext, type FormControlName, type FormControlRender } from "./form/controls.ts";
-export { Split } from "./split/split.ts";
+export { Split, type SplitChrome, type SplitLabels } from "./split/split.ts";
 export { ListEditor, type ListColumn } from "./list-edit/list-edit.ts";
 export { Grid, type CellRenderer, type CellFormatter, type GridChrome, type GridCsvOptions, type GridFeature, type GridScrollAlign, type GridSummary, type GridToolbar, type Expansion, type ExpansionEditor, type GridTree, type Lookup, type RowControl, type RowState } from "./grid/grid.ts";
 export { GRID_LABEL_DEFAULTS, type CellClass, type CellClassRule, type CellStyleContext, type ClassNames, type ColumnAlign, type ColumnFormat, type ColumnPresentation, type ColumnValueMap, type GridLabel, type GridLabels, type GridPresentation, type Hilite, type MappedValue, type NumberFormatStyle, type PresentationTone, type RowClass, type RowClassRule, type RowStyleContext, type StyleDecoration, type ValueMapValue, type ValueMatch, type ValueMatchOperator } from "./grid/appearance.ts";

@@ -15,7 +15,8 @@
     "yaml": "^2.9.1"
   },
   "bin": {
-    "aster-theme-check": "./tools/aster-theme-check.ts"
+    "aster-theme-check": "./tools/aster-theme-check.ts",
+    "aster-lint": "./tools/aster-lint.ts"
   },
   "license": "Apache-2.0",
   "repository": {

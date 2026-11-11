@@ -30,6 +30,7 @@ export const navigationGroups: readonly NavigationGroup[] = [
     { href: "../guide/application-structure.html", label: "Organize an application" },
     { href: "../guide/workspace-patterns.html", label: "Customize workspaces" },
     { href: "../guide/workspace-tooling.html", label: "Registry & editor tooling" },
+    { href: "../guide/aster-lint.html", label: "Check an application" },
     { href: "../guide/composition-controls.html", label: "Built-in controls & navigation" },
     { href: "../guide/keyed-sessions.html", label: "Retained views & background activity" },
     { href: "../guide/authentication.html", label: "Authentication & session recovery" },

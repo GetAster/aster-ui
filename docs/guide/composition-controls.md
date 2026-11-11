@@ -55,7 +55,10 @@ ordinary JavaScript in the linked source.
 Sidebar is a controlled navigation view. Its `items` are plain objects and `value`
 is the current item ID. Each item has a unique `id` and a `label`; optional fields
 include `href`, `icon` (a text glyph), `badge`, `hidden`, `disabled`, `reason` and
-nested `children`. Groups use native disclosure controls. Links preserve browser
+nested `children`. Groups use native disclosure controls; `collapsible: false`
+makes a group a labelled section instead. Sidebar draws the same look as the
+showcase workspace, with a caret on the current item, so an application gets it
+without styling navigation itself. Links preserve browser
 navigation, including modified clicks. Items without a URL are buttons.
 
 This is complete Sidebar setup inside an existing page:
