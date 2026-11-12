@@ -127,3 +127,65 @@ test("folds to its title bar and unfolds to the same size, with its content kept
   await expect(note).toBeHidden();
   await expect(win.getByRole("button", { name: "Expand Minimap" })).toBeVisible();
 });
+
+test("snaps to its parent's edges while dragged, and follows them as the parent resizes", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 820 });
+  await page.goto("/playground/foundations.html");
+  await page.evaluate(() => {
+    const pane = Object.assign(document.createElement("div"), { id: "e2e-snap-pane" });
+    pane.style.cssText = "position: fixed; left: 40px; top: 40px; width: 600px; height: 500px;";
+    const win = Object.assign(document.createElement("aster-window"), {
+      id: "e2e-snap", heading: "Minimap", keepInParentRect: true, snapDistance: 24,
+      initialPlacement: { state: "normal", bounds: { x: 200, y: 200, width: 240, height: 160 } },
+    });
+    const events: unknown[] = [];
+    win.addEventListener("placementchange", (e) => events.push((e as CustomEvent).detail));
+    Object.assign(globalThis, { e2eSnapEvents: events });
+    pane.append(win);
+    document.body.append(pane);
+    (win as unknown as { show(o: null): void }).show(null);
+  });
+  const win = page.getByRole("dialog", { name: "Minimap" });
+  await expect.poll(async () => Math.round((await win.boundingBox())?.x ?? 0)).toBe(200);
+  const events = () => page.evaluate(() => (globalThis as unknown as { e2eSnapEvents: { anchor?: unknown }[] }).e2eSnapEvents.splice(0));
+  await events();
+
+  // Dragged to within reach of the top-right corner, it lands flush there before the drop.
+  const b = (await win.locator(".aster-window-bar").boundingBox())!;
+  await page.mouse.move(b.x + 40, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(b.x + 40 + 185, b.y + b.height / 2 - 145, { steps: 5 });
+  const live = (await win.boundingBox())!;
+  expect([Math.round(live.x + live.width), Math.round(live.y)]).toEqual([640, 40]);
+  expect(await events()).toEqual([]);
+  await page.mouse.up();
+  const dropped = await events();
+  expect(dropped.at(-1)?.anchor).toEqual({ x: "end", y: "start" });
+
+  // Widening the parent keeps it in the corner and reports the move.
+  await page.evaluate(() => { document.querySelector<HTMLElement>("#e2e-snap-pane")!.style.width = "800px"; });
+  await expect.poll(async () => Math.round(((b) => b.x + b.width)((await win.boundingBox())!))).toBe(840);
+  expect((await events()).at(-1)?.anchor).toEqual({ x: "end", y: "start" });
+
+  // Dropped away from the edges it is free, and a shrinking parent only pushes it back inside.
+  const c = (await win.locator(".aster-window-bar").boundingBox())!;
+  await page.mouse.move(c.x + 40, c.y + c.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(c.x + 40 - 300, c.y + c.height / 2 + 150, { steps: 5 });
+  await page.mouse.up();
+  expect((await events()).at(-1)).not.toHaveProperty("anchor");
+  const free = (await win.boundingBox())!;
+  await page.evaluate(() => { document.querySelector<HTMLElement>("#e2e-snap-pane")!.style.width = "300px"; });
+  await expect.poll(async () => Math.round(((b) => b.x + b.width)((await win.boundingBox())!))).toBe(340);
+  expect(Math.round((await win.boundingBox())!.y)).toBe(Math.round(free.y));
+
+  // In right-to-left text, the start edge is the right one.
+  await page.evaluate(() => {
+    const pane = document.querySelector<HTMLElement>("#e2e-snap-pane")!;
+    pane.style.width = "600px";
+    pane.dir = "rtl";
+    (pane.firstElementChild as unknown as { setPlacement(p: unknown): void })
+      .setPlacement({ state: "normal", bounds: { x: 200, y: 200, width: 240, height: 160 }, anchor: { x: "start" } });
+  });
+  await expect.poll(async () => Math.round(((b) => b.x + b.width)((await win.boundingBox())!))).toBe(640);
+});

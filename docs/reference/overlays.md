@@ -326,6 +326,20 @@ its acquisitions when disposing the page.
 Moving and viewport changes keep it reachable with an 8 px margin. CSS limits
 size to the viewport, including viewports smaller than the desktop minimum.
 
+A window can be anchored to the edges of its area: its parent with
+[[attr:Window.keepInParentRect]], otherwise the viewport. An anchored window
+sits flush against those edges and stays there when the area resizes, so a
+minimap parked in a chart's top-right corner keeps to that corner as the chart
+widens. Set the anchor in an [[object:WindowPlacement]], or let people make it:
+with [[attr:Window.snapDistance]], a window dragged or moved near an edge snaps
+flush against it and anchors there, and moving it away frees it.
+
+```ts
+minimap.keepInParentRect = true;
+minimap.snapDistance = 24;
+minimap.initialPlacement = { state: "normal", anchor: { x: "end", y: "start" } };
+```
+
 Size the chrome of one window with the window
 component variables ([[constant:COMPONENT_VARS]]) on the element: the
 title bar's height, heading size and button size, the side inset shared by
@@ -559,7 +573,20 @@ consumes the key, so it cannot also dismiss a dialog or page beneath. Reactive.
 Whether moving and resizing keep the window inside its parent element's
 rectangle, intersected with the viewport's 8 px margin. Default `false`, which
 uses the viewport alone. The parent's size also becomes the window's maximum
-size while this is on. Reactive.
+size while this is on. When the parent resizes, the window follows its
+anchored edges, or is pushed back inside; it fires `placementchange` if it
+moved. A parent that moves without resizing, such as by scrolling, isn't
+followed. Reactive.
+
+## attr:Window.snapDistance
+
+How near, in pixels, a dragged or keyboard-moved window must come to an edge of
+its area to snap flush against it. The window then anchors to that edge, or to
+two at a corner, and the anchor is part of its [[object:WindowPlacement]].
+Moving it out of reach clears the anchor; with the keyboard, a move along one
+axis keeps the other axis's anchor. Default `0`, no snapping, and any move
+frees an anchored window. Snapping happens live, while the pointer moves;
+`placementchange` still fires once, on the drop. Reactive.
 
 ## attr:Window.autoCenter
 
@@ -609,8 +636,22 @@ viewport margins. Does not itself open the window.
 ## object:WindowPlacement
 
 `{ state: "normal" | "maximized" | "minimized"; bounds?: WindowBounds;
-restoreMaximized?: boolean; folded?: boolean }`. Bounds describe the normal,
-restored size, unfolded.
+restoreMaximized?: boolean; folded?: boolean; anchor?: WindowAnchor }`.
+Bounds describe the normal, restored size, unfolded. With an `anchor`, the
+anchored axes take their position from the area's edges instead of `bounds`;
+`bounds` still reports where the window is.
+
+## object:WindowAnchor
+
+`{ x?: WindowSide; y?: WindowSide }`: the edges of its area a window sits
+flush against. Both axes make a corner, one an edge; an omitted axis is free.
+See [[attr:Window.snapDistance]].
+
+## type:WindowSide
+
+`"start" | "end"`. Vertically, `start` is the top. Horizontally, `start` and
+`end` follow text direction, so `start` is the right edge in right-to-left
+text.
 
 ## class:Workspace
 
@@ -671,8 +712,9 @@ Releases subscriptions and registration. Does not remove or close borrowed windo
 
 ## event:Window.placementchange
 
-Bubbles with a copied [[object:WindowPlacement]] after pointer movement,
-resizing, folding or a state action. Hosts decide when and where to persist it.
+Bubbles with a copied [[object:WindowPlacement]] when a drag ends, and after
+keyboard movement, resizing, folding, a state action or a parent resize that
+moved it. Hosts decide when and where to persist it.
 
 ## event:Window.statechange
 
@@ -728,6 +770,21 @@ Optional boolean. A minimized window with true reopens maximized.
 
 Optional boolean. True restores the window folded to its title bar
 ([[attr:Window.folded]]); omitted means unfolded.
+
+## attr:WindowPlacement.anchor
+
+Optional [[object:WindowAnchor]]: the edges the window keeps flush against as
+its area resizes. Omitted, the window is free and `bounds` places it.
+
+## attr:WindowAnchor.x
+
+Optional [[type:WindowSide]]: the horizontal edge, following text direction.
+Omitted, the window's horizontal position is free.
+
+## attr:WindowAnchor.y
+
+Optional [[type:WindowSide]]: `start` for the top edge, `end` for the bottom.
+Omitted, the window's vertical position is free.
 
 ## object:WorkspaceEntry
 

@@ -3,13 +3,17 @@ import { AsterElement, define, uid, type View } from "../base/element.ts";
 import { openWhen } from "../overlay/anchor.ts";
 import { windowBar } from "./chrome.ts";
 import {
+  anchorWindow,
   centerWindow,
   clampWindow,
   parseWindowPlacement,
   resolveWindowChrome,
+  snapEdges,
   type ResolvedWindowChrome,
   type WindowBounds,
+  type WindowAnchor,
   type WindowChrome,
+  type WindowEdge,
   type WindowLimits,
   type WindowPlacement,
   type WindowState,
@@ -19,7 +23,7 @@ const STEP = 16;
 const BIG_STEP = 64;
 const MARGIN = 8;
 
-export type { WindowBounds, WindowChrome, WindowPlacement, WindowState } from "./config.ts";
+export type { WindowAnchor, WindowBounds, WindowChrome, WindowPlacement, WindowSide, WindowState } from "./config.ts";
 
 /** Window chrome and content; content ownership stays with the host page. */
 export class Window extends AsterElement {
@@ -39,15 +43,18 @@ export class Window extends AsterElement {
   readonly #dismissOnEscape = this.prop(true);
   readonly #keepInParentRect = this.prop(false);
   readonly #autoCenter = this.prop(false);
+  readonly #snapDistance = this.prop(0);
   readonly #folded = this.prop(false);
   readonly #id = uid("aster-window");
   #opener: HTMLElement | null = null;
   #at: { x: number; y: number } | undefined;
   #bounds: WindowBounds | undefined;
+  #anchor: WindowAnchor | undefined;
   #restoreMaximized = false;
   #mounted = false;
   #resize: ResizeObserver | undefined;
   #observed: HTMLElement | null = null;
+  #observedParent: Element | null = null;
   #focus: HTMLElement | null = null;
   #closeTask: Promise<boolean> | undefined;
   #modalQueued = false;
@@ -163,9 +170,23 @@ export class Window extends AsterElement {
   get dismissOnEscape(): boolean { return this.#dismissOnEscape.value; }
   set dismissOnEscape(v: boolean) { this.#dismissOnEscape.value = v !== false; }
 
-  /** Whether dragging keeps the window inside its parent element. Default `false`. */
+  /** Whether the window stays inside its parent element, following it as it resizes. Default `false`. */
   get keepInParentRect(): boolean { return this.#keepInParentRect.value; }
-  set keepInParentRect(v: boolean) { this.#keepInParentRect.value = v === true; }
+  set keepInParentRect(v: boolean) {
+    this.#keepInParentRect.value = v === true;
+    this.#observe();
+  }
+
+  /**
+   * How near, in pixels, a moved window must come to an edge of its area to
+   * snap flush against it and anchor there. The area is the parent with
+   * `keepInParentRect`, otherwise the viewport. Default `0`, no snapping.
+   */
+  get snapDistance(): number { return this.#snapDistance.value; }
+  set snapDistance(v: number) {
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0) throw new TypeError("snapDistance must be a nonnegative finite number");
+    this.#snapDistance.value = v;
+  }
 
   /** Whether the window centres itself the first time it opens. Default `false`. */
   get autoCenter(): boolean { return this.#autoCenter.value; }
@@ -173,17 +194,24 @@ export class Window extends AsterElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    this.#resize = new ResizeObserver(() => {
+    this.#resize = new ResizeObserver(entries => {
       if (!this.#open.peek() || this.#state.peek() !== "normal") return;
-      this.#recover();
+      const resized = entries.some(entry => entry.target === this.#observed);
+      const before = this.#at;
+      // Capture first: refitting re-applies the captured size.
+      if (resized) this.#capture();
+      if (entries.some(entry => entry.target === this.#observedParent)) this.#applySize();
+      else this.#recover();
       this.#capture();
-      this.emit("placementchange", this.placement());
+      // A parent resize alone is reported only when it moved the window.
+      if (resized || this.#at?.x !== before?.x || this.#at?.y !== before?.y) this.emit("placementchange", this.placement());
     });
     this.#observe();
     this.listen(window, "resize", () => this.#recover());
     this.onDisconnect(() => {
       this.#resize?.disconnect();
       this.#observed = null;
+      this.#observedParent = null;
       this.#generation++;
       this.#closeTask = undefined;
       this.#closing.value = false;
@@ -296,7 +324,10 @@ export class Window extends AsterElement {
 
   placement(): WindowPlacement {
     this.#capture();
-    return { state: this.#state.peek(), ...(this.#bounds ? { bounds: { ...this.#bounds } } : {}), restoreMaximized: this.#restoreMaximized, folded: this.#folded.peek() };
+    return {
+      state: this.#state.peek(), ...(this.#bounds ? { bounds: { ...this.#bounds } } : {}),
+      restoreMaximized: this.#restoreMaximized, folded: this.#folded.peek(), ...(this.#anchor ? { anchor: { ...this.#anchor } } : {}),
+    };
   }
 
   /** Invalid persisted data is rejected atomically. CSS limits size to the viewport. */
@@ -429,7 +460,7 @@ export class Window extends AsterElement {
       panel.style.height = `${Math.max(160, r.height + by[1])}px`;
       this.#recover();
       this.#capture();
-    } else if (this.#at) this.#place({ x: this.#at.x + by[0], y: this.#at.y + by[1] });
+    } else if (this.#at) this.#move({ x: this.#at.x + by[0], y: this.#at.y + by[1] }, { x: Math.sign(by[0]), y: Math.sign(by[1]) });
     this.emit("placementchange", this.placement());
   }
 
@@ -440,7 +471,7 @@ export class Window extends AsterElement {
     const start = { x: e.clientX - this.#at.x, y: e.clientY - this.#at.y };
     bar.setPointerCapture(e.pointerId);
     e.preventDefault();
-    const move = (m: PointerEvent) => this.#place({ x: m.clientX - start.x, y: m.clientY - start.y });
+    const move = (m: PointerEvent) => this.#move({ x: m.clientX - start.x, y: m.clientY - start.y });
     const end = () => {
       bar.removeEventListener("pointermove", move);
       bar.removeEventListener("pointerup", end);
@@ -491,16 +522,38 @@ export class Window extends AsterElement {
 
   #observe(): void {
     const panel = this.#panel();
-    if (panel === this.#observed || !this.#resize) return;
+    const parent = this.#keepInParentRect.peek() ? this.parentElement : null;
+    if ((panel === this.#observed && parent === this.#observedParent) || !this.#resize) return;
     this.#resize.disconnect();
     this.#observed = panel;
+    this.#observedParent = parent;
     if (panel) this.#resize.observe(panel);
+    if (parent) this.#resize.observe(parent);
+  }
+
+  /**
+   * A user move. With snapping on, it anchors to the edges it comes near; an
+   * axis the move leaves alone (`toward` zero) keeps its anchor.
+   */
+  #move(to: { x: number; y: number }, toward?: { x: number; y: number }): void {
+    const panel = this.#panel();
+    if (!panel) return;
+    const distance = this.#snapDistance.peek();
+    if (distance > 0) {
+      const near = this.#sides(snapEdges(to, sizeOf(panel), this.#limits(), distance, toward));
+      const x = toward?.x === 0 ? this.#anchor?.x : near.x;
+      const y = toward?.y === 0 ? this.#anchor?.y : near.y;
+      this.#anchor = x || y ? { ...(x ? { x } : {}), ...(y ? { y } : {}) } : undefined;
+    } else this.#anchor = undefined;
+    this.#place(to);
   }
 
   #place(to: { x: number; y: number }): void {
     const panel = this.#panel();
     if (!panel) return;
-    const at = clampWindow(to, sizeOf(panel), this.#limits());
+    const size = sizeOf(panel);
+    const limits = this.#limits();
+    const at = clampWindow(this.#anchor ? anchorWindow(to, size, limits, this.#edges(this.#anchor)) : to, size, limits);
     this.#at = at;
     panel.style.setProperty("--window-x", `${at.x}px`);
     panel.style.setProperty("--window-y", `${at.y}px`);
@@ -513,6 +566,23 @@ export class Window extends AsterElement {
     const r = this.parentElement?.getBoundingClientRect();
     if (!r || r.width <= 0 || r.height <= 0) return viewport;
     return { left: Math.max(viewport.left, r.left), top: Math.max(viewport.top, r.top), right: Math.min(viewport.right, r.right), bottom: Math.min(viewport.bottom, r.bottom) };
+  }
+
+  #rtl(): boolean { return getComputedStyle(this).direction === "rtl"; }
+
+  /** Logical sides to physical edges; vertical `start` is the top. */
+  #edges(anchor: WindowAnchor): { x?: WindowEdge; y?: WindowEdge } {
+    const rtl = this.#rtl();
+    const x = anchor.x && ((anchor.x === "start") !== rtl ? "low" : "high");
+    const y = anchor.y && (anchor.y === "start" ? "low" : "high");
+    return { ...(x ? { x } : {}), ...(y ? { y } : {}) };
+  }
+
+  #sides(edges: { x?: WindowEdge; y?: WindowEdge }): WindowAnchor {
+    const rtl = this.#rtl();
+    const x = edges.x && ((edges.x === "low") !== rtl ? "start" : "end");
+    const y = edges.y && (edges.y === "low" ? "start" : "end");
+    return { ...(x ? { x } : {}), ...(y ? { y } : {}) };
   }
 
   #shown(panel: HTMLElement | null): panel is HTMLElement {
@@ -533,6 +603,7 @@ export class Window extends AsterElement {
   #adopt(placement: WindowPlacement): void {
     this.#bounds = placement.bounds ? { ...placement.bounds } : undefined;
     this.#at = placement.bounds ? { x: placement.bounds.x, y: placement.bounds.y } : undefined;
+    this.#anchor = placement.anchor ? { ...placement.anchor } : undefined;
     this.#restoreMaximized = placement.restoreMaximized === true;
     this.#folded.value = placement.folded === true;
     this.#state.value = placement.state;

@@ -7,6 +7,32 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.40
+
+Windows in `@getaster/elements` can now be anchored to the edges of their
+area, snap there as they're moved, and follow their parent as it resizes.
+
+### Added
+
+- **Window anchors.** A `WindowPlacement` can carry
+  `anchor: { x?: "start" | "end"; y?: "start" | "end" }`. An anchored window
+  sits flush against those edges of its area (its parent with
+  `keepInParentRect`, otherwise the viewport) and stays there when the area
+  resizes. Horizontal sides follow text direction. The anchor is reported in
+  `placementchange` and saved in workspace snapshots. Placements without one
+  behave as before.
+- **`Window.snapDistance`.** Dragging or arrow-key moving a window within this
+  many pixels of an edge snaps it flush against that edge, live, and anchors
+  it there; moving it out of reach frees it. Default `0`, no snapping.
+  `placementchange` still fires once, when the drag ends.
+
+### Fixed
+
+- **`keepInParentRect` now follows the parent's size.** Previously the window
+  was kept inside its parent only when it moved or the viewport resized, so
+  widening a pane beside it could leave the window over the pane. It now
+  re-fits when the parent resizes and fires `placementchange` if it moved.
+
 ## 0.4.38
 
 Any field in `@getaster/elements` can now put its label before its control,

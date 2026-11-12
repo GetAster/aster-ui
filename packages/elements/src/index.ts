@@ -18,7 +18,7 @@ export { Button, type ButtonSize, type ButtonTone } from "./button/button.ts";
 export { Field } from "./field/field.ts";
 export { Switch, type SwitchBinding } from "./switch/switch.ts";
 export { Dialog } from "./dialog/dialog.ts";
-export { Window, type WindowChrome, type WindowState, type WindowBounds, type WindowPlacement } from "./window/window.ts";
+export { Window, type WindowChrome, type WindowState, type WindowBounds, type WindowPlacement, type WindowAnchor, type WindowSide } from "./window/window.ts";
 export { Workspace, type WorkspaceEntry, type WorkspaceSnapshot } from "./window/workspace.ts";
 export { Dashboard } from "./dashboard/dashboard.ts";
 export type { DashboardValue, DashboardConfig, DashboardSize, DashboardWidget, DashboardSnapshot } from "./dashboard/layout.ts";

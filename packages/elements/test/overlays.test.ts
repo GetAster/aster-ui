@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { html } from "lit-html";
-import { centerWindow, clampWindow, parseWindowPlacement, resolveWindowChrome } from "../src/window/config.ts";
+import { anchorWindow, centerWindow, clampWindow, parseWindowPlacement, resolveWindowChrome, snapEdges } from "../src/window/config.ts";
 import { dialogCloseShown, dialogHeaderShown } from "../src/dialog/config.ts";
 import { ariaKeyshortcuts, hasMenuIcons } from "../src/menu/config.ts";
 import { closeShown, reorderIds, visibilityModeFromMultiple } from "../src/section/policy.ts";
@@ -45,6 +45,31 @@ describe("window placement", () => {
     expect(clampWindow({ x: -50, y: 900 }, { width: 300, height: 200 }, limits)).toEqual({ x: 8, y: 608 });
     expect(clampWindow({ x: 400, y: 300 }, { width: 300, height: 200 }, limits)).toEqual({ x: 400, y: 300 });
     expect(centerWindow({ width: 300, height: 200 }, limits)).toEqual({ x: 358, y: 308 });
+  });
+
+  test("an anchor is copied with only the axes it names, and an empty one is dropped", () => {
+    expect(parseWindowPlacement({ state: "normal", anchor: { x: "end", y: "start" } }).anchor).toEqual({ x: "end", y: "start" });
+    expect(parseWindowPlacement({ state: "normal", anchor: { y: "end" } }).anchor).toEqual({ y: "end" });
+    expect(parseWindowPlacement({ state: "normal", anchor: {} })).not.toHaveProperty("anchor");
+    expect(() => parseWindowPlacement({ state: "normal", anchor: { x: "right" } as never })).toThrow("Invalid window anchor");
+    expect(() => parseWindowPlacement({ state: "normal", anchor: null as never })).toThrow("Invalid window anchor");
+  });
+
+  test("anchoring puts the named axes flush against their edges and leaves the others", () => {
+    const limits = { left: 8, top: 8, right: 1008, bottom: 808 };
+    const size = { width: 300, height: 200 };
+    expect(anchorWindow({ x: 400, y: 300 }, size, limits, { x: "high", y: "low" })).toEqual({ x: 708, y: 8 });
+    expect(anchorWindow({ x: 400, y: 300 }, size, limits, { y: "high" })).toEqual({ x: 400, y: 608 });
+  });
+
+  test("snapping finds the edges within reach, nearest first, and only those a move heads toward", () => {
+    const limits = { left: 8, top: 8, right: 1008, bottom: 808 };
+    const size = { width: 300, height: 200 };
+    expect(snapEdges({ x: 700, y: 20 }, size, limits, 16)).toEqual({ x: "high", y: "low" });
+    expect(snapEdges({ x: 400, y: 300 }, size, limits, 16)).toEqual({});
+    expect(snapEdges({ x: 12, y: 300 }, { width: 990, height: 200 }, limits, 16)).toEqual({ x: "low" });
+    expect(snapEdges({ x: 700, y: 20 }, size, limits, 16, { x: -1, y: 0 })).toEqual({});
+    expect(snapEdges({ x: 700, y: 20 }, size, limits, 16, { x: 1, y: -1 })).toEqual({ x: "high", y: "low" });
   });
 });
 
