@@ -7,6 +7,30 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.42
+
+A window inside its parent in `@getaster/elements` now keeps its distance from
+the parent's edges as the parent moves and resizes, and saved placements can
+say how far in from an edge it sits.
+
+### Added
+
+- **`WindowAnchor.inset`.** An anchor can carry `inset: { x?, y? }`, the
+  distance in pixels inward from each anchored edge, so
+  `{ x: "start", y: "start", inset: { x: 120, y: 40 } }` keeps a window 120 px
+  from its parent's start edge and 40 px from its top. Default `0`, flush, so
+  0.4.40 placements are unchanged. Snapping still anchors flush.
+
+### Changed
+
+- **With `keepInParentRect`, a window's position is relative to its parent.**
+  In 0.4.40 a window dropped away from the edges was free and was only pushed
+  back inside when its parent resized. It now anchors to the parent's start
+  edges at its current distance, moves with the parent, and reports that
+  anchor and inset in `placementchange`. Windows without `keepInParentRect`
+  are unchanged. Hosts that re-anchored a window to its parent themselves can
+  drop that code.
+
 ## 0.4.40
 
 Windows in `@getaster/elements` can now be anchored to the edges of their

@@ -23,11 +23,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "391feecb66047842a0fc32de91aea46cf48c7b6077e6ccc7800860c6beb75c95"
+      "sha256": "942945081713d5e35823073082cc59715799dc46de6fbf80edad59c7c154f314"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "31a0e58b86b89ad7289327fd695cdbf032ddb596f3bf0afe55d435edd9d0c194"
+      "sha256": "c4f0c67f8d3db285941abca12f00a57cb820ba1ac474b1a7552d44f2002ca945"
     },
     {
       "path": "LICENSE",
@@ -683,7 +683,7 @@
     },
     {
       "path": "docs/guide/elements.md",
-      "sha256": "03afccb23f03031d27afb67f02108008cd8f7f32dda9e4ebeea5aef26ae8d89d"
+      "sha256": "9415be9e64946b2ee0e9428feac3c7bfa8e9218d11fb47ff59b3eeb7c365e522"
     },
     {
       "path": "docs/guide/evaluating-aster-ui.md",
@@ -835,7 +835,7 @@
     },
     {
       "path": "docs/reference/overlays.md",
-      "sha256": "3d56f29684dfec6e594aa9f1cc3e88eea386bb2533790c2cd1d4f43eefe95ae3"
+      "sha256": "7ad5ce896040958c6b8cae8528a9f9c26f436e96a5fa323af595ee7bcd434cbd"
     },
     {
       "path": "docs/reference/page-rules.md",
@@ -1363,7 +1363,7 @@
     },
     {
       "path": "packages/elements/src/composition/builtins.ts",
-      "sha256": "e3e91b522a27bc5efc333456ec0c4397afbf3eeee87f3e788c440f5b8a4e61fc"
+      "sha256": "17543eb3f8ebdd38c2e64a43052608668b338e8e5e02a0dd9d31fdc633f91441"
     },
     {
       "path": "packages/elements/src/composition/command-bar.ts",
@@ -1711,11 +1711,11 @@
     },
     {
       "path": "packages/elements/src/window/config.ts",
-      "sha256": "a372f84ddd6659384f77ce0930ba6ffc62f9f4aa4d642423ff0739d241eac204"
+      "sha256": "f7915620975b7582ceb766f2800566eb8655b104789b81d5d7e7553fa61480ed"
     },
     {
       "path": "packages/elements/src/window/window.ts",
-      "sha256": "482c748b387e5c643c9288ab25d24b3088f8d67f4709926eef48afd076571bc3"
+      "sha256": "34752fa69698b58d327760733842b024af0e417079e49b6d097885811d4b6ca2"
     },
     {
       "path": "packages/elements/src/window/workspace.ts",
@@ -1775,7 +1775,7 @@
     },
     {
       "path": "packages/elements/test/overlays.test.ts",
-      "sha256": "cb73a14999efe46accb6f72c718b57043381d82cd3445f7729b4e5c99c2b83d7"
+      "sha256": "2c3dc8422875c7e183b96826227049114a71513304c4f1b0ad02b0abfd88e97e"
     },
     {
       "path": "packages/elements/test/policy.test.ts",
@@ -2895,7 +2895,7 @@
     },
     {
       "path": "tests/e2e/window.spec.ts",
-      "sha256": "e94be2e7281fd554721865e35035ac6ba728ed297384da04b77c254c81775eeb"
+      "sha256": "da5870bbc2fbb4546aae6f64521ec470a2187428dd4a137d437b1647ebb6240a"
     },
     {
       "path": "tests/e2e/workspace.spec.ts",

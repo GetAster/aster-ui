@@ -328,11 +328,13 @@ size to the viewport, including viewports smaller than the desktop minimum.
 
 A window can be anchored to the edges of its area: its parent with
 [[attr:Window.keepInParentRect]], otherwise the viewport. An anchored window
-sits flush against those edges and stays there when the area resizes, so a
-minimap parked in a chart's top-right corner keeps to that corner as the chart
-widens. Set the anchor in an [[object:WindowPlacement]], or let people make it:
-with [[attr:Window.snapDistance]], a window dragged or moved near an edge snaps
-flush against it and anchors there, and moving it away frees it.
+keeps to those edges, flush or at an inset, when the area resizes, so a minimap
+parked in a chart's top-right corner keeps to that corner as the chart widens.
+Set the anchor in an [[object:WindowPlacement]], or let people make it: with
+[[attr:Window.snapDistance]], a window dragged or moved near an edge snaps flush
+against it and anchors there. Inside its parent, a window placed anywhere else
+anchors to the parent's start edges at its current distance, so it moves with
+the parent; in the viewport, it is free.
 
 ```ts
 minimap.keepInParentRect = true;
@@ -573,9 +575,10 @@ consumes the key, so it cannot also dismiss a dialog or page beneath. Reactive.
 Whether moving and resizing keep the window inside its parent element's
 rectangle, intersected with the viewport's 8 px margin. Default `false`, which
 uses the viewport alone. The parent's size also becomes the window's maximum
-size while this is on. When the parent resizes, the window follows its
-anchored edges, or is pushed back inside; it fires `placementchange` if it
-moved. A parent that moves without resizing, such as by scrolling, isn't
+size while this is on. The window's position is relative to the parent: an
+axis with no anchor of its own anchors to the parent's start edge at the
+window's current distance from it. When the parent resizes, the window follows
+its anchored edges, staying inside; it fires `placementchange` if it moved. A parent that moves without resizing, such as by scrolling, isn't
 followed. Reactive.
 
 ## attr:Window.snapDistance
@@ -583,9 +586,10 @@ followed. Reactive.
 How near, in pixels, a dragged or keyboard-moved window must come to an edge of
 its area to snap flush against it. The window then anchors to that edge, or to
 two at a corner, and the anchor is part of its [[object:WindowPlacement]].
-Moving it out of reach clears the anchor; with the keyboard, a move along one
-axis keeps the other axis's anchor. Default `0`, no snapping, and any move
-frees an anchored window. Snapping happens live, while the pointer moves;
+Moving it out of reach clears the anchor, or, inside the parent, anchors it to
+the start edges at its new distance; with the keyboard, a move along one axis
+keeps the other axis's anchor. Default `0`, no snapping, and any move clears an
+anchor the same way. Snapping happens live, while the pointer moves;
 `placementchange` still fires once, on the drop. Reactive.
 
 ## attr:Window.autoCenter
@@ -643,9 +647,14 @@ anchored axes take their position from the area's edges instead of `bounds`;
 
 ## object:WindowAnchor
 
-`{ x?: WindowSide; y?: WindowSide }`: the edges of its area a window sits
-flush against. Both axes make a corner, one an edge; an omitted axis is free.
-See [[attr:Window.snapDistance]].
+`{ x?: WindowSide; y?: WindowSide; inset?: { x?: number; y?: number } }`: the
+edges of its area a window keeps to. Both axes make a corner, one an edge; an
+omitted axis is free. See [[attr:Window.snapDistance]].
+
+```ts
+// 120 px from the chart's start edge and 40 px from its top, as it resizes.
+minimap.setPlacement({ state: "normal", anchor: { x: "start", y: "start", inset: { x: 120, y: 40 } } });
+```
 
 ## type:WindowSide
 
@@ -785,6 +794,12 @@ Omitted, the window's horizontal position is free.
 
 Optional [[type:WindowSide]]: `start` for the top edge, `end` for the bottom.
 Omitted, the window's vertical position is free.
+
+## attr:WindowAnchor.inset
+
+Optional `{ x?: number; y?: number }`: how far, in pixels, the window sits
+inward from each anchored edge. Nonnegative; default `0`, flush. An inset for
+an axis without an anchor is ignored, and a reported anchor omits zero insets.
 
 ## object:WorkspaceEntry
 

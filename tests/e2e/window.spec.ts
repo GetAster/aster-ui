@@ -167,21 +167,32 @@ test("snaps to its parent's edges while dragged, and follows them as the parent 
   await expect.poll(async () => Math.round(((b) => b.x + b.width)((await win.boundingBox())!))).toBe(840);
   expect((await events()).at(-1)?.anchor).toEqual({ x: "end", y: "start" });
 
-  // Dropped away from the edges it is free, and a shrinking parent only pushes it back inside.
+  // Dropped away from the edges, it keeps its distance from the parent's top-left and moves with it.
   const c = (await win.locator(".aster-window-bar").boundingBox())!;
   await page.mouse.move(c.x + 40, c.y + c.height / 2);
   await page.mouse.down();
   await page.mouse.move(c.x + 40 - 300, c.y + c.height / 2 + 150, { steps: 5 });
   await page.mouse.up();
-  expect((await events()).at(-1)).not.toHaveProperty("anchor");
   const free = (await win.boundingBox())!;
-  await page.evaluate(() => { document.querySelector<HTMLElement>("#e2e-snap-pane")!.style.width = "300px"; });
-  await expect.poll(async () => Math.round(((b) => b.x + b.width)((await win.boundingBox())!))).toBe(340);
-  expect(Math.round((await win.boundingBox())!.y)).toBe(Math.round(free.y));
+  expect([Math.round(free.x), Math.round(free.y)]).toEqual([300, 190]);
+  expect((await events()).at(-1)?.anchor).toEqual({ x: "start", y: "start", inset: { x: 260, y: 150 } });
+  await page.evaluate(() => {
+    const pane = document.querySelector<HTMLElement>("#e2e-snap-pane")!;
+    pane.style.left = "140px";
+    pane.style.width = "700px";
+  });
+  await expect.poll(async () => Math.round((await win.boundingBox())!.x)).toBe(400);
+  expect(Math.round((await win.boundingBox())!.y)).toBe(190);
+
+  // A saved inset restores the same spot.
+  await page.evaluate(() => (document.querySelector("#e2e-snap") as unknown as { setPlacement(p: unknown): void })
+    .setPlacement({ state: "normal", bounds: { x: 0, y: 0, width: 240, height: 160 }, anchor: { x: "start", y: "start", inset: { x: 30, y: 20 } } }));
+  await expect.poll(async () => ((b) => [Math.round(b.x), Math.round(b.y)])((await win.boundingBox())!)).toEqual([170, 60]);
 
   // In right-to-left text, the start edge is the right one.
   await page.evaluate(() => {
     const pane = document.querySelector<HTMLElement>("#e2e-snap-pane")!;
+    pane.style.left = "40px";
     pane.style.width = "600px";
     pane.dir = "rtl";
     (pane.firstElementChild as unknown as { setPlacement(p: unknown): void })

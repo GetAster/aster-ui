@@ -879,10 +879,10 @@ inside it, or the Close button, closes it and returns focus to the opener. The
 position is two custom properties JS writes when it moves; the clamp needs the
 window's size, measured then.
 
-With `keepInParentRect` its area is the parent instead of the viewport, and it
-follows the parent as it resizes. A placement's `anchor` keeps it flush against
-edges of that area; with `snapDistance`, moving it near an edge snaps and
-anchors it there.
+With `keepInParentRect` its area is the parent instead of the viewport, and its
+position is relative to the parent, so it follows the parent as it resizes. A
+placement's `anchor` keeps it to edges of that area, flush or at an `inset`;
+with `snapDistance`, moving it near an edge snaps and anchors it there.
 
 ### `aster-slicer` (`slicer/slicer.ts`)
 

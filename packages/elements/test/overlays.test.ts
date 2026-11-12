@@ -55,11 +55,20 @@ describe("window placement", () => {
     expect(() => parseWindowPlacement({ state: "normal", anchor: null as never })).toThrow("Invalid window anchor");
   });
 
+  test("an anchor's inset is kept for its anchored axes, with zero and unanchored insets dropped", () => {
+    expect(parseWindowPlacement({ state: "normal", anchor: { x: "start", y: "start", inset: { x: 120, y: 40 } } }).anchor)
+      .toEqual({ x: "start", y: "start", inset: { x: 120, y: 40 } });
+    expect(parseWindowPlacement({ state: "normal", anchor: { x: "end", inset: { x: 0, y: 30 } } }).anchor).toEqual({ x: "end" });
+    expect(() => parseWindowPlacement({ state: "normal", anchor: { x: "start", inset: { x: -1 } } })).toThrow("Invalid window anchor");
+    expect(() => parseWindowPlacement({ state: "normal", anchor: { x: "start", inset: { x: Number.NaN } } })).toThrow("Invalid window anchor");
+  });
+
   test("anchoring puts the named axes flush against their edges and leaves the others", () => {
     const limits = { left: 8, top: 8, right: 1008, bottom: 808 };
     const size = { width: 300, height: 200 };
     expect(anchorWindow({ x: 400, y: 300 }, size, limits, { x: "high", y: "low" })).toEqual({ x: 708, y: 8 });
     expect(anchorWindow({ x: 400, y: 300 }, size, limits, { y: "high" })).toEqual({ x: 400, y: 608 });
+    expect(anchorWindow({ x: 400, y: 300 }, size, limits, { x: "low", y: "high" }, { x: 120, y: 40 })).toEqual({ x: 128, y: 568 });
   });
 
   test("snapping finds the edges within reach, nearest first, and only those a move heads toward", () => {

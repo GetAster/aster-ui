@@ -9,9 +9,11 @@ import {
   parseWindowPlacement,
   resolveWindowChrome,
   snapEdges,
+  windowAnchor,
   type ResolvedWindowChrome,
   type WindowBounds,
   type WindowAnchor,
+  type WindowAxisAnchor,
   type WindowChrome,
   type WindowEdge,
   type WindowLimits,
@@ -538,22 +540,40 @@ export class Window extends AsterElement {
   #move(to: { x: number; y: number }, toward?: { x: number; y: number }): void {
     const panel = this.#panel();
     if (!panel) return;
+    const size = sizeOf(panel);
+    const limits = this.#limits();
     const distance = this.#snapDistance.peek();
-    if (distance > 0) {
-      const near = this.#sides(snapEdges(to, sizeOf(panel), this.#limits(), distance, toward));
-      const x = toward?.x === 0 ? this.#anchor?.x : near.x;
-      const y = toward?.y === 0 ? this.#anchor?.y : near.y;
-      this.#anchor = x || y ? { ...(x ? { x } : {}), ...(y ? { y } : {}) } : undefined;
-    } else this.#anchor = undefined;
+    const near = distance > 0 ? this.#sides(snapEdges(clampWindow(to, size, limits), size, limits, distance, toward)) : {};
+    const axis = (key: "x" | "y"): WindowAxisAnchor | undefined => {
+      const kept = this.#anchor?.[key];
+      if (toward?.[key] === 0) return kept && [kept, this.#anchor?.inset?.[key] ?? 0];
+      const side = near[key];
+      return side && [side, 0];
+    };
+    // Free axes are re-anchored by #place when the window keeps to its parent.
+    this.#anchor = windowAnchor(axis("x"), axis("y"));
     this.#place(to);
   }
 
+  /**
+   * Places the window, keeping its anchored axes to their edges. Inside its
+   * parent, a free axis anchors to the start edge at its current distance, so
+   * the window moves with the parent.
+   */
   #place(to: { x: number; y: number }): void {
     const panel = this.#panel();
     if (!panel) return;
     const size = sizeOf(panel);
     const limits = this.#limits();
-    const at = clampWindow(this.#anchor ? anchorWindow(to, size, limits, this.#edges(this.#anchor)) : to, size, limits);
+    const anchor = this.#anchor;
+    const at = clampWindow(anchor ? anchorWindow(to, size, limits, this.#edges(anchor), anchor.inset) : to, size, limits);
+    if (this.#keepInParentRect.peek() && !(anchor?.x && anchor?.y)) {
+      const fromStart = this.#rtl() ? limits.right - (at.x + size.width) : at.x - limits.left;
+      this.#anchor = windowAnchor(
+        anchor?.x ? [anchor.x, anchor.inset?.x ?? 0] : ["start", fromStart],
+        anchor?.y ? [anchor.y, anchor.inset?.y ?? 0] : ["start", at.y - limits.top],
+      );
+    }
     this.#at = at;
     panel.style.setProperty("--window-x", `${at.x}px`);
     panel.style.setProperty("--window-y", `${at.y}px`);

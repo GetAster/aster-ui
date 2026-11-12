@@ -24,8 +24,25 @@ export type WindowState = "normal" | "maximized" | "minimized";
 export interface WindowBounds { x: number; y: number; width: number; height: number }
 /** An edge of the window's area. Horizontally, `start` and `end` follow text direction. */
 export type WindowSide = "start" | "end";
-/** The edges a window sits flush against, kept when its area resizes. An omitted axis is free. */
-export interface WindowAnchor { readonly x?: WindowSide; readonly y?: WindowSide }
+/**
+ * The edges a window keeps to as its area resizes, each at an `inset` distance
+ * inward (default 0, flush). An omitted axis is free.
+ */
+export interface WindowAnchor {
+  readonly x?: WindowSide;
+  readonly y?: WindowSide;
+  readonly inset?: { readonly x?: number; readonly y?: number };
+}
+
+/** One anchored axis: its side and inset. */
+export type WindowAxisAnchor = readonly [WindowSide, number];
+
+/** Builds an anchor from its axes, dropping zero insets and empty parts. */
+export function windowAnchor(x: WindowAxisAnchor | undefined, y: WindowAxisAnchor | undefined): WindowAnchor | undefined {
+  if (!x && !y) return undefined;
+  const inset = { ...(x && x[1] ? { x: x[1] } : {}), ...(y && y[1] ? { y: y[1] } : {}) };
+  return { ...(x ? { x: x[0] } : {}), ...(y ? { y: y[0] } : {}), ...(inset.x !== undefined || inset.y !== undefined ? { inset } : {}) };
+}
 export interface WindowPlacement { state: WindowState; bounds?: WindowBounds; restoreMaximized?: boolean; folded?: boolean; anchor?: WindowAnchor }
 
 /** [[object:WindowChrome]] with every default filled in. */
@@ -64,8 +81,11 @@ export function parseWindowPlacement(value: unknown): WindowPlacement {
   if (b && (![b.x, b.y, b.width, b.height].every(Number.isFinite) || b.width <= 0 || b.height <= 0)) throw new TypeError("Invalid window bounds");
   const a = placement.anchor;
   const side = (v: unknown) => v === undefined || v === "start" || v === "end";
-  if (a !== undefined && (!a || typeof a !== "object" || !side(a.x) || !side(a.y))) throw new TypeError("Invalid window anchor");
-  const anchor = a && (a.x || a.y) ? { ...(a.x ? { x: a.x } : {}), ...(a.y ? { y: a.y } : {}) } : undefined;
+  const distance = (v: unknown) => v === undefined || (typeof v === "number" && Number.isFinite(v) && v >= 0);
+  const i = a?.inset;
+  if (a !== undefined && (!a || typeof a !== "object" || !side(a.x) || !side(a.y)
+    || (i !== undefined && (!i || typeof i !== "object" || !distance(i.x) || !distance(i.y))))) throw new TypeError("Invalid window anchor");
+  const anchor = a && windowAnchor(a.x ? [a.x, i?.x ?? 0] : undefined, a.y ? [a.y, i?.y ?? 0] : undefined);
   return {
     state: placement.state,
     ...(b ? { bounds: { x: b.x, y: b.y, width: b.width, height: b.height } } : {}),
@@ -89,14 +109,14 @@ export function clampWindow(at: { x: number; y: number }, size: { width: number;
 /** A physical edge on one axis: the low (left or top) or high (right or bottom) one. */
 export type WindowEdge = "low" | "high";
 
-/** Moves the anchored axes flush against their edges; free axes keep `at`. */
+/** Moves the anchored axes `inset` inward from their edges; free axes keep `at`. */
 export function anchorWindow(at: { x: number; y: number }, size: { width: number; height: number }, limits: WindowLimits,
-  edges: { x?: WindowEdge; y?: WindowEdge }): { x: number; y: number } {
-  const flush = (pos: number, length: number, low: number, high: number, edge: WindowEdge | undefined) =>
-    edge === "low" ? low : edge === "high" ? high - length : pos;
+  edges: { x?: WindowEdge; y?: WindowEdge }, inset: { x?: number; y?: number } = {}): { x: number; y: number } {
+  const keep = (pos: number, length: number, low: number, high: number, edge: WindowEdge | undefined, by = 0) =>
+    edge === "low" ? low + by : edge === "high" ? high - length - by : pos;
   return {
-    x: flush(at.x, size.width, limits.left, limits.right, edges.x),
-    y: flush(at.y, size.height, limits.top, limits.bottom, edges.y),
+    x: keep(at.x, size.width, limits.left, limits.right, edges.x, inset.x),
+    y: keep(at.y, size.height, limits.top, limits.bottom, edges.y, inset.y),
   };
 }
 

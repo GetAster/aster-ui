@@ -177,14 +177,17 @@ const windowChrome: CompositeType<WindowChrome> = t.object({
   statusBar: t.optional(t.boolean),
 });
 const positiveNumber = t.custom("positive finite number", (v): v is number => typeof v === "number" && Number.isFinite(v) && v > 0, { type: "number", exclusiveMinimum: 0 });
+const nonnegativeNumber = t.custom("nonnegative finite number", (v): v is number => typeof v === "number" && Number.isFinite(v) && v >= 0, { type: "number", minimum: 0 });
 const windowPlacement: CompositeType<WindowPlacement> = t.object({
   state: literals("normal", "maximized", "minimized"),
   bounds: t.optional(t.object({ x: t.number, y: t.number, width: positiveNumber, height: positiveNumber })),
   restoreMaximized: t.optional(t.boolean),
   folded: t.optional(t.boolean),
-  anchor: t.optional(t.object({ x: t.optional(literals("start", "end")), y: t.optional(literals("start", "end")) })),
+  anchor: t.optional(t.object({
+    x: t.optional(literals("start", "end")), y: t.optional(literals("start", "end")),
+    inset: t.optional(t.object({ x: t.optional(nonnegativeNumber), y: t.optional(nonnegativeNumber) })),
+  })),
 });
-const nonnegativeNumber = t.custom("nonnegative finite number", (v): v is number => typeof v === "number" && Number.isFinite(v) && v >= 0, { type: "number", minimum: 0 });
 const initialFocus = checked<Dialog["initialFocus"]>('"first", "dialog", "none" or a focus function', v =>
   v === undefined || v === "first" || v === "dialog" || v === "none" || fn(v));
 const progressTiming = t.object({ delayMs: t.optional(milliseconds), minVisibleMs: t.optional(milliseconds) });
