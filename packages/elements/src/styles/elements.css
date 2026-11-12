@@ -351,6 +351,10 @@
   aster-select, aster-picker, aster-choice { display: grid; gap: 6px; }
   aster-check[data-pending] .aster-check { box-shadow: inset 2px 0 0 var(--aster-accent); padding-left: 8px; }
   .aster-field-head { display: flex; align-items: baseline; gap: 8px; min-height: 18px; }
+  /* A label before the control: its head in a column as wide as the text. A form's own label column wins. */
+  [data-label-position="start"] { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 8px; row-gap: 6px; align-items: start; }
+  [data-label-position="start"] > .aster-field-head { grid-column: 1; grid-row: 1; align-self: center; }
+  [data-label-position="start"] > :not(.aster-field-head) { grid-column: 2; }
   .aster-field-label { font-size: 12px; font-weight: var(--aster-weight-label); color: var(--aster-text-2); }
   .aster-optional { font-size: 11.5px; color: var(--aster-text-3); }
   .aster-revert { margin-left: auto; padding: 0 2px; border-radius: 2px; font-size: 12px; color: var(--aster-accent); }
@@ -453,7 +457,7 @@
   .aster-window[data-folded] > :is(.aster-window-body, .aster-window-footer, .aster-window-status) { display: none; }
   .aster-window-fold svg { transition: rotate var(--aster-t-micro) var(--aster-ease); }
   .aster-window[data-folded] .aster-window-fold svg { rotate: 180deg; }
-  .aster-window-body { flex: 1; min-height: 0; overflow: auto; padding: var(--aster-window-body-padding-block) var(--aster-window-inset); }
+  .aster-window-body { flex: 1; min-height: 0; overflow: auto; padding: var(--aster-window-body-padding-block) var(--aster-window-body-padding-inline); }
   .aster-window-footer { flex: none; padding: calc(var(--aster-pad) / 2) var(--aster-window-inset); border-top: 1px solid var(--aster-rule-2); }
   .aster-window-status { flex: none; padding: 3px var(--aster-window-inset); border-top: 1px solid var(--aster-rule-2); color: var(--aster-text-2); font-size: 11.5px; }
   /* Dashboard geometry stays in CSS; stored sizes are column/row intent. */

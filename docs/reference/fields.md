@@ -183,6 +183,43 @@ above the control. Leave it off where the context names the field, such as a
 grid cell under a column header; the label is still the accessible name.
 [[class:Form]] and [[staticMethod:controlFor]] set it for you.
 
+## attr:BoundField.labelPosition
+
+Where a shown label sits, a [[type:LabelPosition]]. Default `"above"`. Reactive.
+
+`"start"` puts the label before the control on the same line, following the
+text direction, for a field in a toolbar or a filter row. The label keeps its
+"Optional" marker and Revert, centred on the control, and its column is as wide
+as the label. Hints, reasons and errors stay below the control. In a
+[[class:Form]] whose `titleOrientation` is `"start"`, the form's label column
+(`--aster-form-label-width`) sets the width instead, so its labels line up.
+
+It applies only with [[attr:BoundField.labelled]]; without it the label stays
+the accessible name. Only a check takes `"end"`; an unknown value throws a
+`TypeError`.
+
+```ts
+html`<aster-picker .model=${view} .field=${"scopeId"} .options=${sets}
+  .label=${"Project"} .labelled=${true} .labelPosition=${"start"}></aster-picker>`;
+```
+
+A [[class:Check]] places a beside label in the checkbox itself: `"start"`
+puts it before the box and `"end"` after it. The label is then part of the
+checkbox's own `label`, so clicking the text toggles it, and it follows the
+text direction. Beside the box there's no "Optional" marker, and the pending dot and Revert
+follow the label on the same line; hints, reasons and errors stay below. Use
+it for a toggle in a toolbar or a single option such as "Remember me".
+
+```ts
+html`<aster-check .model=${view} .field=${"onlyToReview"} .label=${"Only rows to review"}
+  .labelled=${true} .labelPosition=${"end"}></aster-check>`;
+```
+
+## type:LabelPosition
+
+`"above" | "start" | "end"`; see [[attr:BoundField.labelPosition]]. Only a
+[[class:Check]] takes `"end"`.
+
 ## attr:BoundField.sharedReasons
 
 Maps a read-only reason, such as "This project is archived.", to the `id` of
@@ -294,26 +331,9 @@ it carries `aria-readonly="true"` and ignores clicks.
 html`<aster-check .model=${edit} .field=${"done"} .labelled=${true}></aster-check>`;
 ```
 
-## attr:Check.labelPosition
-
-Where a shown label sits, a [[type:CheckLabelPosition]]: `"above"` (default),
-as on other fields; `"start"`, before the box; or `"end"`, after it. Beside the
-box, the label is part of the checkbox's own `label`, so clicking the text
-toggles it, and it follows the text direction. It applies only with
-[[attr:BoundField.labelled]]; without it the label stays the accessible name.
-Beside the box there's no "Optional" marker, and the pending dot and Revert
-follow the label on the same line; hints, reasons and errors stay below. Use
-it for a toggle in a toolbar or a single option such as "Remember me". Any
-other value throws a `TypeError`. Reactive.
-
-```ts
-html`<aster-check .model=${view} .field=${"onlyToReview"} .label=${"Only rows to review"}
-  .labelled=${true} .labelPosition=${"end"}></aster-check>`;
-```
-
 ## type:CheckLabelPosition
 
-`"above" | "start" | "end"`; see [[attr:Check.labelPosition]].
+[[type:LabelPosition]], as a check takes it; see [[attr:BoundField.labelPosition]].
 
 ## method:Check.focus
 

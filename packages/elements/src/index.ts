@@ -27,7 +27,7 @@ export { Toaster, announce, type ToastAction } from "./toast/toast.ts";
 export { Menu, type MenuItem } from "./menu/menu.ts";
 export { morph, setScheme } from "./motion.ts";
 export { absoluteTime, compactMoney, relativeTime } from "./format.ts";
-export { BoundField, type ControlContext, type ValidateOn } from "./field/bound-field.ts";
+export { BoundField, type ControlContext, type LabelPosition, type ValidateOn } from "./field/bound-field.ts";
 export { CompositeField, type CompositeFieldContext } from "./field/composite-field.ts";
 export { NumberField, type NumericType, type NumericValue } from "./field/number-field.ts";
 export { Stack, HorizontalLayout, VerticalLayout } from "./layout/stack.ts";

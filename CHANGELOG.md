@@ -7,6 +7,32 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.38
+
+Any field in `@getaster/elements` can now put its label before its control,
+for toolbars and filter rows, and a window's content can run to its edges.
+
+### Added
+
+- **`labelPosition: "start"` on every bound field**, including Picker,
+  Select, Field, NumberField, DateField and TreePicker. With `labelled`, the
+  label, its "Optional" marker and Revert sit before the control on the same
+  line, centred on it, and follow the text direction. Hints, reasons and
+  errors stay below the control. A standalone field's label is as wide as its
+  text. In a form whose `titleOrientation` is `"start"`, the form's label
+  column sets the width. The default stays `"above"`.
+- **`--aster-window-body-padding-inline`**, the window body's side padding.
+  It defaults to `--aster-window-inset`, so windows look the same. Set it to
+  `0` for content such as a map or canvas that runs to the window's edges,
+  while the title keeps its inset.
+
+### Changed
+
+- **Check's `labelPosition` is now the shared `BoundField.labelPosition`**.
+  A check still takes `"start"` and `"end"` beside its box, with the same
+  behaviour. The new `LabelPosition` type is exported, and
+  `CheckLabelPosition` remains as an alias for it.
+
 ## 0.4.35
 
 Pages built on `@getaster/elements` can now make compact tool windows and

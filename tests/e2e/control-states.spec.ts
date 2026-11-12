@@ -92,3 +92,52 @@ test("a check's label can sit beside the box, on one line", async ({ page }) => 
   const error = await after.evaluate((el: any) => { try { el.labelPosition = "below"; return "accepted"; } catch (e) { return (e as Error).name; } });
   expect(error).toBe("TypeError");
 });
+
+test("a field's label can sit before the control, keeping its Revert and its hint below", async ({ page }) => {
+  await page.goto("/playground/control-states.html");
+  await expect(page.locator("#controls")).toHaveAttribute("data-ready", "true");
+  await page.evaluate(async () => {
+    const url = "/lib/aster-ui.js", mockUrl = "/lib/aster-ui-mock.js";
+    const { DataContext, EditModel, keyText } = await import(url); const { createMockService } = await import(mockUrl);
+    const json = async (name: string) => (await fetch(`/lib/demo/${name}.json`)).json();
+    const mock = await createMockService({ metadata: await json("metadata"), data: await json("data"), wasm: new URL("/lib/odata_mock.wasm", location.href) });
+    const ctx = await DataContext.connect(mock.transport);
+    await ctx.reload("Tasks", keyText([1]));
+    const field = Object.assign(document.createElement("aster-field"), {
+      id: "e2e-beside", model: new EditModel(ctx, "Tasks", keyText([1])), field: "title",
+      label: "Task", labelled: true, labelPosition: "start", hint: "Shown on the board",
+    });
+    field.style.width = "420px";
+    document.querySelector("main")!.prepend(field);
+  });
+  const field = page.locator("#e2e-beside");
+  const input = page.getByRole("textbox", { name: "Task", exact: true });
+  await expect(field).toHaveAttribute("data-label-position", "start");
+  const geometry = async () => field.evaluate(el => {
+    const r = (s: string) => el.querySelector(s)!.getBoundingClientRect();
+    const label = r(".aster-field-label"), control = r(".aster-field"), hint = r(".aster-hint");
+    return { labelFirst: label.right < control.left, centred: Math.abs((label.top + label.bottom) / 2 - (control.top + control.bottom) / 2) < 3,
+      hintBelow: hint.top >= control.bottom && Math.abs(hint.left - control.left) < 1 };
+  });
+  expect(await geometry()).toEqual({ labelFirst: true, centred: true, hintBelow: true });
+
+  // A change shows Revert in the label's column, before the control.
+  await input.fill("Launch email, third draft");
+  const revert = field.getByRole("button", { name: /^Revert Task/ });
+  await expect(revert).toBeVisible();
+  expect((await revert.boundingBox())!.x + (await revert.boundingBox())!.width).toBeLessThan((await input.boundingBox())!.x);
+  await revert.click();
+  await expect(input).toHaveValue("Launch email, second draft");
+
+  // Right to left: the label follows the text direction.
+  await field.evaluate(el => el.setAttribute("dir", "rtl"));
+  expect(await field.evaluate(el => el.querySelector(".aster-field-label")!.getBoundingClientRect().left > el.querySelector("input")!.getBoundingClientRect().right)).toBe(true);
+  await field.evaluate(el => el.removeAttribute("dir"));
+
+  // Unlabelled, nothing is placed; only a check takes "end".
+  await field.evaluate((el: any) => { el.labelled = false; });
+  await expect(field).not.toHaveAttribute("data-label-position", /./);
+  await expect(input).toHaveAccessibleName("Task");
+  const error = await field.evaluate((el: any) => { try { el.labelPosition = "end"; return "accepted"; } catch (e) { return (e as Error).name; } });
+  expect(error).toBe("TypeError");
+});

@@ -329,7 +329,9 @@ size to the viewport, including viewports smaller than the desktop minimum.
 Size the chrome of one window with the window
 component variables ([[constant:COMPONENT_VARS]]) on the element: the
 title bar's height, heading size and button size, the side inset shared by
-the title and body, and the body's padding above and below. A
+the title and body, and the body's own padding. The body's side padding
+follows the inset unless you set it, such as `0` for a map or canvas that
+runs to the window's edges. A
 small tool window, for example:
 
 ```css
@@ -339,6 +341,7 @@ aster-window.minimap {
   --aster-window-control-size: 22px;
   --aster-window-inset: 8px;
   --aster-window-body-padding-block: 6px;
+  --aster-window-body-padding-inline: 0;
 }
 ```
 

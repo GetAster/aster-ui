@@ -23,11 +23,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "565b6c5dfda1c10331dff54981307263d2de6444cd54226a8964a58b1d1e5b0e"
+      "sha256": "dbf95f7435bcafd288ad6b6183f67a47dbdb3d0e8bf3af7d5be76debd3ffb9e6"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "85918556b5f814102ad44828613f07ba5a163fa0010e65e70f9f88da5c281727"
+      "sha256": "6575de3f4c27cb23aed831433e2b7e7913ab64955de21b2c97c5553dc7b5bc08"
     },
     {
       "path": "LICENSE",
@@ -691,7 +691,7 @@
     },
     {
       "path": "docs/guide/fields-and-layouts.md",
-      "sha256": "7d20207de05e3526dbb0bb4137a1c1fd248c29e22af966259a58f39f1ac44689"
+      "sha256": "86bd9604d9293a47e43c5c43ac79d3b7c2f9c0253f01a1a4e42d01a40e2dbd05"
     },
     {
       "path": "docs/guide/filter-group-export.md",
@@ -791,11 +791,11 @@
     },
     {
       "path": "docs/reference/elements.md",
-      "sha256": "623c5fd599a23141ce9bcaae1af3fbdc081605a736ca68994d7c4ef03cfc3403"
+      "sha256": "8d0c828170e66487a408acd804aeee95fac404d4f9def6839fb2d75b523a1e86"
     },
     {
       "path": "docs/reference/fields.md",
-      "sha256": "3b6d57c22ae366dacef7bf6ac4f41731900785b13a05e8180a4d4e19dddbfaf8"
+      "sha256": "ea64df5798d67cdf5902efca98179c26fa84051625a04a49c028a61f69aa00f4"
     },
     {
       "path": "docs/reference/filtering.md",
@@ -835,7 +835,7 @@
     },
     {
       "path": "docs/reference/overlays.md",
-      "sha256": "98c2c01f68b9a919284dbe75d4935e87b954f05d6cee2c0ad0bc8bc937e02775"
+      "sha256": "21687a0c105c1375b3fbe36d9dc1c4f058f9748cfe979ba8f69d63bce2c887f7"
     },
     {
       "path": "docs/reference/page-rules.md",
@@ -1363,7 +1363,7 @@
     },
     {
       "path": "packages/elements/src/composition/builtins.ts",
-      "sha256": "4f82f63117a89eeb64d41856c04f8c26ce879016638281688710af63b5da6fbc"
+      "sha256": "c111ec9c44eb98c492beca910ff98b89d717d18e45d9c895587fd4e370fd4625"
     },
     {
       "path": "packages/elements/src/composition/command-bar.ts",
@@ -1435,11 +1435,11 @@
     },
     {
       "path": "packages/elements/src/field/bound-field.ts",
-      "sha256": "0c489a135eeadd219182fc6e60e00ec80386d286f357d0c8c3e05fbd5b24d3af"
+      "sha256": "201694b2e40920d14f4d939ef955ac5d31406b5ff1a69eeb3f3d58090f116134"
     },
     {
       "path": "packages/elements/src/field/check.ts",
-      "sha256": "ae6d387d9125def2747c847d40f4638422c3348eea7f49a975f672e1abf80cff"
+      "sha256": "0c74c4c2f96671c3564aedbda21a76394dd6efc018d02e7938832174a67fe877"
     },
     {
       "path": "packages/elements/src/field/composite-field.ts",
@@ -1527,7 +1527,7 @@
     },
     {
       "path": "packages/elements/src/index.ts",
-      "sha256": "fd05b203e4fa19e97f53bb545fb6427c8689d82ce2c1cd547c38de449a1174da"
+      "sha256": "dac180ce51cf39a689566b570d2df2f80e76a357f701ecb21a1d95b76455448f"
     },
     {
       "path": "packages/elements/src/layout/stack.ts",
@@ -1635,15 +1635,15 @@
     },
     {
       "path": "packages/elements/src/styles/base.css",
-      "sha256": "cec554edccc92cf8a9a16023d547cb4700fd5878d255bbeb24c6253583cfc16f"
+      "sha256": "305df14a8da5f569caeed3a565ce68a8b95257a020ab2c0f7b1d44491843df1c"
     },
     {
       "path": "packages/elements/src/styles/contract.ts",
-      "sha256": "066f0a23b82701aa968115cce8cae1141ebab9a1e37819aab1dbe8639fb4f10b"
+      "sha256": "451f641ed3ecdd71192422bfc608aa7f182d5ee04eff813b15e1dc18b2678126"
     },
     {
       "path": "packages/elements/src/styles/elements.css",
-      "sha256": "ca3163cfdcdb1159a8713dd6a3a3ab8595325e11028fb64f5e168dff862341f6"
+      "sha256": "70e4ed9a9d9d91e2b21bb0d281bd3d1e50d092302ae7644dc00df6eb9871f28e"
     },
     {
       "path": "packages/elements/src/styles/fonts.css",
@@ -2379,7 +2379,7 @@
     },
     {
       "path": "tests/e2e/appearance.spec.ts",
-      "sha256": "490ca27be7ad86f4a75e2118f1a1cda17ed067bb623ce6e19891d1aeb48f9dce"
+      "sha256": "0da512c4632e3101925109bcaf93ca0cb2f3b7af1b888fb00a7af6f8a9627ec4"
     },
     {
       "path": "tests/e2e/appearance.ts",
@@ -2415,7 +2415,7 @@
     },
     {
       "path": "tests/e2e/control-states.spec.ts",
-      "sha256": "7c2d027083e0fd1ff70ea920b65441cc2a09e9c17a62ce001c1ac995df4f40ab"
+      "sha256": "8b09bec6f0bd04beee45d64ee58d68a7cef39092230b91293a85a54cb065f8e3"
     },
     {
       "path": "tests/e2e/control-states.spec.ts-snapshots/harbour-dark-1000-chromium-darwin.png",

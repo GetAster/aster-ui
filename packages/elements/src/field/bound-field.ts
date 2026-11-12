@@ -4,6 +4,12 @@ import { html, nothing } from "lit-html";
 import { AsterElement, uid, type View } from "../base/element.ts";
 import { formatValue } from "./values.ts";
 
+/**
+ * Where a shown label sits: above the control, or before it on the same
+ * line. A check also takes `"end"`, after its box.
+ */
+export type LabelPosition = "above" | "start" | "end";
+
 /** When a bound field revalidates its own value. */
 export type ValidateOn = "submit" | "change" | "exit";
 
@@ -38,6 +44,7 @@ export abstract class BoundField extends AsterElement {
   readonly #field = this.prop("");
   readonly #label = this.prop("");
   readonly #labelled = this.prop(false);
+  readonly #labelPosition = this.prop<LabelPosition>("above");
   readonly #shared = this.prop<ReadonlyMap<string, string>>(new Map());
   readonly #hint = this.prop("");
   readonly #showErrors = this.prop(true);
@@ -69,6 +76,20 @@ export abstract class BoundField extends AsterElement {
   }
   set labelled(v: boolean) {
     this.#labelled.value = v;
+  }
+
+  /**
+   * Where a shown label sits. Default `"above"`. `"start"` puts the label,
+   * its "Optional" marker and Revert before the control, following the text
+   * direction; hints, reasons and errors stay below the control.
+   */
+  get labelPosition(): LabelPosition {
+    return this.#labelPosition.value;
+  }
+  set labelPosition(v: LabelPosition) {
+    const allowed = this.labelPositions();
+    if (!allowed.includes(v)) throw new TypeError(`${this.localName} labelPosition must be ${allowed.join(", ")}`);
+    this.#labelPosition.value = v;
   }
 
   /**
@@ -127,6 +148,9 @@ export abstract class BoundField extends AsterElement {
 
   /** Control-specific validation supplements the model's errors. */
   protected validation(_meta: FieldMeta | undefined, _value: Value | undefined): string | undefined { return undefined; }
+
+  /** The label positions this field accepts. */
+  protected labelPositions(): readonly LabelPosition[] { return ["above", "start"]; }
 
   /** True when the control draws a shown label itself, on its own line, instead of the head above. */
   protected labelBeside(): boolean { return false; }
@@ -212,6 +236,9 @@ export abstract class BoundField extends AsterElement {
             @click=${() => model?.revert(name)}>Revert</button>`
         : nothing;
     const beside = this.#labelled.value && this.labelBeside();
+    // CSS puts the head in a column before the control.
+    if (this.#labelled.value && !beside && this.#labelPosition.value === "start") this.setAttribute("data-label-position", "start");
+    else this.removeAttribute("data-label-position");
     const row = hidden ? this.#hiddenValue(c) : this.row(c);
     return html`${this.#labelled.value && !beside
         ? html`<div class="aster-field-head">

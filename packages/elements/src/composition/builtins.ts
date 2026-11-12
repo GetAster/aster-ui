@@ -188,7 +188,7 @@ const initialFocus = checked<Dialog["initialFocus"]>('"first", "dialog", "none" 
 const progressTiming = t.object({ delayMs: t.optional(milliseconds), minVisibleMs: t.optional(milliseconds) });
 const bound = {
   model: t.optional(t.instance(EditModel)), field: t.string, label: t.string,
-  labelled: t.boolean, sharedReasons: t.instance(Map<string, string>),
+  labelled: t.boolean, labelPosition: literals("above", "start"), sharedReasons: t.instance(Map<string, string>),
   hint: t.string, showErrors: t.boolean, validateOn: literals("submit", "change", "exit"),
 };
 

@@ -27,6 +27,7 @@
     --aster-window-control-size: calc(var(--aster-ctl) - 2px);
     --aster-window-inset: 14px;
     --aster-window-body-padding-block: var(--aster-pad);
+    --aster-window-body-padding-inline: var(--aster-window-inset);
     --aster-dialog-max-width: 100%;
   }
 

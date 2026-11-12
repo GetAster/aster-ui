@@ -130,6 +130,10 @@ const filters = html`<aster-horizontal-layout .gap=${"medium"}
 In a narrow container the layout stacks, and each item then takes the full
 width. In a row you lay out with your own flex CSS, use `align-items: end`.
 
+To put a field's label before its control instead, set `labelPosition` to
+`"start"` on the field. The label then sits on the control's row, so the row
+can align to `center`.
+
 Split keeps two panes mounted while resizing or collapsing:
 
 ```ts

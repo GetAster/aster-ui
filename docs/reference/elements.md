@@ -540,8 +540,9 @@ properties.
 | Window | `--aster-window-header-height` | `calc(var(--aster-ctl) + var(--aster-pad) - 1px)` | Title bar minimum height (windows and sections) |
 | Window | `--aster-window-title-size` | `13.5px` | Title bar heading size (windows and sections) |
 | Window | `--aster-window-control-size` | `calc(var(--aster-ctl) - 2px)` | Title bar button size (windows and sections); 44px on a coarse pointer |
-| Window | `--aster-window-inset` | `14px` | Side inset of the title, body, footer and status bar, so they stay aligned |
+| Window | `--aster-window-inset` | `14px` | Side inset of the title, footer and status bar, and by default the body, so they stay aligned |
 | Window | `--aster-window-body-padding-block` | `var(--aster-pad)` | Window body padding above and below the content |
+| Window | `--aster-window-body-padding-inline` | `var(--aster-window-inset)` | Window body padding beside the content; `0` lets content such as a canvas run to the edges |
 | Dialog | `--aster-dialog-max-width` | `100%` | Panel maximum width, also bounded by the viewport |
 
 The defaults follow density through the referenced variables. `auto` means
