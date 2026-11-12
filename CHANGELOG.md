@@ -7,6 +7,29 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.29
+
+Layouts in `@getaster/elements` now remember more of a person's choices
+across reloads. A sidebar can keep its folded groups, and a persisted split
+keeps whether its pane was collapsed.
+
+### Added
+
+- **`Sidebar.persist`**: give the sidebar a name and the groups a person
+  folds stay folded after a reload. The state is saved in `localStorage`
+  under `aster-sidebar:<name>`. Groups no longer in the items are ignored and
+  dropped at the next save, and new groups start open. If storage is
+  unavailable or holds bad data, every group starts open.
+
+### Changed
+
+- **`Split.persist` now also saves whether the pane is collapsed**, beside its
+  width. It saves when the person collapses or restores the pane; setting
+  `collapsed` from code is the application's state and is not saved. A saved
+  collapsed state applies only while the split is `collapsible`, so a pane
+  is never hidden without a control to restore it. Widths saved by earlier
+  releases still load.
+
 ## 0.4.26
 
 Two additions to `@getaster/elements` for text and navigation. A disclosure

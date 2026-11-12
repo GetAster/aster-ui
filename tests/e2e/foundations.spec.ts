@@ -185,12 +185,14 @@ test("an end-pane split sizes, resizes, persists and collapses the end pane", as
   await expect(split).toHaveJSProperty("size", 320);
   await page.locator("#inspector-split").evaluate((el: any) => { el.persist = "inspector-test"; el.size = 300; });
   await bar.press("ArrowLeft");
-  expect(await page.evaluate(() => localStorage.getItem("aster-split:inspector-test"))).toBe("316");
+  const stored = () => page.evaluate(() => JSON.parse(localStorage.getItem("aster-split:inspector-test")!));
+  expect(await stored()).toEqual({ width: 316, collapsed: false });
   const input = end.getByRole("textbox", { name: "Series label" });
   await input.fill("Kept while collapsed");
   await input.focus();
   await split.getByRole("button", { name: "Hide the inspector" }).click();
   await expect(bar).toHaveAttribute("aria-valuetext", "Collapsed");
+  expect(await stored()).toEqual({ width: 316, collapsed: true });
   await expect(end).toHaveAttribute("inert", "");
   await expect(start).not.toHaveAttribute("inert", "");
   await expect.poll(() => end.evaluate(el => el.getBoundingClientRect().width)).toBe(0);
@@ -201,6 +203,37 @@ test("an end-pane split sizes, resizes, persists and collapses the end pane", as
   await expect(bar).toHaveAttribute("aria-controls", (await start.getAttribute("id"))!);
   await expect.poll(() => start.evaluate(el => Math.round(el.getBoundingClientRect().width))).toBe(316);
   await page.evaluate(() => localStorage.removeItem("aster-split:inspector-test"));
+});
+
+test("a persisted split restores its collapsed state only while it is collapsible", async ({ page }) => {
+  await open(page);
+  const make = (props: Record<string, unknown>) => page.evaluate(props => {
+    document.querySelector("#probe-split")?.remove();
+    const split = Object.assign(document.createElement("aster-split"), { id: "probe-split" }, props);
+    document.querySelector("main")!.append(split);
+  }, props);
+  const split = page.locator("#probe-split");
+  const bar = split.locator(":scope > .aster-split-layout > [role=separator]");
+  await page.evaluate(() => localStorage.setItem("aster-split:probe", JSON.stringify({ width: 300, collapsed: true })));
+  // Stored collapsed, but no control to restore the pane: it stays open until the split is collapsible.
+  await make({ persist: "probe" });
+  await expect(bar).toHaveAttribute("aria-valuenow", "300");
+  await expect(split).toHaveJSProperty("collapsed", false);
+  await split.evaluate((el: any) => { el.collapsible = true; });
+  await expect(bar).toHaveAttribute("aria-valuetext", "Collapsed");
+  await make({ collapsible: true, persist: "probe" });
+  await expect(split).toHaveJSProperty("collapsed", true);
+  // Restoring through the control is stored; setting collapsed from code is not.
+  await split.getByRole("button", { name: "Restore pane" }).click();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("aster-split:probe")!))).toEqual({ width: 300, collapsed: false });
+  await split.evaluate((el: any) => { el.collapsed = true; });
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("aster-split:probe")!))).toEqual({ width: 300, collapsed: false });
+  // Bad data leaves the defaults.
+  await page.evaluate(() => localStorage.setItem("aster-split:probe", "{not json"));
+  await make({ collapsible: true, persist: "probe" });
+  await expect(split).toHaveJSProperty("collapsed", false);
+  await expect(bar).toHaveAttribute("aria-valuenow", "320");
+  await page.evaluate(() => { localStorage.removeItem("aster-split:probe"); document.querySelector("#probe-split")?.remove(); });
 });
 
 test("a split's collapse control sits on the bar, in a toolbar or with the host", async ({ page }) => {

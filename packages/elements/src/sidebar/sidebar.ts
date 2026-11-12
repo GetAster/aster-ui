@@ -1,4 +1,4 @@
-import { signal, type Signal } from "@preact/signals-core";
+import { signal, untracked, type Signal } from "@preact/signals-core";
 import { html, nothing } from "lit-html";
 import { each, uid, type View } from "../base/element.ts";
 import "../caret/caret-group.ts";
@@ -58,6 +58,35 @@ export const sidebarItems = t.custom("navigation items with unique IDs and safe 
 
 /** Folded groups, by element: view state the host doesn't control. */
 const folded = new WeakMap<HTMLElement, Signal<ReadonlySet<string>>>();
+/** The `persist` name each element's folded set was last read for. */
+const loaded = new WeakMap<HTMLElement, string>();
+
+/** Folded group IDs stored under `persist`; missing, blocked or bad storage reads as none folded. */
+function readFolded(name: string): ReadonlySet<string> {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(`aster-sidebar:${name}`) ?? "[]");
+    return new Set(Array.isArray(stored) ? stored.filter((id): id is string => typeof id === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
+/** Stores the folded groups that are still in `items`, so groups that have gone are dropped. */
+function saveFolded(name: string, items: readonly SidebarItem[], shut: ReadonlySet<string>): void {
+  const groups = new Set<string>();
+  const visit = (entries: readonly SidebarItem[]): void => entries.forEach(item => {
+    if (!item.children) return;
+    if (item.collapsible !== false) groups.add(item.id);
+    visit(item.children);
+  });
+  visit(items);
+  try {
+    localStorage.setItem(`aster-sidebar:${name}`, JSON.stringify([...shut].filter(id => groups.has(id))));
+  } catch {
+    // Not kept; the folding still applies now.
+  }
+}
+
 /** Each element's prefix for its description IDs. */
 const prefixes = new WeakMap<HTMLElement, string>();
 
@@ -78,10 +107,17 @@ export const Sidebar = defineElement({
     value: elementProperty(t.optional(t.string), () => undefined, "Current item ID"),
     renderIcon: elementProperty(t.optional(t.custom("navigation icon renderer", (value): value is (item: SidebarItem) => View => typeof value === "function", { asterType: "function" })), () => undefined, "Trusted icon renderer; labels remain text"),
     compact: elementProperty(t.boolean, () => false, "Use an icon rail with accessible labels"),
+    persist: elementProperty(t.string, () => "", "Name under which this viewer's folded groups are kept in local storage"),
   },
-  render: ({ label, items, value, compact, renderIcon }, element) => {
+  render: ({ label, items, value, compact, renderIcon, persist }, element) => {
     let closed = folded.get(element);
     if (!closed) folded.set(element, closed = signal<ReadonlySet<string>>(new Set()));
+    // Read once per name, before this render reads the folded set.
+    if (persist && loaded.get(element) !== persist) {
+      loaded.set(element, persist);
+      const stored = readFolded(persist);
+      untracked(() => { closed.value = stored; });
+    }
     const shut = closed.value;
     let prefix = prefixes.get(element);
     if (!prefix) prefixes.set(element, prefix = uid("aster-sidebar"));
@@ -93,6 +129,7 @@ export const Sidebar = defineElement({
       const next = new Set(closed.peek());
       if (open) next.delete(id); else next.add(id);
       closed.value = next;
+      if (persist) saveFolded(persist, items, next);
     };
     const choose = (event: MouseEvent, item: SidebarItem) => {
       if (item.disabled) { event.preventDefault(); return; }

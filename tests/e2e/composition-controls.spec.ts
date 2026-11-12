@@ -17,8 +17,8 @@ test("built-in contracts cover public setters and reject invalid props before mo
     const authoring = lib.defineCompositeRegistry({ models: { empty: lib.defineCompositeModel({ inputs: {}, exports: {}, create: () => ({ values: {} }) }) }, components: lib.asterComponents });
     const diagnostics = (type: string, props: object) => authoring.diagnostics({ version: 1, name: "Controls", model: { type: "empty" }, children: { control: { type, props } }, layout: { child: "control" } });
     return { missing, count: Object.keys(lib.asterComponents).length,
-      invalid: [diagnostics("NumberField", { step: "-0.1" }), diagnostics("NumberField", { min: "not a number" }), diagnostics("Breadcrumbs", { items: [{ id: "unsafe", label: "Unsafe", href: "javascript:alert(1)" }] }), diagnostics("Accordion", { items: [{ id: "same", heading: "One" }, { id: "same", heading: "Two" }] }), diagnostics("Grid", { selectable: "yes" }), diagnostics("Grid", { policy: { sortable: "name" } }), diagnostics("Grid", { sortable: (field: string) => field === "name" }), diagnostics("Grid", { features: { kind: "page" } }), diagnostics("Grid", { features: [{ kind: "resize" }] }), diagnostics("Grid", { features: [{ kind: "edit", mode: "form" }] }), diagnostics("Grid", { features: [{ kind: "select", appearance: "checkbox" }] }), diagnostics("Grid", { multiSort: "no" }), diagnostics("Grid", { editMode: "form" }), diagnostics("Grid", { selectionAppearance: "checkbox" }), diagnostics("Grid", { selectionColumn: "yes" }), diagnostics("Grid", { autoFetch: "no" }), diagnostics("Grid", { pageSize: 0 }), diagnostics("Grid", { keepPages: "many" }), diagnostics("Grid", { exactCount: "yes" }), diagnostics("Grid", { toolbar: { expandAll: "no" } }), diagnostics("Grid", { tree: { parentField: "parentId", autoOpen: -1 } }), diagnostics("Grid", { tree: { parentField: "parentId", cascadeSelection: "yes" } }), diagnostics("Grid", { tree: { parentField: "parentId", pageSize: 0 } }), diagnostics("Grid", { loadingMessage: 42 }), diagnostics("Grid", { error: () => undefined }), diagnostics("Grid", { columnMenu: true }), diagnostics("Grid", { filterOperators: { hours: "gt" } }), diagnostics("Grid", { chrome: { headerMenu: "no" } }), diagnostics("Grid", { showHeaderMenu: "no" }), diagnostics("Tabs", { activation: "sometimes" }), diagnostics("Form", { sections: [null] }), diagnostics("Sidebar", { items: [{ id: "bad", label: "Bad", href: "javascript:alert(1)" }] }), diagnostics("Section", { chrome: { status: "sometimes" } }), diagnostics("Disclosure", { open: "yes" }), diagnostics("Sidebar", { items: [{ id: "repo", label: "Repo", description: 42 }] })],
-      valid: [diagnostics("Disclosure", { label: "12 errors", open: true }), diagnostics("Sidebar", { items: [{ id: "repo", label: "ferriskey", description: "~/dev/ferriskey", children: [{ id: "chart", label: "Login" }] }] }), diagnostics("Form", { sections: [{ title: "Details", items: ["name"] }] }), diagnostics("Section", { chrome: { titleBar: true, status: "always" }, collapsible: false }), diagnostics("Grid", { features: [{ kind: "sort", multi: false }, { kind: "edit", mode: "cell" }, { kind: "select", appearance: "cell", column: true }, { kind: "page" }] }), diagnostics("Grid", { filterOperators: { hours: ["gt", "ge"] } }), diagnostics("Grid", { autoFetch: false, loadingMessage: "Fetching rows…" }), diagnostics("Grid", { pageSize: 50, keepPages: 4, exactCount: true }), diagnostics("Grid", { toolbar: { expandAll: false }, tree: { parentField: "parentId", draggable: true, reparent: false, dropOnLeaves: false, autoOpen: 2, showOpener: false, cascadeSelection: true, pageSize: 50, matchLimit: 100, openLimit: 20 } })],
+      invalid: [diagnostics("NumberField", { step: "-0.1" }), diagnostics("NumberField", { min: "not a number" }), diagnostics("Breadcrumbs", { items: [{ id: "unsafe", label: "Unsafe", href: "javascript:alert(1)" }] }), diagnostics("Accordion", { items: [{ id: "same", heading: "One" }, { id: "same", heading: "Two" }] }), diagnostics("Grid", { selectable: "yes" }), diagnostics("Grid", { policy: { sortable: "name" } }), diagnostics("Grid", { sortable: (field: string) => field === "name" }), diagnostics("Grid", { features: { kind: "page" } }), diagnostics("Grid", { features: [{ kind: "resize" }] }), diagnostics("Grid", { features: [{ kind: "edit", mode: "form" }] }), diagnostics("Grid", { features: [{ kind: "select", appearance: "checkbox" }] }), diagnostics("Grid", { multiSort: "no" }), diagnostics("Grid", { editMode: "form" }), diagnostics("Grid", { selectionAppearance: "checkbox" }), diagnostics("Grid", { selectionColumn: "yes" }), diagnostics("Grid", { autoFetch: "no" }), diagnostics("Grid", { pageSize: 0 }), diagnostics("Grid", { keepPages: "many" }), diagnostics("Grid", { exactCount: "yes" }), diagnostics("Grid", { toolbar: { expandAll: "no" } }), diagnostics("Grid", { tree: { parentField: "parentId", autoOpen: -1 } }), diagnostics("Grid", { tree: { parentField: "parentId", cascadeSelection: "yes" } }), diagnostics("Grid", { tree: { parentField: "parentId", pageSize: 0 } }), diagnostics("Grid", { loadingMessage: 42 }), diagnostics("Grid", { error: () => undefined }), diagnostics("Grid", { columnMenu: true }), diagnostics("Grid", { filterOperators: { hours: "gt" } }), diagnostics("Grid", { chrome: { headerMenu: "no" } }), diagnostics("Grid", { showHeaderMenu: "no" }), diagnostics("Tabs", { activation: "sometimes" }), diagnostics("Form", { sections: [null] }), diagnostics("Sidebar", { items: [{ id: "bad", label: "Bad", href: "javascript:alert(1)" }] }), diagnostics("Section", { chrome: { status: "sometimes" } }), diagnostics("Disclosure", { open: "yes" }), diagnostics("Sidebar", { items: [{ id: "repo", label: "Repo", description: 42 }] }), diagnostics("Sidebar", { persist: 7 })],
+      valid: [diagnostics("Disclosure", { label: "12 errors", open: true }), diagnostics("Sidebar", { persist: "charts" }), diagnostics("Split", { persist: "inspector", collapsible: true }), diagnostics("Sidebar", { items: [{ id: "repo", label: "ferriskey", description: "~/dev/ferriskey", children: [{ id: "chart", label: "Login" }] }] }), diagnostics("Form", { sections: [{ title: "Details", items: ["name"] }] }), diagnostics("Section", { chrome: { titleBar: true, status: "always" }, collapsible: false }), diagnostics("Grid", { features: [{ kind: "sort", multi: false }, { kind: "edit", mode: "cell" }, { kind: "select", appearance: "cell", column: true }, { kind: "page" }] }), diagnostics("Grid", { filterOperators: { hours: ["gt", "ge"] } }), diagnostics("Grid", { autoFetch: false, loadingMessage: "Fetching rows…" }), diagnostics("Grid", { pageSize: 50, keepPages: 4, exactCount: true }), diagnostics("Grid", { toolbar: { expandAll: false }, tree: { parentField: "parentId", draggable: true, reparent: false, dropOnLeaves: false, autoOpen: 2, showOpener: false, cascadeSelection: true, pageSize: 50, matchLimit: 100, openLimit: 20 } })],
       validPolicy: diagnostics("Grid", { policy: { sortable: false, filterable: ["name"], groupable: ["name"], resizable: false, movable: true, hideable: ["name"], freezable: true, fields: { name: { editable: false, groupable: false, resizable: true, movable: false, hideable: true, freezable: false } } } }),
     };
   });
@@ -127,6 +127,42 @@ test("Sidebar supports controlled navigation, permission changes, groups and nat
   await expect(nav.getByRole("link", { name: "Home", exact: true }).locator(".aster-sidebar-icon")).toHaveText("H");
   const violations = (await new AxeBuilder({ page }).include("#test-sidebar").analyze()).violations;
   expect(violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([]);
+});
+
+test("Sidebar keeps a viewer's folded groups across reloads with persist", async ({ page }) => {
+  await page.goto("/playground/composition.html");
+  const items = [{ id: "ferriskey", label: "ferriskey", children: [{ id: "login", label: "Login" }] },
+    { id: "webdata", label: "webdata", children: [{ id: "query", label: "Query" }] }];
+  const mount = (stored?: string) => page.evaluate(async ({ items, stored }) => {
+    if (stored === undefined) localStorage.removeItem("aster-sidebar:charts"); else localStorage.setItem("aster-sidebar:charts", stored);
+    const { Sidebar } = await import("/lib/aster-ui.js" as string);
+    document.querySelector("#persist-sidebar")?.remove();
+    const sidebar = new Sidebar(); sidebar.id = "persist-sidebar"; sidebar.label = "Charts";
+    sidebar.items = items; sidebar.persist = "charts";
+    document.querySelector("main")!.prepend(sidebar);
+  }, { items, stored });
+  const nav = page.getByRole("navigation", { name: "Charts" });
+  const group = (name: string) => nav.locator("summary", { hasText: name });
+  const isOpen = (name: string) => group(name).evaluate(el => (el.parentElement as HTMLDetailsElement).open);
+  const stored = () => page.evaluate(() => localStorage.getItem("aster-sidebar:charts"));
+  await mount();
+  expect(await isOpen("ferriskey")).toBe(true);
+  await group("ferriskey").click();
+  await expect.poll(stored).toBe('["ferriskey"]');
+  // Remounting reads the stored folds; a stored group that has gone is ignored, and dropped on the next save.
+  await mount('["ferriskey","gone"]');
+  expect(await isOpen("ferriskey")).toBe(false);
+  expect(await isOpen("webdata")).toBe(true);
+  await group("webdata").click();
+  await expect.poll(stored).toBe('["ferriskey","webdata"]');
+  await group("ferriskey").click();
+  await expect.poll(stored).toBe('["webdata"]');
+  // Bad data leaves every group open and doesn't throw.
+  for (const bad of ["{not json", '{"ferriskey":true}', "[1,null]"]) {
+    await mount(bad);
+    expect([bad, await isOpen("ferriskey"), await isOpen("webdata")]).toEqual([bad, true, true]);
+  }
+  await page.evaluate(() => { localStorage.removeItem("aster-sidebar:charts"); document.querySelector("#persist-sidebar")?.remove(); });
 });
 
 test("Disclosure opens its content in the line of text it sits in", async ({ page }) => {

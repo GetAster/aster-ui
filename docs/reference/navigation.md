@@ -16,6 +16,7 @@ with `new Sidebar()` or declare a child using `asterComponents.Sidebar`.
 | `label` | string | Navigation | Accessible name of the navigation landmark. |
 | `renderIcon` | function or undefined | undefined | Trusted icon template; default uses the item's `icon` glyph, or its initial in the compact rail. |
 | `compact` | boolean | false | Icon rail; labels remain accessible. |
+| `persist` | string | `""` | Name under which this viewer's folded groups are kept in local storage. |
 
 It draws the shared navigation look, the one the showcase workspace uses: quiet
 items, the current one in the strong weight with a caret beside it that slides
@@ -24,6 +25,14 @@ face, and quiet section labels. A folded group that hides the current item
 carries the caret, with `aria-current="true"` on its summary, until it opens.
 Use Sidebar for an application's navigation rather than composing the
 `.aster-nav` classes by hand.
+
+With `persist`, the IDs of the groups this person has folded are kept in
+the browser's local storage under `aster-sidebar:<name>`. They are read when
+the name is set and stored each time a group folds or opens. Groups come and
+go with the data, so a stored ID that isn't in `items` is ignored, and is
+dropped the next time the set is stored; a group with nothing stored starts
+open. Storage that is missing, blocked or holds bad data is ignored, and the
+groups simply start open. Default `""`, which keeps nothing.
 
 Emits a bubbling, cancelable `navigate` event with the item ID as `detail`.
 Prevent default for application routing; otherwise links follow their URLs.
@@ -42,7 +51,7 @@ remain available without animation.
 An item with required `id` and `label`. Optional `href` makes it a link; absent
 `href` makes it a button. `children` makes a disclosure group and cannot coexist
 with `href`; groups start open, and folding is the viewer's choice, kept while
-the element stays connected. `collapsible: false` on a group shows it instead as
+the element stays connected, or across reloads with `persist`. `collapsible: false` on a group shows it instead as
 a section that doesn't fold: a quiet label over a list named by it, such as
 "Pinned". `collapsible` is allowed only on a group. Optional `icon` is a text
 glyph, `badge` is text shown as a count, `hidden` omits the item, `disabled`

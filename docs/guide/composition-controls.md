@@ -56,7 +56,8 @@ Sidebar is a controlled navigation view. Its `items` are plain objects and `valu
 is the current item ID. Each item has a unique `id` and a `label`; optional fields
 include `href`, `icon` (a text glyph), `badge`, `hidden`, `disabled`, `reason`, `description` (the tooltip and accessible description) and
 nested `children`. Groups use native disclosure controls; `collapsible: false`
-makes a group a labelled section instead. Sidebar draws the same look as the
+makes a group a labelled section instead. Set `persist` to a name to keep the groups a person
+folds across reloads, as `Split.persist` keeps a pane's width and collapsed state. Sidebar draws the same look as the
 showcase workspace, with a caret on the current item, so an application gets it
 without styling navigation itself. Links preserve browser
 navigation, including modified clicks. Items without a URL are buttons.

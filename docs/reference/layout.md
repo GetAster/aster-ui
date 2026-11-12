@@ -377,10 +377,15 @@ The bar's accessible name. Default `"Resize"`. Name what is resized, such as
 
 ## attr:Split.persist
 
-A name under which to keep the width for this person in the browser's local
-storage (key `aster-split:<name>`). Setting it reads any stored width at once and,
-if there is one, uses it as `width` (clamped); after that, every drag and key
-press stores the new width. Default `""`, which keeps nothing. The stored width is read each time the name
+A name under which to keep the width, and whether the pane is collapsed, for
+this person in the browser's local storage (key `aster-split:<name>`). Setting
+it reads any stored value at once and, if there is one, uses it as `width`
+(clamped) and `collapsed`; after that, every drag, key press and press of the
+collapse control stores them. A stored collapsed state applies only while the
+split is `collapsible`, so a pane is never hidden without a control to bring
+it back; if `collapsible` is set later, it applies then. Setting `collapsed`
+from code isn't stored: a host that drives it keeps its own state. A width
+stored by an earlier release, a bare number, is still read. Default `""`, which keeps nothing. The stored width is read each time the name
 is set, including after the split is connected, and replaces the current
 width. The width asked for (by `width`, a stored value, a drag or a key) is kept
 apart from the width shown, which is always inside `min` and `max`, so the

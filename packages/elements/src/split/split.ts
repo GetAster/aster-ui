@@ -28,7 +28,8 @@ const COLLAPSE = new Set<unknown>(["toolbar", "bar", false]);
  * the rest. Its size is clamped to `min` and `max` and written as
  * `--split-start` or `--split-end`; CSS lays out the panes and stacks
  * horizontal splits in narrow containers. ← and → follow the text direction.
- * With `persist`, the width is kept per viewer under that name. The width
+ * With `persist`, the width, and whether a collapsible pane is collapsed,
+ * are kept per viewer under that name. The width
  * asked for is kept apart from the width shown, which is always inside
  * `min` and `max`, so changing any of them in any order re-clamps it.
  */
@@ -39,6 +40,8 @@ export class Split extends AsterElement {
   readonly #start = computed(() => Math.round(Math.min(this.#max.value, Math.max(this.#min.value, this.#wanted.value))));
   readonly #label = this.prop("Resize");
   #persist = "";
+  /** A stored collapsed state waiting for `collapsible`, so a pane is never hidden without a control to restore it. */
+  #storedCollapsed: boolean | undefined;
   readonly #startView = this.prop<View>(nothing);
   readonly #endView = this.prop<View>(nothing);
   readonly #id = uid("aster-split");
@@ -59,7 +62,10 @@ export class Split extends AsterElement {
   get orientation() { return this.#orientation.value; }
   set orientation(v: "horizontal" | "vertical") { if (!["horizontal", "vertical"].includes(v)) throw new TypeError("Unknown split orientation"); this.#orientation.value = v; }
   get collapsible() { return this.#collapsible.value; }
-  set collapsible(v: boolean) { this.#collapsible.value = v; }
+  set collapsible(v: boolean) {
+    this.#collapsible.value = v;
+    if (v && this.#storedCollapsed !== undefined) { this.collapsed = this.#storedCollapsed; this.#storedCollapsed = undefined; }
+  }
   /** Which pane `size`, `min`, `max`, `persist` and collapsing apply to. */
   get pane() { return this.#pane.value; }
   set pane(v: "start" | "end") {
@@ -162,11 +168,19 @@ export class Split extends AsterElement {
   }
   set persist(v: string) {
     this.#persist = v;
+    this.#storedCollapsed = undefined;
+    let saved: { width?: unknown; collapsed?: unknown } = {};
     try {
-      const saved = Number(localStorage.getItem(`aster-split:${v}`));
-      if (saved) this.#wanted.value = saved;
+      const raw = v ? localStorage.getItem(`aster-split:${v}`) : null;
+      // A bare number is a width stored before the collapsed state was kept.
+      if (raw) saved = /^\s*\{/.test(raw) ? JSON.parse(raw) ?? {} : { width: Number(raw) };
     } catch {
-      // Storage can be unavailable; the default width stands.
+      // Storage can be unavailable or hold bad data; the defaults stand.
+    }
+    if (typeof saved.width === "number" && Number.isFinite(saved.width) && saved.width > 0) this.#wanted.value = saved.width;
+    if (typeof saved.collapsed === "boolean") {
+      if (this.#collapsible.peek()) this.collapsed = saved.collapsed;
+      else this.#storedCollapsed = saved.collapsed;
     }
   }
 
@@ -180,7 +194,7 @@ export class Split extends AsterElement {
       : html`<div class="aster-split-pane" tabindex="0" data-pane=${name}>${view}</div>`;
     const control = this.#collapsible.value ? this.#chrome.value.collapse ?? "toolbar" : false;
     const name = collapsed ? this.#labels.value.restore ?? "Restore pane" : this.#labels.value.collapse ?? "Collapse pane";
-    const toggle = () => { this.collapsed = !collapsed; };
+    const toggle = () => { this.collapsed = !collapsed; this.#save(); };
     return html`${control === "toolbar" ? html`<div class="aster-split-tools"><button type="button" aria-expanded=${!collapsed} aria-controls=${controls} @click=${toggle}>${name}</button></div>` : nothing}
       <div class="aster-split-layout" data-orientation=${this.#orientation.value} data-sized=${sized} ?data-responsive=${this.#responsive.value} ?data-collapsed=${collapsed}
         style=${styleMap({ [`--split-${sized}`]: `${width}px` })}>
@@ -223,7 +237,7 @@ export class Split extends AsterElement {
 
   #key(e: KeyboardEvent): void {
     const width = this.#start.peek();
-    if (e.key === "Enter" && this.#collapsible.peek()) { e.preventDefault(); this.collapsed = !this.collapsed; return; }
+    if (e.key === "Enter" && this.#collapsible.peek()) { e.preventDefault(); this.collapsed = !this.collapsed; this.#save(); return; }
     if (this.#collapsed.peek()) return;
     const vertical = this.#orientation.peek() === "vertical";
     // Arrows move the bar; growing the end pane moves it backward.
@@ -266,7 +280,7 @@ export class Split extends AsterElement {
   #save(): void {
     if (!this.#persist) return;
     try {
-      localStorage.setItem(`aster-split:${this.#persist}`, String(this.#start.peek()));
+      localStorage.setItem(`aster-split:${this.#persist}`, JSON.stringify({ width: this.#start.peek(), collapsed: this.#collapsed.peek() }));
     } catch {
       // Not kept; the width still applies now.
     }

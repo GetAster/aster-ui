@@ -23,11 +23,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "aab3b681a0fc417d64b7a7d716ad36d631bc576f114a4f63a7e436963b6d0cbc"
+      "sha256": "357069575c5f247d2a84a756314a3383d601591ee1691bd0baf26af74d0cf2fc"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "8fd37d5a7c0bd0517474e65614aedbdb5019675c969a3833491b2f33199a89b4"
+      "sha256": "29f89ade3934037749b218345bc357c981e4694c53a871670a8d86021a1b756c"
     },
     {
       "path": "LICENSE",
@@ -651,7 +651,7 @@
     },
     {
       "path": "docs/guide/composition-controls.md",
-      "sha256": "03c459b89c364eb74a25b1ffdf4a77f88284c614ca66e2b0cf9425eb18fdec8a"
+      "sha256": "74c862955640b5f7d8a7d0dd683e22fbec2dc09979bd1406b1617eb12ea5c548"
     },
     {
       "path": "docs/guide/connected-charts.md",
@@ -819,7 +819,7 @@
     },
     {
       "path": "docs/reference/layout.md",
-      "sha256": "76c93f191e943b18b80f851d8834891298735de8f376f6dd0270b6d9c11c04e7"
+      "sha256": "cba7ec08412ef565d5dacd20a381c82f0ecbc785c0e666e3c67591679248c1c7"
     },
     {
       "path": "docs/reference/lists.md",
@@ -831,7 +831,7 @@
     },
     {
       "path": "docs/reference/navigation.md",
-      "sha256": "9709d3efd7adab1a6dc4defaff35c40d967a45cd7944109da7d3d9ea25516902"
+      "sha256": "3d95ce3e1f71e0e764732c1909904169b6f0bb778db2c8ff3f5434f39ad39911"
     },
     {
       "path": "docs/reference/overlays.md",
@@ -1623,7 +1623,7 @@
     },
     {
       "path": "packages/elements/src/sidebar/sidebar.ts",
-      "sha256": "094efd50bf73c7ce4fb44dc9d4446bb388b3af903be858d17ffd68b12853d527"
+      "sha256": "8d38e0977d422faab3ff015a4c1a161f50190c84b82da866806aa74b2e2aa627"
     },
     {
       "path": "packages/elements/src/slicer/slicer.ts",
@@ -1631,7 +1631,7 @@
     },
     {
       "path": "packages/elements/src/split/split.ts",
-      "sha256": "a83f3ecdce3da58b032ee877d87d9e16298fb95a304627b46dffafa5e6e7e261"
+      "sha256": "052188c0cd30efcb5a6df5e412731a8662dcef0998e23f31cc1759566983ea16"
     },
     {
       "path": "packages/elements/src/styles/base.css",
@@ -2403,7 +2403,7 @@
     },
     {
       "path": "tests/e2e/composition-controls.spec.ts",
-      "sha256": "b464fea384241ffe6dafade42ab249118e5ca3b0de22ca77b5e0c312850ef81b"
+      "sha256": "11a97c30691fc0dc05a0969bb258b68fa813a6b83d38b63387a34846de930a5c"
     },
     {
       "path": "tests/e2e/composition.spec.ts",
@@ -2591,7 +2591,7 @@
     },
     {
       "path": "tests/e2e/foundations.spec.ts",
-      "sha256": "fc047f2c0ca9cae59643f7f2813f282feed35df30591292339bac41a1f0d15a8"
+      "sha256": "6f2260d4abd87e5031024a539ce7c4fd99b50d4a1ff36ffc10efeeae79767754"
     },
     {
       "path": "tests/e2e/grid-p1.spec.ts",
