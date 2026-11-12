@@ -382,6 +382,10 @@ test("the component variable contract tunes grid, menu, window and dialog geomet
     windowElement.heading = "Sized";
     windowElement.content = lib.html`<p>Body</p>`;
     windowElement.style.setProperty("--aster-window-header-height", "64px");
+    windowElement.style.setProperty("--aster-window-title-size", "20px");
+    windowElement.style.setProperty("--aster-window-control-size", "40px");
+    windowElement.style.setProperty("--aster-window-inset", "5px");
+    windowElement.style.setProperty("--aster-window-body-padding-block", "3px");
     document.body.append(windowElement);
     windowElement.show(null);
 
@@ -396,6 +400,10 @@ test("the component variable contract tunes grid, menu, window and dialog geomet
   const bar = page.locator("#e2e-window .aster-window-bar");
   await expect(bar).toBeVisible();
   expect((await bar.boundingBox())!.height).toBeGreaterThanOrEqual(64);
+  expect(await page.locator("#e2e-window .aster-window-bar h2").evaluate(e => getComputedStyle(e).fontSize)).toBe("20px");
+  expect((await page.locator("#e2e-window .aster-window-bar button").first().boundingBox())!.width).toBe(40);
+  expect(await page.locator("#e2e-window .aster-window-body").evaluate(e => getComputedStyle(e).padding)).toBe("3px 5px");
+  expect(await bar.evaluate(e => getComputedStyle(e).paddingLeft)).toBe("5px");
   const panel = page.locator("#e2e-dialog .aster-dialog-panel");
   await expect(panel).toBeVisible();
   expect((await panel.boundingBox())!.width).toBeLessThanOrEqual(301);

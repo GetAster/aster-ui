@@ -538,6 +538,10 @@ properties.
 | Menu | `--aster-menu-cell-height` | `auto` | Menu item minimum height |
 | Menu | `--aster-menu-icon-size` | `14px` | Menu icon size; the icon cell adds 2px |
 | Window | `--aster-window-header-height` | `calc(var(--aster-ctl) + var(--aster-pad) - 1px)` | Title bar minimum height (windows and sections) |
+| Window | `--aster-window-title-size` | `13.5px` | Title bar heading size (windows and sections) |
+| Window | `--aster-window-control-size` | `calc(var(--aster-ctl) - 2px)` | Title bar button size (windows and sections); 44px on a coarse pointer |
+| Window | `--aster-window-inset` | `14px` | Side inset of the title, body, footer and status bar, so they stay aligned |
+| Window | `--aster-window-body-padding-block` | `var(--aster-pad)` | Window body padding above and below the content |
 | Dialog | `--aster-dialog-max-width` | `100%` | Panel maximum width, also bounded by the viewport |
 
 The defaults follow density through the referenced variables. `auto` means

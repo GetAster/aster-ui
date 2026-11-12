@@ -39,6 +39,7 @@ export class Window extends AsterElement {
   readonly #dismissOnEscape = this.prop(true);
   readonly #keepInParentRect = this.prop(false);
   readonly #autoCenter = this.prop(false);
+  readonly #folded = this.prop(false);
   readonly #id = uid("aster-window");
   #opener: HTMLElement | null = null;
   #at: { x: number; y: number } | undefined;
@@ -99,6 +100,32 @@ export class Window extends AsterElement {
   /** Sugar for `chrome.resizer`. Default `true`. */
   get showResizer(): boolean { return this.#resolved().resizer; }
   set showResizer(v: boolean) { this.#setChrome("resizer", v); }
+
+  /** Sugar for `chrome.fold`. Default `false`. */
+  get showFoldButton(): boolean { return this.#resolved().fold; }
+  set showFoldButton(v: boolean) { this.#setChrome("fold", v); }
+
+  /**
+   * Whether the window is folded to its title bar. Its content stays mounted
+   * but hidden, and it can't be resized. It shows only while the window is
+   * normal and has a header. Default `false`.
+   */
+  get folded(): boolean { return this.#folded.value; }
+  set folded(v: boolean) {
+    if (typeof v !== "boolean") throw new TypeError("folded must be a boolean");
+    if (v === this.#folded.peek()) return;
+    if (v) {
+      this.#capture();
+      const panel = this.#panel();
+      const bar = panel?.querySelector(".aster-window-bar");
+      // Focus in the content would be hidden with it.
+      if (panel?.contains(document.activeElement) && !bar?.contains(document.activeElement)) {
+        (panel.querySelector<HTMLElement>(".aster-window-fold") ?? panel).focus({ preventScroll: true });
+      }
+    }
+    this.#folded.value = v;
+    if (this.#open.peek()) this.emit("placementchange", this.placement());
+  }
 
   /** Sugar for `chrome.footer`. Default `false`. */
   get showFooter(): boolean { return this.#resolved().footer; }
@@ -269,7 +296,7 @@ export class Window extends AsterElement {
 
   placement(): WindowPlacement {
     this.#capture();
-    return { state: this.#state.peek(), ...(this.#bounds ? { bounds: { ...this.#bounds } } : {}), restoreMaximized: this.#restoreMaximized };
+    return { state: this.#state.peek(), ...(this.#bounds ? { bounds: { ...this.#bounds } } : {}), restoreMaximized: this.#restoreMaximized, folded: this.#folded.peek() };
   }
 
   /** Invalid persisted data is rejected atomically. CSS limits size to the viewport. */
@@ -294,10 +321,12 @@ export class Window extends AsterElement {
     const chrome = this.#resolved();
     const modal = this.#shownModal;
     const titleView = chrome.title ? title : html`<span class="aster-sr-only">${title}</span>`;
+    const folded = this.#folded.value;
+    const foldable = chrome.header && state === "normal";
     const panel = html`<div class="aster-window" popover=${modal ? nothing : "manual"} role="dialog" aria-modal=${modal ? "true" : "false"}
       aria-labelledby=${chrome.header ? heading : nothing} aria-label=${chrome.header ? nothing : title || nothing}
       data-state=${state} data-active=${String(this.#active.value)} aria-busy=${String(this.#closing.value)}
-      data-resizer=${chrome.resizer ? nothing : "false"}
+      data-resizer=${chrome.resizer ? nothing : "false"} ?data-folded=${folded && foldable}
       tabindex="-1" ${modal ? nothing : openWhen(open && state !== "minimized")}
       @pointerdown=${() => this.activate(false)} @focusin=${() => { this.#rememberFocus(); this.activate(false); }}
       @keydown=${(e: KeyboardEvent) => {
@@ -312,11 +341,15 @@ export class Window extends AsterElement {
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v13M1.5 8h13M8 1.5 6 3.5M8 1.5l2 2M8 14.5l-2-2M8 14.5l2-2M1.5 8l2-2M1.5 8l2 2M14.5 8l-2-2M14.5 8l-2 2"/></svg>
         </button>
         <span id=${`${this.#id}-move-help`} hidden>Arrow keys move the window; with Shift, further.</span>
-        ${chrome.resizer ? html`<button type="button" aria-label=${`Resize ${title}`} ?disabled=${state !== "normal"}
+        ${chrome.resizer ? html`<button type="button" aria-label=${`Resize ${title}`} ?disabled=${state !== "normal" || folded}
           aria-describedby=${`${this.#id}-resize-help`} @keydown=${(e: KeyboardEvent) => this.#geometryKey(e, true)}>
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M7 3h6v6M3 7v6h6"/></svg>
         </button>
         <span id=${`${this.#id}-resize-help`} hidden>Arrow keys resize the window; with Shift, further.</span>` : nothing}
+        ${chrome.fold ? html`<button type="button" class="aster-window-fold" ?disabled=${!foldable}
+          aria-expanded=${folded ? "false" : "true"} aria-controls=${`${this.#id}-body`}
+          aria-label=${`${folded ? "Expand" : "Collapse"} ${title}`} @click=${() => { this.folded = !this.#folded.peek(); }}>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 10l4-4 4 4"/></svg></button>` : nothing}
         ${chrome.minimize ? html`<button type="button" aria-label=${`Minimize ${title}`} @click=${() => this.minimize()}>
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 12h10"/></svg></button>` : nothing}
         ${chrome.maximize ? html`<button type="button" aria-label=${`${state === "maximized" ? "Restore" : "Maximize"} ${title}`}
@@ -325,7 +358,7 @@ export class Window extends AsterElement {
         ${chrome.close ? html`<button type="button" class="aster-window-close" aria-label=${`Close ${title}`} ?disabled=${this.#closing.value} @click=${() => void this.close()}>
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
         </button>` : nothing}`, (event) => this.#drag(event)) : nothing}
-      <div class="aster-window-body">${this.#content.value}</div>
+      <div class="aster-window-body" id=${`${this.#id}-body`}>${this.#content.value}</div>
       ${chrome.footer ? html`<div class="aster-window-footer">${this.#footer.value}</div>` : nothing}
       ${chrome.statusBar ? html`<div class="aster-window-status" role="status">${this.#status.value}</div>` : nothing}
     </div>`;
@@ -383,7 +416,7 @@ export class Window extends AsterElement {
   }
 
   #geometryKey(e: KeyboardEvent, resize: boolean): void {
-    if (this.#state.peek() !== "normal") return;
+    if (this.#state.peek() !== "normal" || (resize && this.#folded.peek())) return;
     const step = e.shiftKey ? BIG_STEP : STEP;
     const d: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
     const by = d[e.key];
@@ -425,6 +458,11 @@ export class Window extends AsterElement {
     const panel = this.#panel();
     if (!panel || !this.#shown(panel) || this.#state.peek() !== "normal" || panel.dataset.state !== "normal") return;
     const r = panel.getBoundingClientRect();
+    // Folded, the panel is only its title bar; keep the height it unfolds to.
+    if (panel.hasAttribute("data-folded")) {
+      if (this.#bounds) this.#bounds = { ...this.#bounds, x: r.x, y: r.y };
+      return;
+    }
     this.#bounds = { x: r.x, y: r.y, width: r.width, height: r.height };
   }
 
@@ -496,6 +534,7 @@ export class Window extends AsterElement {
     this.#bounds = placement.bounds ? { ...placement.bounds } : undefined;
     this.#at = placement.bounds ? { x: placement.bounds.x, y: placement.bounds.y } : undefined;
     this.#restoreMaximized = placement.restoreMaximized === true;
+    this.#folded.value = placement.folded === true;
     this.#state.value = placement.state;
   }
 

@@ -12,6 +12,8 @@ export interface WindowChrome {
   readonly maximize?: boolean;
   /** Pointer and keyboard resizing. Default `true`. */
   readonly resizer?: boolean;
+  /** The Collapse/Expand control that folds the window to its title bar. Default `false`. */
+  readonly fold?: boolean;
   /** The footer region at the bottom of the window. Default `false`; setting `footer` turns it on. */
   readonly footer?: boolean;
   /** The status region at the bottom of the window. Default `false`; setting `status` turns it on. */
@@ -20,7 +22,7 @@ export interface WindowChrome {
 
 export type WindowState = "normal" | "maximized" | "minimized";
 export interface WindowBounds { x: number; y: number; width: number; height: number }
-export interface WindowPlacement { state: WindowState; bounds?: WindowBounds; restoreMaximized?: boolean }
+export interface WindowPlacement { state: WindowState; bounds?: WindowBounds; restoreMaximized?: boolean; folded?: boolean }
 
 /** [[object:WindowChrome]] with every default filled in. */
 export interface ResolvedWindowChrome {
@@ -30,6 +32,7 @@ export interface ResolvedWindowChrome {
   readonly minimize: boolean;
   readonly maximize: boolean;
   readonly resizer: boolean;
+  readonly fold: boolean;
   readonly footer: boolean;
   readonly statusBar: boolean;
 }
@@ -43,6 +46,7 @@ export function resolveWindowChrome(chrome: WindowChrome, managed: boolean): Res
     minimize: chrome.minimize ?? managed,
     maximize: chrome.maximize ?? managed,
     resizer: chrome.resizer ?? true,
+    fold: chrome.fold ?? false,
     footer: chrome.footer ?? false,
     statusBar: chrome.statusBar ?? false,
   };
@@ -58,6 +62,7 @@ export function parseWindowPlacement(value: unknown): WindowPlacement {
     state: placement.state,
     ...(b ? { bounds: { x: b.x, y: b.y, width: b.width, height: b.height } } : {}),
     restoreMaximized: placement.restoreMaximized === true,
+    folded: placement.folded === true,
   };
 }
 

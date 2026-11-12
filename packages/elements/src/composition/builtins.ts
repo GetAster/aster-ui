@@ -172,6 +172,7 @@ const windowChrome: CompositeType<WindowChrome> = t.object({
   minimize: t.optional(t.boolean),
   maximize: t.optional(t.boolean),
   resizer: t.optional(t.boolean),
+  fold: t.optional(t.boolean),
   footer: t.optional(t.boolean),
   statusBar: t.optional(t.boolean),
 });
@@ -180,6 +181,7 @@ const windowPlacement: CompositeType<WindowPlacement> = t.object({
   state: literals("normal", "maximized", "minimized"),
   bounds: t.optional(t.object({ x: t.number, y: t.number, width: positiveNumber, height: positiveNumber })),
   restoreMaximized: t.optional(t.boolean),
+  folded: t.optional(t.boolean),
 });
 const initialFocus = checked<Dialog["initialFocus"]>('"first", "dialog", "none" or a focus function', v =>
   v === undefined || v === "first" || v === "dialog" || v === "none" || fn(v));
@@ -194,6 +196,7 @@ const bound = {
 export const asterComponents = Object.freeze({
   Button: element<Button>()("aster-button", {
     label: t.string,
+    labelled: t.boolean,
     busyLabel: t.optional(t.string),
     confirmLabel: t.optional(t.string),
     busy: bindable(t.boolean),
@@ -496,8 +499,10 @@ export const asterComponents = Object.freeze({
     showMinimizeButton: t.boolean,
     showMaximizeButton: t.boolean,
     showResizer: t.boolean,
+    showFoldButton: t.boolean,
     showFooter: t.boolean,
     showStatusBar: t.boolean,
+    folded: t.boolean,
   }),
   Dialog: element<Dialog>()("aster-dialog", {
     content: checked<Dialog["content"]>("Dialog.content", view),

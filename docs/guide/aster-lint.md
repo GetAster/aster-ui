@@ -62,7 +62,7 @@ In CSS files, `<style>` blocks, `style` attributes and lit `css` templates:
 | `css-restyle` | Selectors that reach into Aster's own markup: an `.aster-*` class, a descendant of an Aster element that isn't the application's own content, or a pseudo-element on one. Also any property on an Aster element other than placing it: size, position, margin, and grid or flex placement. Its custom properties, such as `--split-handle`, may be set. |
 | `css-colour` | Fixed colours: hex values, colour functions and colour names. A colour worked out from a token, such as `oklch(from var(--aster-accent) l c h / .2)` or `color-mix()` with tokens, is fine. |
 | `css-font` | Font families and weights given directly instead of `--aster-font-ui`, `--aster-font-figure` and the `--aster-weight` tokens. `@font-face` rules are exempt. |
-| `css-token` | Setting an `--aster-*` token outside a theme file passed with `--theme`. |
+| `css-token` | Setting an `--aster-*` token outside a theme file passed with `--theme`. Component variables ([[constant:COMPONENT_VARS]]), such as `--aster-window-header-height`, may be set on one placement. |
 
 Layout CSS that arranges the application's own regions is not checked. Styling
 the application's own markup inside an Aster element, such as a renderer's

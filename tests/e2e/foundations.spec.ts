@@ -301,6 +301,26 @@ test("a split's collapse control sits on the bar, in a toolbar or with the host"
   await expect(split).toHaveJSProperty("chrome", { collapse: false });
 });
 
+test("a horizontal layout aligns items in the row and stacks them full width when narrow", async ({ page }) => {
+  await open(page);
+  await page.evaluate(async () => {
+    const lib = await import("/lib/aster-ui.js" as string);
+    const host = document.createElement("div"); host.id = "aligned-row"; host.style.width = "800px";
+    const row = Object.assign(document.createElement("aster-horizontal-layout"), { align: "end", wrap: true,
+      content: lib.html`<div id="tall" style="height:60px">Tall item</div><div id="short" style="height:30px">Short</div>` });
+    host.append(row);
+    document.querySelector("main")!.append(host);
+  });
+  const box = (id: string) => page.locator(`#${id}`).evaluate(e => { const r = e.getBoundingClientRect(); return { x: r.x, bottom: r.bottom, width: r.width }; });
+  const host = page.locator("#aligned-row");
+  await expect.poll(async () => (await box("short")).bottom).toBe((await box("tall")).bottom);
+  await host.evaluate(e => { e.style.width = "400px"; });
+  const hostX = await host.evaluate(e => e.getBoundingClientRect().x);
+  await expect.poll(async () => (await box("short")).x).toBe(hostX);
+  expect(await box("short")).toMatchObject({ x: hostX, width: 400 });
+  expect(await box("tall")).toMatchObject({ x: hostX, width: 400 });
+});
+
 test("breadcrumb overflow and hierarchy restore context, draft, focus and scroll", async ({ page }) => {
   await open(page);
   const path = page.locator("#path"), hierarchy = page.locator("#hierarchy");

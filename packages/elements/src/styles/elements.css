@@ -20,7 +20,8 @@
   .aster-stack[data-justify=end] { justify-content:flex-end; }
   .aster-stack[data-justify=space-between] { justify-content:space-between; }
   .aster-stack[data-justify=space-around] { justify-content:space-around; }
-  @container (max-width:520px) { .aster-stack[data-responsive][data-direction=horizontal] { flex-direction:column; } }
+  /* align and justify place items in the row; once stacked, items take the full width from the top. */
+  @container (max-width:520px) { .aster-stack[data-responsive][data-direction=horizontal] { flex-direction:column; align-items:stretch; justify-content:flex-start; } }
   aster-composite-field { display:block; min-width:0; }
   .aster-composite-field { min-inline-size:0; margin:0; padding:var(--aster-pad); border:1px solid var(--aster-rule); border-radius:var(--aster-r-card); }
   .aster-composite-field > legend { padding-inline:6px; font-weight:var(--aster-weight-strong); }
@@ -173,6 +174,8 @@
   .aster-button[data-tone="danger"]:active { box-shadow: inset 1px 1px 2px var(--aster-press), inset 0 0 0 .5px var(--aster-negative); }
   .aster-button[data-size="sm"] { height: var(--aster-ctl-tight); padding: 0 8px; font-size: 12.5px; }
   .aster-button[data-size="lg"] { height: var(--aster-ctl); padding: 0 16px; font-size: 13.5px; }
+  /* Icon alone: square, the icon centred. */
+  .aster-button[data-icon-only] { justify-content: center; aspect-ratio: 1; padding: 0; }
   @media (forced-colors: active) {
     /* The button edge is a shadow; forced colours drop shadows, so draw it. */
     .aster-button { border: 1px solid ButtonText; }
@@ -428,12 +431,12 @@
   .aster-window[data-active="true"] { outline: 1px solid var(--aster-rule); }
   .aster-window:focus-visible { outline: 2px solid var(--aster-focus); outline-offset: 2px; }
   .aster-window-bar {
-    display: flex; align-items: center; gap: 2px; min-height: var(--aster-window-header-height); padding: calc(var(--aster-pad) / 2) 6px calc(var(--aster-pad) / 2) 14px; cursor: grab; touch-action: none; user-select: none;
+    display: flex; align-items: center; gap: 2px; min-height: var(--aster-window-header-height); padding: calc(var(--aster-pad) / 2) 6px calc(var(--aster-pad) / 2) var(--aster-window-inset); cursor: grab; touch-action: none; user-select: none;
     border-bottom: 1px solid var(--aster-rule-2);
   }
   .aster-window-bar:active { cursor: grabbing; }
-  .aster-window-bar h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; font-size: 13.5px; font-weight: var(--aster-weight-label); }
-  .aster-window-bar button { display: grid; place-items: center; width: calc(var(--aster-ctl) - 2px); height: calc(var(--aster-ctl) - 2px); border-radius: var(--aster-r-ctl); color: var(--aster-text-2); }
+  .aster-window-bar h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; font-size: var(--aster-window-title-size); font-weight: var(--aster-weight-label); }
+  .aster-window-bar button { display: grid; place-items: center; width: var(--aster-window-control-size); height: var(--aster-window-control-size); border-radius: var(--aster-r-ctl); color: var(--aster-text-2); }
   .aster-window-bar button { flex: none; }
   .aster-window-bar button:disabled { opacity: .45; cursor: default; }
   @media (pointer: coarse) { .aster-window-bar button { width: 44px; height: 44px; } }
@@ -444,9 +447,15 @@
     .aster-window { left:8px; top:8px; width:calc(100vw - 16px) !important; height:min(420px, calc(100dvh - 16px)) !important; resize:none; }
     .aster-window-bar .aster-window-move, .aster-window-bar button[aria-describedby$="-resize-help"] { display:none; }
   }
-  .aster-window-body { flex: 1; min-height: 0; overflow: auto; padding: var(--aster-pad) 14px; }
-  .aster-window-footer { flex: none; padding: calc(var(--aster-pad) / 2) 14px; border-top: 1px solid var(--aster-rule-2); }
-  .aster-window-status { flex: none; padding: 3px 14px; border-top: 1px solid var(--aster-rule-2); color: var(--aster-text-2); font-size: 11.5px; }
+  /* Folded: the title bar alone. The content stays mounted. */
+  .aster-window[data-folded] { height: auto !important; min-height: 0; resize: none; }
+  .aster-window[data-folded] > .aster-window-bar { border-bottom: 0; }
+  .aster-window[data-folded] > :is(.aster-window-body, .aster-window-footer, .aster-window-status) { display: none; }
+  .aster-window-fold svg { transition: rotate var(--aster-t-micro) var(--aster-ease); }
+  .aster-window[data-folded] .aster-window-fold svg { rotate: 180deg; }
+  .aster-window-body { flex: 1; min-height: 0; overflow: auto; padding: var(--aster-window-body-padding-block) var(--aster-window-inset); }
+  .aster-window-footer { flex: none; padding: calc(var(--aster-pad) / 2) var(--aster-window-inset); border-top: 1px solid var(--aster-rule-2); }
+  .aster-window-status { flex: none; padding: 3px var(--aster-window-inset); border-top: 1px solid var(--aster-rule-2); color: var(--aster-text-2); font-size: 11.5px; }
   /* Dashboard geometry stays in CSS; stored sizes are column/row intent. */
   aster-dashboard { display: block; min-width: 0; container-type: inline-size; }
   .aster-dashboard-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: var(--dashboard-row, 300px); gap: var(--dashboard-gap, 16px); }

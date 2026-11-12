@@ -49,7 +49,7 @@ export const COMPONENT_VARS = {
   form: ["label-width"],
   grid: ["header-height", "toolbar-height", "row-min-height", "tree-indent", "summary-height"],
   menu: ["cell-height", "icon-size"],
-  window: ["header-height"],
+  window: ["header-height", "title-size", "control-size", "inset", "body-padding-block"],
   dialog: ["max-width"],
 } as const;
 /** Every name in [[constant:COMPONENT_VARS]] as a full custom property name, such as `--aster-grid-header-height`. */

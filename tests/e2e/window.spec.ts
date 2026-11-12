@@ -68,3 +68,62 @@ for (const scheme of ["light", "dark"] as const) {
     expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(" ")}`)).toEqual([]);
   });
 }
+
+test("folds to its title bar and unfolds to the same size, with its content kept", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 820 });
+  await page.goto("/playground/foundations.html");
+  await page.evaluate(async () => {
+    const lib = await import("/lib/aster-ui.js" as string);
+    const win = Object.assign(document.createElement("aster-window"), {
+      id: "e2e-fold", heading: "Minimap", chrome: { fold: true },
+      initialPlacement: { state: "normal", bounds: { x: 40, y: 40, width: 320, height: 300 } },
+      content: lib.html`<label>Note <input id="e2e-fold-note"></label>`,
+    });
+    const events: unknown[] = [];
+    win.addEventListener("placementchange", (e) => events.push((e as CustomEvent).detail));
+    Object.assign(globalThis, { e2eFoldEvents: events });
+    document.body.append(win);
+    (win as unknown as { show(o: null): void }).show(null);
+  });
+  const win = page.getByRole("dialog", { name: "Minimap" });
+  await expect(win).toBeVisible();
+  const note = page.locator("#e2e-fold-note");
+  await note.fill("kept");
+  const collapse = win.getByRole("button", { name: "Collapse Minimap" });
+  await expect(collapse).toHaveAttribute("aria-expanded", "true");
+  const before = (await win.boundingBox())!;
+
+  await note.focus();
+  await collapse.click();
+  const expand = win.getByRole("button", { name: "Expand Minimap" });
+  await expect(expand).toHaveAttribute("aria-expanded", "false");
+  await expect(expand).toBeFocused();
+  await expect(note).toBeHidden();
+  const bar = (await win.locator(".aster-window-bar").boundingBox())!;
+  const folded = (await win.boundingBox())!;
+  expect(folded.height).toBeLessThan(bar.height + 4);
+  expect([folded.x, folded.y, folded.width]).toEqual([before.x, before.y, before.width]);
+  await expect(win.getByRole("button", { name: "Resize Minimap" })).toBeDisabled();
+  const placement = await page.evaluate(() => (document.querySelector("#e2e-fold") as unknown as { placement(): { folded: boolean; bounds: { height: number } } }).placement());
+  expect(placement.folded).toBe(true);
+  expect(placement.bounds.height).toBe(before.height);
+
+  // Moving while folded keeps the unfolded height.
+  await win.getByRole("button", { name: "Move Minimap" }).press("ArrowRight");
+  await expect.poll(async () => (await win.boundingBox())!.x).toBe(before.x + 16);
+  await win.getByRole("button", { name: "Expand Minimap" }).press("Enter");
+  await expect(note).toBeVisible();
+  await expect(note).toHaveValue("kept");
+  await expect.poll(async () => (await win.boundingBox())!.height).toBe(before.height);
+  const events = await page.evaluate(() => (globalThis as unknown as { e2eFoldEvents: { folded: boolean }[] }).e2eFoldEvents.map(e => e.folded));
+  expect(events).toContain(true);
+  expect(events.at(-1)).toBe(false);
+
+  // A saved placement restores the fold.
+  await page.evaluate(() => {
+    const el = document.querySelector("#e2e-fold") as unknown as { setPlacement(p: unknown): void; folded: boolean };
+    el.setPlacement({ state: "normal", bounds: { x: 40, y: 40, width: 320, height: 300 }, folded: true });
+  });
+  await expect(note).toBeHidden();
+  await expect(win.getByRole("button", { name: "Expand Minimap" })).toBeVisible();
+});

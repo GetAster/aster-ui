@@ -437,6 +437,36 @@ test("button tone, size and native disabled", async ({ page }) => {
   expect(await page.evaluate(() => (globalThis as unknown as { e2e: { clicks: number } }).e2e.clicks)).toBe(0);
 });
 
+test("an icon-only button is square, centres its icon and is named by its label", async ({ page }) => {
+  await dataPage(page);
+  await page.evaluate(async () => {
+    const lib = await import("/lib/aster-ui.js" as string);
+    const zoom = Object.assign(document.createElement("aster-button"), { id: "e2e-zoom", label: "Zoom in", labelled: false, busyLabel: "Zooming",
+      icon: lib.html`<svg id="e2e-zoom-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>` });
+    const plain = Object.assign(document.createElement("aster-button"), { id: "e2e-plain", label: "Plain", labelled: false });
+    document.body.append(zoom, plain);
+  });
+  const zoom = page.getByRole("button", { name: "Zoom in" });
+  await expect(zoom).toHaveAttribute("title", "Zoom in");
+  await expect(page.locator("#e2e-zoom .aster-label-swap")).toHaveCount(0);
+  const geometry = await page.evaluate(() => {
+    const button = document.querySelector("#e2e-zoom button")!.getBoundingClientRect();
+    const icon = document.querySelector("#e2e-zoom-icon")!.getBoundingClientRect();
+    return { width: button.width, height: button.height, left: icon.left - button.left, right: button.right - icon.right };
+  });
+  expect(geometry.width).toBe(geometry.height);
+  expect(geometry.left).toBeCloseTo(geometry.right, 1);
+
+  await page.evaluate(() => { (document.querySelector("#e2e-zoom") as HTMLElement & { busy: boolean }).busy = true; });
+  await expect(page.getByRole("button", { name: "Zooming" })).toHaveAttribute("title", "Zooming");
+  await page.evaluate(() => { Object.assign(document.querySelector("#e2e-zoom")!, { busy: false, reason: "Already at full zoom" }); });
+  await expect(zoom).toHaveAttribute("title", "Already at full zoom");
+
+  // Without an icon there is nothing else to show, so the label stays.
+  await expect(page.locator("#e2e-plain .aster-label-swap")).toHaveText("Plain");
+  await expect(page.locator("#e2e-plain button")).not.toHaveAttribute("aria-label", /./);
+});
+
 test("columns, label orientation and Enter-to-save with a cancelable form-submit", async ({ page }) => {
   await dataPage(page);
   await page.evaluate(async () => {

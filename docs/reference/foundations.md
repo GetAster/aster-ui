@@ -84,7 +84,9 @@ Tag `aster-stack`. CSS flex layout, vertical by default, without an implicit rol
 | `responsive` | true |
 | `content` | View; nothing |
 
-Responsive horizontal content stacks below 520px of container width. Child
+Responsive horizontal content stacks below 520px of container width. `align`
+and `justify` describe the row, so once stacked each item takes the full width,
+in order from the top. Child
 `--stack-grow` (default 0), `--stack-basis` (auto), or ordinary CSS flex properties
 control growth and basis. Gap uses theme spacing. CSS owns all layout.
 

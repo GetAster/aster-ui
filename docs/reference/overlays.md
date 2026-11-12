@@ -303,6 +303,12 @@ keyboard controls; [[attr:Window.showResizer]] false also turns off pointer
 resizing. Minimize and Maximize remain managed-window chrome unless a chrome
 switch says otherwise.
 
+`chrome.fold` adds a Collapse/Expand control that folds the window to its title
+bar, as a section folds. Folded, the content stays mounted but hidden, the
+window can't be resized and still moves, and it unfolds to the size it had.
+[[attr:Window.folded]] sets the same state from the host, with or without the
+control, and the fold is part of the window's [[object:WindowPlacement]].
+
 By default content exists only while open. Set `preserveContent = true` to keep
 its DOM between openings, including native input values and borrowed child models.
 Minimize always preserves content. The host owns models and explicitly releases
@@ -319,6 +325,25 @@ its acquisitions when disposing the page.
 
 Moving and viewport changes keep it reachable with an 8 px margin. CSS limits
 size to the viewport, including viewports smaller than the desktop minimum.
+
+Size the chrome of one window with the window
+component variables ([[constant:COMPONENT_VARS]]) on the element: the
+title bar's height, heading size and button size, the side inset shared by
+the title and body, and the body's padding above and below. A
+small tool window, for example:
+
+```css
+aster-window.minimap {
+  --aster-window-header-height: 30px;
+  --aster-window-title-size: 12.5px;
+  --aster-window-control-size: 22px;
+  --aster-window-inset: 8px;
+  --aster-window-body-padding-block: 6px;
+}
+```
+
+On a coarse pointer the title bar buttons stay 44 px, so they remain easy to
+tap.
 
 ```ts
 const win = document.querySelector<Window>("aster-window")!;
@@ -420,6 +445,7 @@ optional, and an omitted field keeps its default.
 | `minimize` | managed | Draw the Minimize button. An unmanaged window shows none unless this is `true`. |
 | `maximize` | managed | Draw the Maximize/Restore button, with the same default. |
 | `resizer` | `true` | Allow pointer resizing from the corner and draw the keyboard Resize control. |
+| `fold` | `false` | Draw the Collapse/Expand control that folds the window to its title bar. |
 | `footer` | `false` | Draw the footer region filled by [[attr:Window.footer]]. Setting `footer` turns it on. |
 | `statusBar` | `false` | Draw the status region filled by [[attr:Window.status]]. Setting `status` turns it on. |
 
@@ -459,6 +485,28 @@ Sugar for `chrome.maximize`. Default: the window's `managed` value.
 
 Sugar for `chrome.resizer`. Default `true`. `false` removes the keyboard Resize
 control and turns off CSS pointer resizing.
+
+## attr:Window.showFoldButton
+
+Sugar for `chrome.fold`. Default `false`.
+
+## attr:Window.folded
+
+Whether the window is folded to its title bar. Default `false`. Reactive.
+
+Folding hides the body, footer and status bar without unmounting them, so
+drafts and scroll positions survive, and turns resizing off. If focus was in
+the hidden content, it moves to the Expand control, or to the window. Unfolding
+restores the height the window had. The fold shows only while the window is
+`normal` and has a header; maximizing shows the whole window, and restoring
+folds it again. Setting it fires `placementchange` while the window is open.
+
+```ts
+minimap.chrome = { fold: true };
+minimap.addEventListener("placementchange", (e) => save((e as CustomEvent<WindowPlacement>).detail));
+declare const minimap: Window;
+declare function save(placement: WindowPlacement): void;
+```
 
 ## attr:Window.showFooter
 
@@ -558,7 +606,8 @@ viewport margins. Does not itself open the window.
 ## object:WindowPlacement
 
 `{ state: "normal" | "maximized" | "minimized"; bounds?: WindowBounds;
-restoreMaximized?: boolean }`. Bounds describe the normal, restored size.
+restoreMaximized?: boolean; folded?: boolean }`. Bounds describe the normal,
+restored size, unfolded.
 
 ## class:Workspace
 
@@ -620,7 +669,7 @@ Releases subscriptions and registration. Does not remove or close borrowed windo
 ## event:Window.placementchange
 
 Bubbles with a copied [[object:WindowPlacement]] after pointer movement,
-resizing or a state action. Hosts decide when and where to persist it.
+resizing, folding or a state action. Hosts decide when and where to persist it.
 
 ## event:Window.statechange
 
@@ -671,6 +720,11 @@ bounds for later restore.
 ## attr:WindowPlacement.restoreMaximized
 
 Optional boolean. A minimized window with true reopens maximized.
+
+## attr:WindowPlacement.folded
+
+Optional boolean. True restores the window folded to its title bar
+([[attr:Window.folded]]); omitted means unfolded.
 
 ## object:WorkspaceEntry
 
@@ -1147,6 +1201,23 @@ Focuses the native button inside, not the host element. A button that has a
 ## attr:Button.label
 
 The button's text, shown at rest. Default `""`. Reactive.
+
+## attr:Button.labelled
+
+Whether the label is drawn beside the icon. Default `true`. Reactive.
+
+Set it `false` on a button with an [[attr:Button.icon]] to draw the icon alone,
+in a square button. The label is then the button's accessible name and its
+hover text, so give every icon-only button a label. While busy or confirming,
+the busy or confirm label is the name and hover text instead, and a `reason`
+replaces the hover text. A button without an icon always shows its label.
+
+```ts
+html`<aster-button .label=${"Zoom in"} .labelled=${false} .size=${"sm"}
+  .icon=${html`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>`}
+  @click=${() => chart.zoomIn()}></aster-button>`;
+declare const chart: { zoomIn(): void };
+```
 
 ## attr:Button.busyLabel
 

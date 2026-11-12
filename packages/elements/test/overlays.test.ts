@@ -8,7 +8,7 @@ import { closeShown, reorderIds, visibilityModeFromMultiple } from "../src/secti
 describe("window chrome defaults", () => {
   test("an omitted chrome keeps the header, title, close button and resizer, and adds no footer or status", () => {
     expect(resolveWindowChrome({}, false)).toEqual({
-      header: true, title: true, close: true, minimize: false, maximize: false, resizer: true, footer: false, statusBar: false,
+      header: true, title: true, close: true, minimize: false, maximize: false, resizer: true, fold: false, footer: false, statusBar: false,
     });
   });
 
@@ -19,17 +19,18 @@ describe("window chrome defaults", () => {
   });
 
   test("every chrome switch accepts an explicit value", () => {
-    const chrome = { header: false, title: false, close: false, minimize: false, maximize: false, resizer: false, footer: true, statusBar: true } as const;
+    const chrome = { header: false, title: false, close: false, minimize: false, maximize: false, resizer: false, fold: true, footer: true, statusBar: true } as const;
     expect(resolveWindowChrome(chrome, true)).toEqual({ ...chrome });
   });
 });
 
 describe("window placement", () => {
-  test("a placement is copied, validated and defaults restoreMaximized", () => {
+  test("a placement is copied, validated and defaults restoreMaximized and folded", () => {
     expect(parseWindowPlacement({ state: "normal", bounds: { x: 10, y: 20, width: 300, height: 400 } })).toEqual({
-      state: "normal", bounds: { x: 10, y: 20, width: 300, height: 400 }, restoreMaximized: false,
+      state: "normal", bounds: { x: 10, y: 20, width: 300, height: 400 }, restoreMaximized: false, folded: false,
     });
-    expect(parseWindowPlacement({ state: "maximized" })).toEqual({ state: "maximized", restoreMaximized: false });
+    expect(parseWindowPlacement({ state: "maximized" })).toEqual({ state: "maximized", restoreMaximized: false, folded: false });
+    expect(parseWindowPlacement({ state: "normal", folded: true })).toMatchObject({ folded: true });
   });
 
   test("invalid states and bounds are refused", () => {

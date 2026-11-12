@@ -3,6 +3,7 @@
 // tokens. A finding is silenced by an `aster-allow <rule>: <reason>` comment
 // on its line or the line above; a silence with no reason, an unknown rule
 // or nothing to silence is itself a finding.
+import { COMPONENT_VAR_NAMES } from "../src/styles/contract.ts";
 import { CSS_RULES, LAYOUT_PROPERTIES, ROLE_RULES, elementRule, type ElementRule } from "./lint-rules.ts";
 
 export interface Finding {
@@ -100,6 +101,8 @@ function parseAllowances(file: string, text: string, lines: readonly number[]): 
   return found;
 }
 
+/** A page may set a component variable on one placement; every other `--aster-` name is the theme's or density's. */
+const COMPONENT_VARS: ReadonlySet<string> = new Set(COMPONENT_VAR_NAMES);
 const REFERENCE = "https://ui.getaster.now/docs/reference/";
 
 type Report = (offset: number, rule: string, message: string) => void;
@@ -355,7 +358,7 @@ function lintDeclarations(text: string, base: number, selectors: readonly Select
     const value = part.slice(colon + 1);
     const offset = base + start + part.search(/\S/);
     if (!property || /\s/.test(property)) continue;
-    if (property.startsWith("--aster-") && !options.theme) report(offset, CSS_RULES.token, `${property} is a theme token; set it in a theme file (aster-lint --theme), not here.`);
+    if (property.startsWith("--aster-") && !options.theme && !COMPONENT_VARS.has(property)) report(offset, CSS_RULES.token, `${property} is a theme token; set it in a theme file (aster-lint --theme), not here.`);
     const host = selectors.find(s => s.host)?.host;
     if (host && !property.startsWith("--") && !LAYOUT_PROPERTIES.has(property)) report(offset, CSS_RULES.restyle, `${property} on ${host} restyles it; app CSS may only place Aster elements (size, position, grid and flex placement).`);
     const plain = value.replace(/"[^"]*"|'[^']*'|url\([^)]*\)/g, m => " ".repeat(m.length));

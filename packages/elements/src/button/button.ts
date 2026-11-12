@@ -15,9 +15,13 @@ export type ButtonSize = "sm" | "md" | "lg";
  * `disabled` is the native state: the button leaves the tab order and can't
  * be pressed. Prefer `reason` for an advisory refusal: the button stays
  * focusable, says why in its title, and its click is swallowed.
+ *
+ * With an icon, `labelled = false` draws the icon alone: the label is then
+ * the button's accessible name and its hover text.
  */
 export class Button extends AsterElement {
   readonly #label = this.prop("");
+  readonly #labelled = this.prop(true);
   readonly #busyLabel = this.prop<string | undefined>(undefined);
   readonly #confirmLabel = this.prop<string | undefined>(undefined);
   readonly #busy = this.prop<Bindable<boolean>>(false);
@@ -35,6 +39,13 @@ export class Button extends AsterElement {
   }
   set label(v: string) {
     this.#label.value = v;
+  }
+  /** Show the label beside the icon. Otherwise it's the accessible name and hover text only. Default `true`; a button without an icon always shows its label. */
+  get labelled(): boolean {
+    return this.#labelled.value;
+  }
+  set labelled(v: boolean) {
+    this.#labelled.value = v;
   }
   /** Shown while busy, such as "Inviting…". */
   get busyLabel(): string | undefined {
@@ -130,14 +141,18 @@ export class Button extends AsterElement {
     const showing = busy && labels[1] ? 1 : confirming && labels[2] ? 2 : 0;
     const reason = this.#reason.value;
     const disabled = this.#disabled.value;
+    const icon = this.#icon.value;
+    const iconOnly = !this.#labelled.value && icon !== nothing;
+    const name = iconOnly ? labels[showing] : undefined;
     return html`<button class="aster-button" type=${this.#type.value} data-tone=${this.#tone.value}
       data-variant=${this.#tone.value === "primary" ? "primary" : "secondary"} data-size=${this.#size.value}
-      ?disabled=${disabled}
-      aria-busy=${busy ? "true" : "false"} aria-disabled=${reason && !disabled ? "true" : nothing} title=${reason ?? nothing}>
-      ${this.#icon.value}
-      <span class="aster-label-swap">
+      ?data-icon-only=${iconOnly} ?disabled=${disabled}
+      aria-busy=${busy ? "true" : "false"} aria-disabled=${reason && !disabled ? "true" : nothing}
+      aria-label=${name || nothing} title=${reason ?? (name || nothing)}>
+      ${icon}
+      ${iconOnly ? nothing : html`<span class="aster-label-swap">
         ${labels.map((l, i) => (l === undefined ? nothing : html`<span ?data-off=${i !== showing}>${l}</span>`))}
-      </span>
+      </span>`}
     </button>`;
   }
 

@@ -80,6 +80,11 @@ describe("aster-lint CSS", () => {
     expect(rules("theme.css", source, true)).toEqual([]);
   });
 
+  test("a page may set component variables on one placement", () => {
+    expect(rules("app.css", "aster-window.minimap { --aster-window-header-height: 30px; --aster-window-inset: 8px; }")).toEqual([]);
+    expect(rules("app.css", "aster-window.minimap { --aster-pad: 6px; }")).toEqual(["1:css-token"]);
+  });
+
   test("nested rules combine with their parent's selector", () => {
     expect(rules("app.css", "aster-grid { & tr { padding: 0; } height: 100%; }")).toEqual(["1:css-restyle"]);
   });

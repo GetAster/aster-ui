@@ -7,6 +7,49 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.35
+
+Pages built on `@getaster/elements` can now make compact tool windows and
+icon-only toolbars without restyling Aster's markup. A window can fold to its
+title bar, and its frame is sized with component variables that `aster-lint`
+now accepts.
+
+### Added
+
+- **Icon-only buttons**: with an `icon`, `Button.labelled = false` draws the
+  icon alone in a square button. The label becomes the accessible name and
+  the hover text. While the button is busy or confirming, that label takes
+  over as the name, and a `reason` still replaces the hover text. A button
+  without an icon always shows its label.
+- **Fold a window to its title bar**: `chrome.fold` draws a Collapse/Expand
+  control, and `Window.folded` sets the same state from code. Folded, the
+  content stays mounted but hidden, and the window moves but can't be
+  resized. It unfolds to the height it had. `WindowPlacement.folded` saves
+  and restores the fold, including in `Workspace` snapshots.
+- **Window sizing variables**: `--aster-window-title-size`,
+  `--aster-window-control-size`, `--aster-window-inset` (the side inset of
+  the title, body, footer and status bar) and
+  `--aster-window-body-padding-block` join `--aster-window-header-height`.
+  Set them on one `aster-window` to size its frame. On a coarse pointer the
+  title bar buttons stay 44px.
+
+### Changed
+
+- **A stacked horizontal layout gives each item the full width.** Below 520px
+  of container width a responsive `HorizontalLayout` (or horizontal `Stack`)
+  becomes a column, and its items now fill that column from the top.
+  Previously `align` and `justify` still applied once stacked, so `end`
+  pushed items to the right edge and `center` centred them. Both now only
+  arrange the row. Set `responsive = false` to keep a row at every width.
+
+### Fixed
+
+- **`aster-lint` accepts component variables in app CSS.** `css-token` no
+  longer flags variables from `COMPONENT_VARS`, such as
+  `--aster-window-header-height`, which the reference says a page may set on
+  one placement. Theme tokens and density sizes are still only for theme
+  files.
+
 ## 0.4.29
 
 Layouts in `@getaster/elements` now remember more of a person's choices

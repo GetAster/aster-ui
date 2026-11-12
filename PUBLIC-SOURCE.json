@@ -23,11 +23,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "357069575c5f247d2a84a756314a3383d601591ee1691bd0baf26af74d0cf2fc"
+      "sha256": "565b6c5dfda1c10331dff54981307263d2de6444cd54226a8964a58b1d1e5b0e"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "29f89ade3934037749b218345bc357c981e4694c53a871670a8d86021a1b756c"
+      "sha256": "85918556b5f814102ad44828613f07ba5a163fa0010e65e70f9f88da5c281727"
     },
     {
       "path": "LICENSE",
@@ -643,7 +643,7 @@
     },
     {
       "path": "docs/guide/aster-lint.md",
-      "sha256": "3af7eeba7f6289cab0282cd7796e45128a78ee293d293317eec0642d82db920c"
+      "sha256": "7c87305234bac1245c235adfa1ce96ba863ae3edd6952275f1dbe02d2bf39397"
     },
     {
       "path": "docs/guide/authentication.md",
@@ -691,7 +691,7 @@
     },
     {
       "path": "docs/guide/fields-and-layouts.md",
-      "sha256": "c6b469d8787ca99a55c555d889804053fb6617ec3499994c1d948ca10a967f05"
+      "sha256": "7d20207de05e3526dbb0bb4137a1c1fd248c29e22af966259a58f39f1ac44689"
     },
     {
       "path": "docs/guide/filter-group-export.md",
@@ -791,7 +791,7 @@
     },
     {
       "path": "docs/reference/elements.md",
-      "sha256": "8bb425ceadf773e4caef617d8d4d4cba5a34abb1f212007618954808c821c6fe"
+      "sha256": "623c5fd599a23141ce9bcaae1af3fbdc081605a736ca68994d7c4ef03cfc3403"
     },
     {
       "path": "docs/reference/fields.md",
@@ -807,7 +807,7 @@
     },
     {
       "path": "docs/reference/foundations.md",
-      "sha256": "5caeee6ef1ea22e7effac72ba392bd0e50c4c401b209c82746fd3b98c623832a"
+      "sha256": "a57e682125923aaf135b5f2ff4d041291b1238fb49105940f4bc23f13bef3e75"
     },
     {
       "path": "docs/reference/grid.md",
@@ -835,7 +835,7 @@
     },
     {
       "path": "docs/reference/overlays.md",
-      "sha256": "e58009df65c8052fb4fb70798a02a0491931a10deab3205d41915cdd75496d33"
+      "sha256": "98c2c01f68b9a919284dbe75d4935e87b954f05d6cee2c0ad0bc8bc937e02775"
     },
     {
       "path": "docs/reference/page-rules.md",
@@ -1339,7 +1339,7 @@
     },
     {
       "path": "packages/elements/src/button/button.ts",
-      "sha256": "c76f574110b07a357e6bccf45766fd5cd2970b41c4ce2489e08e11c37892749b"
+      "sha256": "38e25b89a7c85b9fdf60dd822505969fbd646cb53f270b293d76064a72e6892f"
     },
     {
       "path": "packages/elements/src/caret/caret-group.ts",
@@ -1363,7 +1363,7 @@
     },
     {
       "path": "packages/elements/src/composition/builtins.ts",
-      "sha256": "348c9f4c319dee816a95c27d83250f23adffb70adda26677e977792343813b7c"
+      "sha256": "4f82f63117a89eeb64d41856c04f8c26ce879016638281688710af63b5da6fbc"
     },
     {
       "path": "packages/elements/src/composition/command-bar.ts",
@@ -1635,15 +1635,15 @@
     },
     {
       "path": "packages/elements/src/styles/base.css",
-      "sha256": "0b32724b01d139efdb4b5c2c99f8ca448cfd61d01697bc08df70f3aaa92806f7"
+      "sha256": "cec554edccc92cf8a9a16023d547cb4700fd5878d255bbeb24c6253583cfc16f"
     },
     {
       "path": "packages/elements/src/styles/contract.ts",
-      "sha256": "9a4ede4f0d5b9c52d19fc5594063b7f6a307d26d10f3d9807d8709ff0be50c2f"
+      "sha256": "066f0a23b82701aa968115cce8cae1141ebab9a1e37819aab1dbe8639fb4f10b"
     },
     {
       "path": "packages/elements/src/styles/elements.css",
-      "sha256": "21c4d509f3ba2afa0ea769637edf6d133c12b87af947b36bac6a9a266c08486a"
+      "sha256": "ca3163cfdcdb1159a8713dd6a3a3ab8595325e11028fb64f5e168dff862341f6"
     },
     {
       "path": "packages/elements/src/styles/fonts.css",
@@ -1711,11 +1711,11 @@
     },
     {
       "path": "packages/elements/src/window/config.ts",
-      "sha256": "3215738b526a677afe21fddb96386ff09dc82f4fe3d0e8201b603b67207d1cf3"
+      "sha256": "edd5625611c9fc7ee2ca78678be3d0234d67a80eb4c8d66815339d46c0503ad4"
     },
     {
       "path": "packages/elements/src/window/window.ts",
-      "sha256": "b47e6042441147f2f20fb18535f486d4716f80f8daf8b4f5a266ae4d2bc781e9"
+      "sha256": "02e52d1a352cf83867fa50f8b9f3c6ac97fd48380e1f09cbe3d1919bf732da39"
     },
     {
       "path": "packages/elements/src/window/workspace.ts",
@@ -1771,11 +1771,11 @@
     },
     {
       "path": "packages/elements/test/lint.test.ts",
-      "sha256": "da4951cbe8fd22f71fcef197a06ee7d9f5e2163d665260768d2076c79ac45689"
+      "sha256": "7cfef5945fd0b47a785a7b653e1a7bb6a98c0c3b7742a08d5d4db26ff5d91d62"
     },
     {
       "path": "packages/elements/test/overlays.test.ts",
-      "sha256": "80bfe79fe0b71efb5fa707adf906048cbbba73de43c97834b7881bf3cdd954b4"
+      "sha256": "d984a4d1e5da6435975c2be0e478ad233d0d8b647567904a83b98d6f1d6594cd"
     },
     {
       "path": "packages/elements/test/policy.test.ts",
@@ -1823,7 +1823,7 @@
     },
     {
       "path": "packages/elements/tools/lint.ts",
-      "sha256": "a68f1fd39f99ad6319592f8c9f07a0782531b0da6fe950cd1e0b3c79ced6ce00"
+      "sha256": "e06ae8def4e59d4fae56ecf45fa821e6705554c4ef84aa9d5e3c71cf420afc28"
     },
     {
       "path": "packages/elements/tools/roles.ts",
@@ -2379,7 +2379,7 @@
     },
     {
       "path": "tests/e2e/appearance.spec.ts",
-      "sha256": "00ccbe35b4467db2c9f036e0fc0bc44679a5a5487983727b591fec71ffc235ed"
+      "sha256": "490ca27be7ad86f4a75e2118f1a1cda17ed067bb623ce6e19891d1aeb48f9dce"
     },
     {
       "path": "tests/e2e/appearance.ts",
@@ -2587,11 +2587,11 @@
     },
     {
       "path": "tests/e2e/form-field.spec.ts",
-      "sha256": "935906e06c8313e2c49d16457be309bc5f0c3d5e3fceb4891efd39ae5ae35618"
+      "sha256": "a359be9873009df2eacbdde8f5b92f39d1792b72d399b7ad4bbf908a496bdf6c"
     },
     {
       "path": "tests/e2e/foundations.spec.ts",
-      "sha256": "6f2260d4abd87e5031024a539ce7c4fd99b50d4a1ff36ffc10efeeae79767754"
+      "sha256": "bd81ebe9bbca90b2d9bc3c2bc00cc51d0495d10234b2724a160e0d230a7083ff"
     },
     {
       "path": "tests/e2e/grid-p1.spec.ts",
@@ -2895,7 +2895,7 @@
     },
     {
       "path": "tests/e2e/window.spec.ts",
-      "sha256": "0f62ef5c2e76a6201dbf2f35d33aa26a041ff2a84dc8820add1e2e774a5c9ae7"
+      "sha256": "0dbf71be371b42b49f9ddd45a98f8cf79d947270f7344321c8f0af56f9bfae1b"
     },
     {
       "path": "tests/e2e/workspace.spec.ts",

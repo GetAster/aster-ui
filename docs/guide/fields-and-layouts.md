@@ -112,6 +112,24 @@ in containers of 520px or less unless `responsive=false`. Use ordinary CSS flex
 properties on children; `--stack-grow` and `--stack-basis` are convenience
 variables. Supply a height when the layout must fill a bounded region.
 
+To put a labelled field and a check in one row, align the row to `end`. A
+labelled field is its label above a control, and a check with `labelPosition`
+`end` is one row the control's height, so their bottom edges line up. With
+`center`, the check lines up with the middle of the label and control
+together, which is above the control.
+
+```ts
+const filters = html`<aster-horizontal-layout .gap=${"medium"}
+  .align=${"end"} .wrap=${true}
+  .content=${html`
+    <aster-picker .model=${view} .field=${"scopeId"} .options=${sets} .labelled=${true}></aster-picker>
+    <aster-check .model=${view} .field=${"hideDone"} .labelled=${true} .labelPosition=${"end"}></aster-check>`}
+></aster-horizontal-layout>`;
+```
+
+In a narrow container the layout stacks, and each item then takes the full
+width. In a row you lay out with your own flex CSS, use `align-items: end`.
+
 Split keeps two panes mounted while resizing or collapsing:
 
 ```ts
