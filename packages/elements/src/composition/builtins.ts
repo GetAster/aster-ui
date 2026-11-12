@@ -35,6 +35,7 @@ import { RuleEditor } from "../rule/rule-editor.ts";
 import { FilterBuilder } from "../filter/filter-builder.ts";
 import { TreeNavigator } from "../tree/navigator.ts";
 import { Tabs } from "../tabs/tabs.ts";
+import { Disclosure } from "../section/disclosure.ts";
 import { Section } from "../section/section.ts";
 import { Split } from "../split/split.ts";
 import { Carousel } from "../carousel/carousel.ts";
@@ -428,6 +429,11 @@ export const asterComponents = Object.freeze({
     value: bindable(t.optional(t.string)),
     label: t.string,
     controls: t.optional(t.string),
+  }),
+  Disclosure: element<Disclosure>()("aster-disclosure", {
+    label: t.string,
+    open: t.boolean,
+    body: checked<Disclosure["body"]>("Disclosure.body", view),
   }),
   Section: element<Section>()("aster-section", {
     actions: checked<Section["actions"]>("Section.actions", view),

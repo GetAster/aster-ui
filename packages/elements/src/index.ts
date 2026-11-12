@@ -45,6 +45,7 @@ export { TreePicker } from "./picker/tree-picker.ts";
 export { TreeChoices, type TreeChoicesSpec } from "./picker/tree-choices.ts";
 export { DateField } from "./date/date-field.ts";
 export { formatDate, parseDate, setClock, type DateFormat } from "./date/dates.ts";
+export { Disclosure } from "./section/disclosure.ts";
 export { Section, type SectionChrome } from "./section/section.ts";
 export { Form, type FormChrome, type FormFeature, type FormField, type FormItem, type FormPolicy, type FormSection, type FormSubmitDetail, type FormValue } from "./form/form.ts";
 export { controlFor, type FormControl, type FormControlContext, type FormControlName, type FormControlRender } from "./form/controls.ts";

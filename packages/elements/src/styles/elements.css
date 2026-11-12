@@ -608,6 +608,16 @@
   .aster-section-inner { min-height: 0; overflow: hidden; }
   aster-section[data-open] > .aster-section-body > .aster-section-inner { overflow: visible; }
 
+  /* ── disclosure: a toggle and its content in the surrounding text's flow ── */
+  aster-disclosure { display: inline; }
+  .aster-disclosure-toggle { display: inline-flex; align-items: baseline; gap: 4px; color: var(--aster-accent); border-radius: var(--aster-r-ctl); cursor: pointer; }
+  .aster-disclosure-toggle:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .aster-disclosure-toggle svg { flex: none; align-self: center; width: 8px; height: 8px; fill: none; stroke: currentColor; stroke-width: 1.5; transition: rotate var(--aster-t-micro) var(--aster-ease); }
+  .aster-disclosure-toggle:dir(rtl) svg { scale: -1 1; }
+  aster-disclosure[data-open] > .aster-disclosure-toggle svg { rotate: 90deg; }
+  .aster-disclosure-body { margin-inline-start: .5ch; }
+  @media (forced-colors: active) { .aster-disclosure-toggle { color: LinkText; } }
+
   /* ── form ── */
   aster-form { display: block; container-type: inline-size; }
   .aster-form-grid { display: grid; grid-template-columns: repeat(var(--columns, 2), minmax(0, 1fr)); gap: var(--aster-gap) calc(var(--aster-gap) + 4px); padding: var(--aster-gap) 0 calc(var(--aster-gap) + 4px); }

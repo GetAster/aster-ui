@@ -46,7 +46,7 @@ calls and HTML files:
 | `native-select` | `<select>` | `aster-select`, `aster-choice` |
 | `native-table` | `<table>` | `aster-grid` |
 | `native-dialog` | `<dialog>` | `aster-dialog` |
-| `native-details` | `<details>` | `aster-section`, `aster-accordion` |
+| `native-details` | `<details>` | `aster-disclosure` inside text, `aster-section`, `aster-accordion` |
 | `native-progress` | `<progress>` | `aster-progress-status` |
 | `native-form` | `<form>` | `aster-form` |
 | `role-…` | Hand-made ARIA widgets: tabs, menus, listboxes, comboboxes, trees, grids, dialogs, switches and toolbars | The matching element |

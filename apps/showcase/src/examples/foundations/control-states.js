@@ -16,6 +16,12 @@ render(html`
   <aster-button .label=${"Unavailable"} .reason=${"No changes to save"}></aster-button>
   <aster-button .label=${"Submit"} .busyLabel=${"Submitting…"} .busy=${true}></aster-button>
 `, document.querySelector("#buttons"));
+// Inline disclosures, closed and open, inside a sentence.
+const errors = html`<code>invalid_grant</code>, <code>invalid_scope</code>, <code>access_denied</code>, <code>server_error</code>`;
+render(html`
+  <p>authorize(request) raises <aster-disclosure .label=${"4 errors"} .body=${errors}></aster-disclosure></p>
+  <p>refresh(token) raises <aster-disclosure .label=${"4 errors"} .body=${errors} .open=${true}></aster-disclosure></p>
+`, document.querySelector("#disclosures"));
 
 const json = async name => {
   const response = await fetch(`../lib/demo/${name}.json`);

@@ -20,7 +20,7 @@ export const ELEMENT_RULES = {
   select: rule("native-select", ["aster-select", "aster-choice"], ["class:Select", "class:Choice"]),
   table: rule("native-table", ["aster-grid"], ["class:Grid"]),
   dialog: rule("native-dialog", ["aster-dialog"], ["class:Dialog"]),
-  details: rule("native-details", ["aster-section", "aster-accordion"], ["class:Section", "class:Accordion"]),
+  details: rule("native-details", ["aster-disclosure", "aster-section", "aster-accordion"], ["class:Disclosure", "class:Section", "class:Accordion"]),
   progress: rule("native-progress", ["aster-progress-status"], ["class:ProgressStatus"]),
   form: rule("native-form", ["aster-form"], ["class:Form"]),
 } as const;

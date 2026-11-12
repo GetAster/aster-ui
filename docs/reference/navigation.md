@@ -46,7 +46,12 @@ the element stays connected. `collapsible: false` on a group shows it instead as
 a section that doesn't fold: a quiet label over a list named by it, such as
 "Pinned". `collapsible` is allowed only on a group. Optional `icon` is a text
 glyph, `badge` is text shown as a count, `hidden` omits the item, `disabled`
-prevents navigation and `reason` explains unavailability.
+prevents navigation and `reason` explains unavailability. Optional
+`description` says more about the destination, such as the path or address
+of the project a group stands for: it is the item's tooltip and its
+accessible description. A tooltip lists the compact rail's label, then the
+reason, then the description, one per line. On a section that doesn't fold,
+the description is the label's tooltip and describes the list.
 Disabling a group disables its descendants. IDs are unique across all groups.
 Nesting is bounded; links accept relative, fragment, HTTP and HTTPS URLs.
 Executable URL schemes are rejected. Labels and icons are rendered as text.

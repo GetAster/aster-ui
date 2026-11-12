@@ -151,6 +151,15 @@ panels. Newly invalid mounted fields can open additional panels in either mode.
 For errors in an uncreated lazy body, the owner maps model errors to `expanded`
 IDs before focusing the invalid field. Header arrow keys, Home and End navigate within the accordion.
 
+Inside a line of text, where a titled panel doesn't fit, a
+[[class:Disclosure]] shows more in place: a count that opens to its list.
+
+```ts
+const signature = html`<p>authorize(request) raises
+  <aster-disclosure .label=${`${errors.length} errors`}
+    .body=${html`${errors.map((e, i) => html`${i ? ", " : ""}<code>${e}</code>`)}`}></aster-disclosure></p>`;
+```
+
 ## Show location and related items
 
 ```ts

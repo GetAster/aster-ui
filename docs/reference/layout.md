@@ -1,6 +1,6 @@
 # Layout elements
 
-Four elements arrange a page without drawing records of their own. All of them
+Five elements arrange a page without drawing records of their own. All of them
 take their contents as templates (lit-html `View`s) that the page builds, and
 none keeps state the page needs except the few values noted below.
 
@@ -8,6 +8,7 @@ none keeps state the page needs except the few values noted below.
 |---|---|---|
 | `aster-split` | [[class:Split]] | Two panes side by side with a draggable bar between them, such as a list and its detail. |
 | `aster-section` | [[class:Section]] | A titled block that collapses, such as one part of a long form. |
+| `aster-disclosure` | [[class:Disclosure]] | A toggle inside a line of text that shows more, such as "raises 12 errors". |
 | `aster-carousel` | [[class:Carousel]] | A row of cards that scrolls one at a time. |
 | `aster-caret-group` | [[class:CaretGroup]] | A group in which a bar slides to the selected child. Tabs and the listbox are built on it. |
 
@@ -19,7 +20,8 @@ re-renders the element, and reading one inside an `effect` tracks it. See
 
 ### Templates as contents
 
-`Split` takes `start` and `end`, `Section` takes `body` and `summary`, and
+`Split` takes `start` and `end`, `Section` takes `body` and `summary`,
+`Disclosure` takes `body`, and
 `Carousel` takes a `view` per slide. Each is a [[type:View]]: a lit-html
 template or `nothing`. The page builds the template, so signals read while
 building it re-render whatever is rendering it, not the layout element. When a
@@ -239,6 +241,56 @@ Emitted when the close control from [[attr:Section.chrome]] is activated. It
 bubbles and is cancelable, with no detail. The section has no default action
 and never removes or hides itself: `preventDefault()` lets a host apply its own
 close policy, and otherwise the host decides what happens next.
+
+## class:Disclosure
+
+Tag: `aster-disclosure`. Give it a `label` and a `body`.
+
+A disclosure that sits inside a sentence or a line of other content: a
+button with `aria-expanded` and `aria-controls`, and after it, in the same
+flow, the content it shows. Pressing the button (Enter or Space, or a click)
+toggles `open`. The element is inline and has no heading or region, which is
+what separates it from [[class:Section]], a titled block. Use Section for a
+part of a page with a name of its own, and Disclosure for "show more" inside
+text: a count that opens to its list, or a note that opens to its detail.
+
+A native `<details>` can't do this job: it is a block, and inside a `<p>` the
+HTML parser ends the paragraph before it. Disclosure renders through the DOM,
+so it can sit inside a paragraph.
+
+The content stays in the DOM while hidden, so its state is kept. It is
+`hidden` while closed, so it isn't read or reached. Closing the disclosure
+while focus is inside the content moves focus to the button. The element
+carries `data-open` while open; a host in a flex row can place it with
+`aster-disclosure[data-open] { flex-basis: 100% }` so the opened content
+takes a line of its own.
+
+```ts
+import { html } from "lit-html";
+import type { Disclosure } from "@getaster/elements";
+
+const errors = ["invalid_grant", "invalid_scope", "access_denied", "server_error"];
+const raises = document.createElement("aster-disclosure") as Disclosure;
+raises.label = `${errors.length} errors`;
+raises.body = html`${errors.map((e, i) => html`${i ? ", " : ""}<code>${e}</code>`)}`;
+// In a template: html`<p>raises <aster-disclosure .label=${"4 errors"} .body=${list}></aster-disclosure></p>`
+```
+
+## attr:Disclosure.label
+
+The button's text, such as "12 errors". It is the button's accessible name.
+Default `""`. Reactive.
+
+## attr:Disclosure.open
+
+Whether the content is shown. The person toggles it, and setting it from code
+does the same. Default `false`. Reactive. There is no event; follow it as a
+signal.
+
+## attr:Disclosure.body
+
+The content, a [[type:View]], shown after the button while open. Default
+`nothing`. Rendered even while closed. Reactive.
 
 ## class:Split
 

@@ -7,6 +7,26 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.26
+
+Two additions to `@getaster/elements` for text and navigation. A disclosure
+can now sit inside a sentence, and a sidebar item can carry a description.
+
+### Added
+
+- **`aster-disclosure` (`Disclosure`)**, a "show more" toggle inside a line of
+  text, such as "raises 12 errors" opening to the list. It is a button with
+  `aria-expanded` and `aria-controls`, followed by its content in the same
+  flow. It takes `label`, `body` and `open`, and is available from YAML
+  composition. A native `<details>` can't do this: inside a `<p>`, the HTML
+  parser ends the paragraph before it. `aster-lint`'s `native-details` rule
+  now suggests it.
+- **`SidebarItem.description`**: more about a destination, such as the path
+  of the project a group stands for. It is the item's tooltip and its
+  accessible description. A tooltip now lists the compact rail's label, the
+  disabled reason and the description, one per line. Before, a disabled item
+  in the compact rail showed only its reason.
+
 ## 0.4.23
 
 Layout and navigation controls cover more of an application shell, and a new
