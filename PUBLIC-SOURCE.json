@@ -23,11 +23,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "942945081713d5e35823073082cc59715799dc46de6fbf80edad59c7c154f314"
+      "sha256": "20b7863224b7cb6edbc009c2ef30a14a585fca79b285595a11f066bbd8b54bc6"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "c4f0c67f8d3db285941abca12f00a57cb820ba1ac474b1a7552d44f2002ca945"
+      "sha256": "6e8a5875f84d787d2841236612b88b282e6138ca0e4d27ea06fa296595cb9d43"
     },
     {
       "path": "LICENSE",
@@ -163,7 +163,7 @@
     },
     {
       "path": "apps/showcase/build/assets.ts",
-      "sha256": "4aaba54f7be745755e8752a5bc24076802c304471e79f3b5ddc325122db813c3"
+      "sha256": "cadb1f28b42c780fe2f35255684e4869237ff2e34558220a594f6571653ab447"
     },
     {
       "path": "apps/showcase/build/examples.ts",
@@ -384,6 +384,18 @@
     {
       "path": "apps/showcase/src/examples/foundations/foundations.js",
       "sha256": "b67842bbe0463706d242961ca0e79984de4b4a84ba3e30eb2dc5bc741f179871"
+    },
+    {
+      "path": "apps/showcase/src/examples/list-editor/README.md",
+      "sha256": "0c34581470c72071c43bf3f241bec567f3e71a375e5f1b9955dd6637a1d1053b"
+    },
+    {
+      "path": "apps/showcase/src/examples/list-editor/list-editor.html",
+      "sha256": "5a8eb90723e317b43b2a8d1256abde35baf8c375046725dc69a844d699c2b4ff"
+    },
+    {
+      "path": "apps/showcase/src/examples/list-editor/list-editor.js",
+      "sha256": "be8c7cf6d2440d899b24ea2252d9bbe6faf7f2fc62a6e076989b9fa5ef893d20"
     },
     {
       "path": "apps/showcase/src/examples/mail/README.md",
@@ -791,7 +803,7 @@
     },
     {
       "path": "docs/reference/elements.md",
-      "sha256": "8d0c828170e66487a408acd804aeee95fac404d4f9def6839fb2d75b523a1e86"
+      "sha256": "4a8a92b77dacf22b210dfc030f08251d5eb5a89830b57619e2e6f9a807b9fff3"
     },
     {
       "path": "docs/reference/fields.md",
@@ -823,7 +835,7 @@
     },
     {
       "path": "docs/reference/lists.md",
-      "sha256": "a917de11ecadd18117a835a08185d26db3ea3240c75990277e84cdf2b57abb3f"
+      "sha256": "a62042d497a935a5c4240d114a6f1dfd363ce321736651c2a4bc5266d1528b3b"
     },
     {
       "path": "docs/reference/mock.md",
@@ -835,7 +847,7 @@
     },
     {
       "path": "docs/reference/overlays.md",
-      "sha256": "7ad5ce896040958c6b8cae8528a9f9c26f436e96a5fa323af595ee7bcd434cbd"
+      "sha256": "9ef5efda54cfb81f3ceeba5492c5e94ce11e147d4c290037c10c8b25ee4c6db5"
     },
     {
       "path": "docs/reference/page-rules.md",
@@ -1339,7 +1351,7 @@
     },
     {
       "path": "packages/elements/src/button/button.ts",
-      "sha256": "38e25b89a7c85b9fdf60dd822505969fbd646cb53f270b293d76064a72e6892f"
+      "sha256": "e5572f357b8fa361b61bcf551d4fc832b0409d970b0040e75926e6b496b2dd94"
     },
     {
       "path": "packages/elements/src/caret/caret-group.ts",
@@ -1363,7 +1375,7 @@
     },
     {
       "path": "packages/elements/src/composition/builtins.ts",
-      "sha256": "17543eb3f8ebdd38c2e64a43052608668b338e8e5e02a0dd9d31fdc633f91441"
+      "sha256": "3987e16d0f31215b04adfeca5c16171a2844f92ebcce4fb0d8b299c1f487d814"
     },
     {
       "path": "packages/elements/src/composition/command-bar.ts",
@@ -1527,7 +1539,7 @@
     },
     {
       "path": "packages/elements/src/index.ts",
-      "sha256": "7a082a58dccf32e9096ff7a8b30559f0fb700dba2aba7e8fd2fd61a9e8db7694"
+      "sha256": "4f50438be27e5d61604f317fb457c0d3d02551f24233f5b9e3f0d5845f65750b"
     },
     {
       "path": "packages/elements/src/layout/stack.ts",
@@ -1535,11 +1547,11 @@
     },
     {
       "path": "packages/elements/src/list-edit/list-edit.ts",
-      "sha256": "4b0c3b272d6deff5da9b591e13389581e1591732906ca6a35bdad29863ce0ac1"
+      "sha256": "6959f421075991a5911d6b7b23c2b8742150728f8fb48693e0a988bd584fc382"
     },
     {
       "path": "packages/elements/src/listbox/listbox.ts",
-      "sha256": "b7d4161348bae407d6c96755c296b4eef5e768b5aa22c5cc2369f62e262779ae"
+      "sha256": "68e113a96493151fc61693256d70b4e8538488eaaeeb3976e3b3b42fd374501e"
     },
     {
       "path": "packages/elements/src/menu/config.ts",
@@ -1547,7 +1559,7 @@
     },
     {
       "path": "packages/elements/src/menu/menu.ts",
-      "sha256": "1b9d0bc13b8f597df0f2bfd2b6972350b615c9f929e06933c62bf087cf7be983"
+      "sha256": "ed36100839b939b29d5639f801a874cdb0eaff3169adbdd1db6a76fe431aa95c"
     },
     {
       "path": "packages/elements/src/motion.ts",
@@ -1635,15 +1647,15 @@
     },
     {
       "path": "packages/elements/src/styles/base.css",
-      "sha256": "305df14a8da5f569caeed3a565ce68a8b95257a020ab2c0f7b1d44491843df1c"
+      "sha256": "9bc3e0d4468032be621656b811a545bcd6cc092d47b38f02c091cdd252ec2f40"
     },
     {
       "path": "packages/elements/src/styles/contract.ts",
-      "sha256": "451f641ed3ecdd71192422bfc608aa7f182d5ee04eff813b15e1dc18b2678126"
+      "sha256": "407ad24b7032c4251d305d609aa629ed7024f05514a8985ddfae892ee4d34c7a"
     },
     {
       "path": "packages/elements/src/styles/elements.css",
-      "sha256": "70e4ed9a9d9d91e2b21bb0d281bd3d1e50d092302ae7644dc00df6eb9871f28e"
+      "sha256": "0e7d335211dad2a2c11060725bb1b9e4a0e5ff37f4fbc791f892bd6248acaee1"
     },
     {
       "path": "packages/elements/src/styles/fonts.css",
@@ -2243,7 +2255,7 @@
     },
     {
       "path": "scripts/docs/extract.ts",
-      "sha256": "1870eed033791488cd5db58bd93f023c78413d74417a161ed3b703bd87f4ba7c"
+      "sha256": "a1ce2e4c44b1b9185502b76d551dddb65454a645aa5f80d5c0fd073d165d4b04"
     },
     {
       "path": "scripts/lib/aster-ui-mock.ts",
@@ -2618,6 +2630,14 @@
       "sha256": "b7b223be9e23b4d6bb97adb63cf00c852ea6a33266ace1742e8d61591b1a4886"
     },
     {
+      "path": "tests/e2e/list-editor.spec.ts",
+      "sha256": "77c36f0e174899763b21b3d6fffa7ef848e43be42516277ff5cfe48d81ce1be5"
+    },
+    {
+      "path": "tests/e2e/listbox-chrome.spec.ts",
+      "sha256": "342ba52191739eb25e383357d4bd666ad5a0cec9812063fde5050a90e03569c1"
+    },
+    {
       "path": "tests/e2e/markers.spec.ts",
       "sha256": "1140c5de8e189be38bc900a18ab14a56c102251c71f8ada79f09d240a60f71c5"
     },
@@ -2631,7 +2651,7 @@
     },
     {
       "path": "tests/e2e/overlays-nav.spec.ts",
-      "sha256": "1233774357d2b8a81ecdf4589ce88da2b95c828de5a453f0b23ba7c890c49804"
+      "sha256": "6444cc17d3cafacf02a834e8458a95abc4491a10c0c027b878d96628b9053cbd"
     },
     {
       "path": "tests/e2e/overlays.spec.ts",

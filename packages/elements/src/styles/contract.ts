@@ -48,6 +48,7 @@ export const DENSITY_NAMES: readonly string[] = DENSITY.map((t) => `--aster-${t}
 export const COMPONENT_VARS = {
   form: ["label-width"],
   grid: ["header-height", "toolbar-height", "row-min-height", "tree-indent", "summary-height"],
+  listbox: ["selected-fill"],
   menu: ["cell-height", "icon-size"],
   window: ["header-height", "title-size", "control-size", "inset", "body-padding-block", "body-padding-inline"],
   dialog: ["max-width"],

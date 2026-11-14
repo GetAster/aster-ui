@@ -535,6 +535,7 @@ properties.
 | Grid | `--aster-grid-row-min-height` | `auto` | Record cell minimum height; a floor, not a fixed height |
 | Grid | `--aster-grid-tree-indent` | `18px` | Indent per tree level |
 | Grid | `--aster-grid-summary-height` | `auto` | Summary bar minimum height |
+| Listbox | `--aster-listbox-selected-fill` | `var(--aster-accent-soft)` | Background of the selected row |
 | Menu | `--aster-menu-cell-height` | `auto` | Menu item minimum height |
 | Menu | `--aster-menu-icon-size` | `14px` | Menu icon size; the icon cell adds 2px |
 | Window | `--aster-window-header-height` | `calc(var(--aster-ctl) + var(--aster-pad) - 1px)` | Title bar minimum height (windows and sections) |

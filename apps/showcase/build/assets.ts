@@ -45,6 +45,8 @@ export const exampleAssets: Readonly<Record<string, string>> = {
   "conversations.js": "src/examples/conversations/conversations.js",
   "conversations.html": "src/examples/conversations/conversations.html",
   "conversations.css": "src/examples/conversations/conversations.css",
+  "list-editor.js": "src/examples/list-editor/list-editor.js",
+  "list-editor.html": "src/examples/list-editor/list-editor.html",
   "first-grid.js": "src/examples/first-grid/first-grid.js",
   "first-grid.html": "src/examples/first-grid/first-grid.html",
   "examples.js": "src/examples/sandbox/examples.js",

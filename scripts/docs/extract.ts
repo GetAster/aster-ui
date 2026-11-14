@@ -248,7 +248,9 @@ function classMembers(checker: ts.TypeChecker, cls: ts.ClassDeclaration, owner: 
   for (const m of cls.members) {
     if (!m.name || !isPublic(m)) continue;
     const mname = m.name.getText();
-    if (LIFECYCLE.has(mname) || mname.startsWith("_")) continue;
+    // Hooks are methods; a property that merely shares a hook's name is public API.
+    const hook = LIFECYCLE.has(mname) && !(ts.isGetAccessorDeclaration(m) || ts.isSetAccessorDeclaration(m));
+    if (hook || mname.startsWith("_")) continue;
     const ms = checker.getSymbolAtLocation(m.name);
     const common = { name: mname, package: pkg, definingClass: owner, description: docText(checker, ms), source: source(m) };
     const stat = isStatic(m);

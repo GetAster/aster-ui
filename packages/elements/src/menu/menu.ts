@@ -1,3 +1,4 @@
+import type { ReadonlySignal } from "@preact/signals-core";
 import { html, nothing, type TemplateResult } from "lit-html";
 import { AsterElement, define, uid, type View } from "../base/element.ts";
 import { openWhen, placeStyle } from "../overlay/anchor.ts";
@@ -73,6 +74,9 @@ export class Menu extends AsterElement {
     if (typeof v !== "string") throw new TypeError("emptyMessage must be a string");
     this.#emptyMessage.value = v;
   }
+
+  /** Whether the menu is open. Bind it to the opener, such as `button.expanded = menu.opened`. */
+  get opened(): ReadonlySignal<boolean> { return this.#open; }
 
   /** Opens at a point, such as a right-click. */
   openAt(point: { x: number; y: number }, items: readonly MenuItem[], label: string, opener: HTMLElement | null): void {

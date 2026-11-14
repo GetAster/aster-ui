@@ -205,6 +205,8 @@ export const asterComponents = Object.freeze({
     busyLabel: t.optional(t.string),
     confirmLabel: t.optional(t.string),
     busy: bindable(t.boolean),
+    popup: t.optional(literals("menu", "dialog", "listbox")),
+    expanded: t.optional(bindable(t.boolean)),
     variant: literals("secondary", "primary"),
     tone: literals("secondary", "primary", "danger"),
     size: literals("sm", "md", "lg"),
@@ -379,6 +381,7 @@ export const asterComponents = Object.freeze({
     renderRow: checked<Listbox["renderRow"]>("Listbox.renderRow", fn),
     empty: checked<Listbox["empty"]>("Listbox.empty", view),
     label: t.string,
+    chrome: t.object({ caret: t.optional(t.boolean) }),
   }),
   Form: element<Form>()("aster-form", {
     model: t.optional(t.instance(EditModel)),
@@ -404,6 +407,10 @@ export const asterComponents = Object.freeze({
     addLabel: t.string,
     readOnlyReason: t.optional(t.string),
     empty: checked<ListEditor["empty"]>("ListEditor.empty", view),
+    editing: literals("always", "row"),
+    row: t.optional(checked<NonNullable<ListEditor["row"]>>("ListEditor.row", fn)),
+    chrome: t.object({ add: t.optional(t.boolean) }),
+    selection: t.optional(t.instance(Selection)),
   }),
   RuleEditor: element<RuleEditor>()("aster-rule-editor", {
     list: t.optional(t.instance(ListEdit)),

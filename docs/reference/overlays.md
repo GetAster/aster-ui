@@ -196,6 +196,29 @@ Opens the menu against an element, below it and flipping at the viewport's edges
 
 Returns nothing. If a menu is already open it is replaced.
 
+## attr:Menu.opened
+
+A read-only signal of whether the menu is open: `true` from the moment
+[[method:Menu.openAt]] or [[method:Menu.openFrom]] is called until it closes by
+any route (a choice, Escape, a press outside, [[method:Menu.close]]). The menu
+never writes into its opener; the opener follows the signal. Bind it to a
+button's [[attr:Button.expanded]] so a screen reader hears the state.
+
+The signal belongs to the menu, not to an opener. Give each trigger its own
+`aster-menu` when it binds `expanded`; a menu shared by several openers would
+mark them all expanded.
+
+```ts
+import type { Button, Menu } from "@getaster/elements";
+
+const menu = document.querySelector<Menu>("aster-menu")!;
+const add = document.querySelector<Button>("#add")!;
+add.popup = "menu";
+add.expanded = menu.opened;
+add.addEventListener("click", () =>
+  menu.openFrom(add.querySelector("button")!, [{ label: "Text field", run: () => console.log("text") }], "Add field"));
+```
+
 ## method:Menu.close
 
 No parameters. Closes the menu and any open submenus, and returns focus to the
@@ -1310,6 +1333,25 @@ Whether an action is in progress: a boolean, or a signal of one. Default `false`
 While true the button shows `busyLabel`, has `aria-busy`, and swallows clicks.
 Passing a signal keeps the button in step with it without re-setting the
 property. Reactive.
+
+## attr:Button.popup
+
+What the button opens, as `aria-haspopup` on the native button: `"menu"`,
+`"dialog"` or `"listbox"`. Default `undefined`: no attribute. Reactive.
+
+## attr:Button.expanded
+
+Whether what the button opens is showing, as `aria-expanded` on the native
+button: a boolean, or a signal of one such as [[attr:Menu.opened]]. Default
+`undefined`: no attribute, which is right for a button that doesn't open
+anything. Reactive. Set it together with [[attr:Button.popup]].
+
+```ts
+add.popup = "menu";
+add.expanded = menu.opened;
+declare const add: Button;
+declare const menu: Menu;
+```
 
 ## attr:Button.variant
 

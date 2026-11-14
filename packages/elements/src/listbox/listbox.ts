@@ -4,6 +4,12 @@ import { html, nothing } from "lit-html";
 import { AsterElement, define, each, scopeOf, uid, type View } from "../base/element.ts";
 import "../caret/caret-group.ts";
 
+/** The parts of the listbox it draws. Omitted fields keep their defaults. */
+export interface ListboxChrome {
+  /** The bar that slides to the selected row. Default `true`; the selected row's fill remains. */
+  readonly caret?: boolean;
+}
+
 export type RowRenderer = (entity: Entity, key: KeyText) => View;
 
 export interface RowMenuDetail {
@@ -22,6 +28,9 @@ export interface RowMenuDetail {
  *
  * Fires `row-menu` (context menu, Shift+F10 or the Menu key) and `row-open`
  * (Enter, double-click). Keys typed into an editor inside a row are left alone.
+ *
+ * The selected row is marked by a fill, `--aster-listbox-selected-fill`, and
+ * by a caret that slides to it; `chrome.caret = false` keeps only the fill.
  */
 export class Listbox extends AsterElement {
   readonly #collection = this.prop<Collection | undefined>(undefined);
@@ -30,6 +39,7 @@ export class Listbox extends AsterElement {
   readonly #row = this.prop<RowRenderer>(() => nothing);
   readonly #empty = this.prop<View>(nothing);
   readonly #label = this.prop("");
+  readonly #chrome = this.prop<ListboxChrome>({});
   readonly #prefix = uid("aster-row") + "-";
 
   get collection(): Collection | undefined {
@@ -83,6 +93,13 @@ export class Listbox extends AsterElement {
   set label(v: string) {
     this.#label.value = v;
   }
+  /** The parts of the listbox drawn, as [[object:ListboxChrome]]. Default `{}`. */
+  get chrome(): ListboxChrome {
+    return this.#chrome.value;
+  }
+  set chrome(v: ListboxChrome) {
+    this.#chrome.value = { ...(v ?? {}) };
+  }
 
   /** The row element for a key, if it's rendered. */
   rowFor(key: KeyText): HTMLElement | undefined {
@@ -115,7 +132,7 @@ export class Listbox extends AsterElement {
     const keys = rows.map((r) => r.key);
     const empty = collection.count.value === 0;
     const active = selected !== undefined && keys.includes(selected) ? this.#id(selected) : undefined;
-    return html`<aster-caret-group class="aster-listbox" role="listbox" aria-label=${this.#label.value} aria-busy=${collection.status.value === "loading" ? "true" : "false"}
+    return html`<aster-caret-group class="aster-listbox" role="listbox" data-caret=${this.#chrome.value.caret === false ? "off" : nothing} aria-label=${this.#label.value} aria-busy=${collection.status.value === "loading" ? "true" : "false"}
       tabindex=${empty ? -1 : 0} aria-activedescendant=${active ?? nothing}
       @keydown=${(e: KeyboardEvent) => this.#key(e, keys)}
       @click=${(e: MouseEvent) => this.#click(e)}

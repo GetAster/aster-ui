@@ -7,6 +7,35 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.47
+
+List editors in `@getaster/elements` can now read as the host's own layout
+and edit one row at a time, and menu triggers can tell assistive technology
+what they open and whether it is open.
+
+### Added
+
+- **Row-by-row list editing.** `ListEditor.editing = "row"` shows rows as text,
+  or as the host's `ListEditor.row` template, until one is activated by
+  double-click or Enter. Enter keeps that row's changes as a pending draft;
+  Escape puts the row back as it was when editing began, and discards a new
+  row that no Enter has kept. Rows then take focus with ↑ and ↓, drag
+  handles and Alt+↑/↓ still reorder, and an optional `ListEditor.selection`
+  marks one row with the grid's selected fill. The default, `"always"`, is
+  unchanged.
+- **`ListEditor.edit(id)`** starts editing a row and focuses its first
+  control, so a host can add a row with `list.add(...)` from its own menu and
+  open it straight away.
+- **`ListEditor.chrome.add`** set to `false` omits the built-in Add button.
+- **`Button.popup` and `Button.expanded`** render `aria-haspopup` and
+  `aria-expanded` on the native button; `expanded` accepts a signal.
+- **`Menu.opened`**, a read-only signal of whether the menu is open, so
+  `button.expanded = menu.opened` keeps a trigger's state in step. The menu
+  never writes into its opener.
+- **`Listbox.chrome.caret`** set to `false` drops the sliding caret and keeps
+  the selected row's fill, now the `--aster-listbox-selected-fill` component
+  variable.
+
 ## 0.4.42
 
 A window inside its parent in `@getaster/elements` now keeps its distance from

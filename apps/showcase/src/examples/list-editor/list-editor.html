@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>List editor, row by row — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css">
+<link rel="stylesheet" href="../../shared/navigation/showcase.css">
+<style>
+body { height: auto; min-height: 100dvh; padding: 24px; }
+main { max-width: 860px; margin: auto; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 16px; }
+.field-row { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
+.field-row .kind { color: var(--aster-text-3); font-size: 12px; }
+.field-row .description { grid-column: 1 / -1; color: var(--aster-text-2); font-size: 13px; }
+@media (max-width: 480px) { body { padding: 12px; } }
+</style></head><body><main>
+<h1>List editor, row by row</h1>
+<p>Fields read as your own layout. Double-click a row, or press Enter on it, to edit it; Enter keeps the change, Escape puts the row back.</p>
+<div class="bar">
+<aster-button id="add"></aster-button>
+<aster-button id="save"></aster-button>
+<span id="status" role="status"></span>
+</div>
+<aster-list-editor id="fields"></aster-list-editor>
+<aster-menu id="kinds"></aster-menu>
+<script type="module" src="./list-editor.js"></script>
+</main></body></html>

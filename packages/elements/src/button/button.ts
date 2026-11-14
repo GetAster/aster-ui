@@ -3,6 +3,8 @@ import { AsterElement, define, read, type Bindable, type View } from "../base/el
 
 /** A button's visual weight: neutral, accented, or destructive. */
 export type ButtonTone = "secondary" | "primary" | "danger";
+/** What a button opens, as `aria-haspopup`. */
+export type ButtonPopup = "menu" | "dialog" | "listbox";
 /** A button's size on the density scale. */
 export type ButtonSize = "sm" | "md" | "lg";
 
@@ -25,6 +27,8 @@ export class Button extends AsterElement {
   readonly #busyLabel = this.prop<string | undefined>(undefined);
   readonly #confirmLabel = this.prop<string | undefined>(undefined);
   readonly #busy = this.prop<Bindable<boolean>>(false);
+  readonly #popup = this.prop<ButtonPopup | undefined>(undefined);
+  readonly #expanded = this.prop<Bindable<boolean> | undefined>(undefined);
   readonly #confirming = this.prop(false);
   readonly #tone = this.prop<ButtonTone>("secondary");
   readonly #size = this.prop<ButtonSize>("md");
@@ -66,6 +70,21 @@ export class Button extends AsterElement {
   }
   set busy(v: Bindable<boolean>) {
     this.#busy.value = v;
+  }
+  /** What the button opens, rendered as `aria-haspopup`. Default `undefined`: no attribute. */
+  get popup(): ButtonPopup | undefined {
+    return this.#popup.value;
+  }
+  set popup(v: ButtonPopup | undefined) {
+    if (v !== undefined && v !== "menu" && v !== "dialog" && v !== "listbox") throw new TypeError('popup must be "menu", "dialog", "listbox" or undefined');
+    this.#popup.value = v;
+  }
+  /** Whether what the button opens is showing, rendered as `aria-expanded`. Bind a signal such as `menu.opened`. Default `undefined`: no attribute. */
+  get expanded(): Bindable<boolean> | undefined {
+    return this.#expanded.value;
+  }
+  set expanded(v: Bindable<boolean> | undefined) {
+    this.#expanded.value = v;
   }
   /** Sugar for `tone`: `"primary"` or `"secondary"`. A `"danger"` tone reads back as secondary. */
   get variant(): "secondary" | "primary" {
@@ -143,11 +162,13 @@ export class Button extends AsterElement {
     const disabled = this.#disabled.value;
     const icon = this.#icon.value;
     const iconOnly = !this.#labelled.value && icon !== nothing;
+    const expanded = this.#expanded.value === undefined ? undefined : read(this.#expanded.value);
     const name = iconOnly ? labels[showing] : undefined;
     return html`<button class="aster-button" type=${this.#type.value} data-tone=${this.#tone.value}
       data-variant=${this.#tone.value === "primary" ? "primary" : "secondary"} data-size=${this.#size.value}
       ?data-icon-only=${iconOnly} ?disabled=${disabled}
       aria-busy=${busy ? "true" : "false"} aria-disabled=${reason && !disabled ? "true" : nothing}
+      aria-haspopup=${this.#popup.value ?? nothing} aria-expanded=${expanded === undefined ? nothing : expanded ? "true" : "false"}
       aria-label=${name || nothing} title=${reason ?? (name || nothing)}>
       ${icon}
       ${iconOnly ? nothing : html`<span class="aster-label-swap">

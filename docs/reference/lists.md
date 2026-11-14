@@ -203,6 +203,36 @@ Reactive.
 The listbox's accessible name, as `aria-label`. Always set it: there is no
 visible label to fall back on. Default `""`. Reactive.
 
+## attr:Listbox.chrome
+
+The parts of the listbox it draws, as [[object:ListboxChrome]]. Default `{}`: every
+part. Reactive: assign a new object; the stored object is a copy. The YAML
+composition catalog accepts the same shape: `chrome: { caret: false }`.
+
+## object:ListboxChrome
+
+| Field | Default | Effect |
+|---|---|---|
+| `caret` | `true` | Draw the bar that slides to the selected row. Without it the selected row is marked by its fill alone, and in forced colours by a system-colour outline. |
+
+The selected row's fill is the component variable `--aster-listbox-selected-fill`
+(default `var(--aster-accent-soft)`; see [[constant:COMPONENT_VARS]]). Set it on a
+placement to restyle the fill, for example when the caret is off and the fill
+carries the whole mark:
+
+```css
+#fields-list {
+  --aster-listbox-selected-fill: color-mix(in oklch, var(--aster-accent-soft), var(--aster-surface));
+}
+```
+
+```ts
+import type { Listbox } from "@getaster/elements";
+
+list.chrome = { caret: false };
+declare const list: Listbox;
+```
+
 ## method:Listbox.rowFor
 
 - `key`: the row's key text.
@@ -330,6 +360,25 @@ are no handles.
 
 An added row gets focus: its first input or select.
 
+**Editing a row at a time.** With [[attr:ListEditor.editing]] set to `"row"`, rows
+read as text, or as your own layout through [[attr:ListEditor.row]], until one is
+activated: a double-click on the row, Enter on the focused row, or
+[[method:ListEditor.edit]]. Only that row shows its controls; activating another
+row keeps the first one's changes and moves on. Enter keeps the row's changes as
+pending draft, never saved until you call [[method:ListEdit.save]], and leaves
+other rows' pending changes alone. Shift+Enter in a multi-line field stays a new
+line, and a control that handles Enter or Escape itself, such as an open picker,
+keeps it. Escape puts the row back as it was when editing began; a new row that no Enter has kept yet is discarded, and one an Enter has kept stays. Rows have a tab stop
+each way: the focused row is the one tab stop, and Up, Down, Home and End move
+between rows.
+
+In `"row"` mode the table's role becomes `grid` and the cells `gridcell`: rows
+that take focus, can be selected and are activated by keyboard are what a grid
+is, and a `table` allows none of that. With a [[attr:ListEditor.selection]], each
+row says `aria-selected`. Starting and ending an edit are said in the same polite
+live region as moves. In `"always"` mode nothing changes: a `table` of always
+editable rows.
+
 ```ts
 import type { ListEditor } from "@getaster/elements";
 
@@ -360,8 +409,77 @@ The table's accessible name (`aria-label`). Default `""`. Reactive.
 
 The text of the Add button. Default `"Add"`. Pressing it calls
 [[method:ListEdit.add]] with no values, so the new row starts from the list's
-`defaults` (see [[object:ListEditOptions]]), and focuses its first input. Reactive.
-Not shown while `readOnlyReason` is set, even to an empty string.
+`defaults` (see [[object:ListEditOptions]]), and focuses its first input (in
+`"row"` mode, starts editing it). Reactive. Not shown while `readOnlyReason` is
+set, even to an empty string, or when [[object:ListEditorChrome]] `add` is `false`.
+
+## attr:ListEditor.editing
+
+`"always"` (the default) or `"row"`. Always shows every row's controls, as the
+element always has. Row shows them on the one row being edited, and every other
+row as text or [[attr:ListEditor.row]]. Reactive.
+
+## attr:ListEditor.row
+
+`((row: ListRow) => View) | undefined`. In `"row"` mode, draws a row that isn't
+being edited, in place of its column values, so a list can read in the host's own
+layout. The view fills the width of the columns; the handle and the actions stay
+in their columns. With it set there is no header row, since the columns no longer
+line up with it. Default `undefined`: the values as text. Ignored in `"always"`
+mode. Signals read while it runs keep the row up to date. Reactive.
+
+```ts
+import { html } from "lit-html";
+import type { ListEditor } from "@getaster/elements";
+
+editor.editing = "row";
+editor.columns = [{ field: "name", width: "12rem" }, { field: "kind", width: "9rem" }, { field: "description" }];
+editor.row = (row) => html`<strong>${String(row.edit.values.value.name ?? "")}</strong>
+  <em>${String(row.edit.values.value.kind ?? "")}</em>
+  <span>${String(row.edit.values.value.description ?? "")}</span>`;
+editor.chrome = { add: false };
+declare const editor: ListEditor;
+```
+
+## method:ListEditor.edit
+
+- `id`: a row's [[attr:ListRow.id]].
+
+Starts editing that row and focuses its first control once it has rendered; in
+`"always"` mode, where every row is already editable, it only focuses. A row you
+added with [[method:ListEdit.add]] works the same: pass it the new row's `id`.
+Another row being edited keeps its changes first. Does nothing for an id that
+isn't a row, a row marked for removal, or while the editor is read-only. Returns
+nothing.
+
+```ts
+const row = list.add({ name: "" });
+editor.edit(row.id);
+declare const list: ListEdit;
+declare const editor: ListEditor;
+```
+
+## attr:ListEditor.chrome
+
+The parts of the editor it draws, as [[object:ListEditorChrome]]. Default `{}`.
+Reactive: assign a new object; the stored object is a copy. The YAML composition
+catalog accepts the same shape: `chrome: { add: false }`.
+
+## object:ListEditorChrome
+
+| Field | Default | Effect |
+|---|---|---|
+| `add` | `true` | Draw the Add button. Without it, rows are added from outside with [[method:ListEdit.add]]. |
+
+## attr:ListEditor.selection
+
+An optional single [[class:Selection]] over the list's collection. In `"row"` mode
+the selected row draws a full-width fill from the same theme tokens the grid uses
+for a selected row, and has `aria-selected="true"`. A click or Space on a row, or
+Up, Down, Home and End, select it. The selection follows the row's key, so it
+survives edits and moves. A new row isn't in the collection yet: it takes focus
+but can't be selected until it's saved. Default `undefined`: no row is marked. Not
+used in `"always"` mode. Reactive.
 
 ## attr:ListEditor.readOnlyReason
 

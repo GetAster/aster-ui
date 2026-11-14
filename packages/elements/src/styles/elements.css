@@ -241,8 +241,13 @@
   .aster-listbox:focus-visible { outline: none; }
   .aster-option { position: relative; transition: background var(--aster-t-micro); }
   .aster-option:hover { background: oklch(from var(--aster-text) l c h / .025); }
-  .aster-option[aria-selected="true"] { background: var(--aster-accent-soft); }
+  .aster-listbox .aster-option[aria-selected="true"] { background: var(--aster-listbox-selected-fill); }
   .aster-listbox:focus-visible .aster-option[aria-selected="true"] { outline: 2px solid var(--aster-focus); outline-offset: -2px; }
+  aster-caret-group[data-caret="off"] > .aster-caret { display: none; }
+  /* Forced colours replace the fill; without the caret the selected row keeps a system-colour outline. */
+  @media (forced-colors: active) {
+    .aster-listbox[data-caret="off"] .aster-option[aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+  }
   .aster-flash { animation: aster-flash 1.2s var(--aster-ease); }
   @keyframes aster-flash { 0%, 30% { background: oklch(from var(--aster-accent) l c h / .2); } }
 
@@ -742,6 +747,16 @@
   }
   .aster-list-edit-row[data-lifted] .aster-list-edit-handle { color: var(--aster-accent); background: var(--aster-accent-soft); }
   .aster-list-edit-drop { position: absolute; left: 0; right: 0; top: calc(var(--at) * 1px - 1px); height: 2px; background: var(--aster-accent); pointer-events: none; }
+  /* Rows mode: rows take focus and can be selected. The edge is transparent so forced colours can draw the selection there. */
+  .aster-list-edit[data-rows] .aster-list-edit-row { padding-inline: 4px 8px; border-inline-start: 4px solid transparent; }
+  .aster-list-edit-read { display: block; min-width: 0; padding: var(--aster-row-y) 0; overflow-wrap: anywhere; }
+  .aster-list-edit-row[data-removing] .aster-list-edit-read { text-decoration: line-through; color: var(--aster-text-3); }
+  .aster-list-edit[data-rows] .aster-list-edit-row[data-id]:hover { background: oklch(from var(--aster-text) l c h / .025); }
+  .aster-list-edit[data-rows] .aster-list-edit-row[aria-selected="true"] { background: color-mix(in oklch, var(--aster-accent-soft), var(--aster-surface)); }
+  .aster-list-edit[data-rows] .aster-list-edit-row[data-id]:focus-visible { outline: 2px solid var(--aster-focus); outline-offset: -2px; }
+  @media (forced-colors: active) {
+    .aster-list-edit[data-rows] .aster-list-edit-row[aria-selected="true"] { border-inline-start-color: Highlight; }
+  }
 
   /* ── rule editor ── */
   aster-filter-builder { display: block; min-width: 0; container: aster-filter / inline-size; }

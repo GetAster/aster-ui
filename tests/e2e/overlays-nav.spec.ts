@@ -355,6 +355,54 @@ test("menu icons, shortcuts, submenu direction, autoDismiss and emptyMessage", a
   await expect(page.locator("#probe-menu .aster-menu-empty")).toHaveCount(0);
 });
 
+test("a button's popup and expanded render aria attributes, and a menu's opened signal drives expanded", async ({ page }) => {
+  await mount(page);
+  await page.evaluate(async () => {
+    const lib = await import("/lib/aster-ui.js" as string);
+    const button = document.createElement("aster-button") as HTMLElement & Record<string, any>;
+    button.id = "popup-button";
+    button.label = "Actions";
+    const bare = document.createElement("aster-button") as HTMLElement & Record<string, any>;
+    bare.id = "bare-button";
+    bare.label = "Plain";
+    const menu = document.createElement("aster-menu") as HTMLElement & Record<string, any>;
+    menu.id = "popup-menu";
+    document.body.append(button, bare, menu);
+    button.popup = "menu";
+    button.expanded = menu.opened;
+    button.addEventListener("click", () => menu.openFrom(button.querySelector("button")!, [{ label: "Open", run() {} }], "Actions"));
+    (window as any).popupLib = lib;
+  });
+  const native = page.locator("#popup-button button");
+  await expect(page.locator("#bare-button button")).not.toHaveAttribute("aria-haspopup", /.*/);
+  await expect(page.locator("#bare-button button")).not.toHaveAttribute("aria-expanded", /.*/);
+  await expect(native).toHaveAttribute("aria-haspopup", "menu");
+  await expect(native).toHaveAttribute("aria-expanded", "false");
+  await native.click();
+  await expect(page.getByRole("menu", { name: "Actions" })).toBeVisible();
+  await expect(native).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(native).toHaveAttribute("aria-expanded", "false");
+  await expect(native).toBeFocused();
+  // A plain boolean works too, and clearing both removes the attributes.
+  await page.evaluate(() => {
+    const button = document.getElementById("popup-button") as HTMLElement & Record<string, any>;
+    button.popup = "dialog";
+    button.expanded = true;
+  });
+  await expect(native).toHaveAttribute("aria-haspopup", "dialog");
+  await expect(native).toHaveAttribute("aria-expanded", "true");
+  await page.evaluate(() => {
+    const button = document.getElementById("popup-button") as HTMLElement & Record<string, any>;
+    button.popup = undefined;
+    button.expanded = undefined;
+  });
+  await expect(native).not.toHaveAttribute("aria-haspopup", /.*/);
+  await expect(native).not.toHaveAttribute("aria-expanded", /.*/);
+  expect(await page.evaluate(() => { try { (document.getElementById("popup-button") as any).popup = "tree"; return "accepted"; } catch (e) { return (e as Error).name; } })).toBe("TypeError");
+});
+
 test("section and accordion close, collapse-all and reorder policies", async ({ page }) => {
   await mount(page);
   await page.evaluate(() => {
@@ -517,6 +565,7 @@ test("the composition validator accepts the overlay data forms and rejects bad v
           dismissOnEscape: false, dismissOnBackdrop: false, initialFocus: "dialog",
         }),
         diagnostics("Menu", { showIcons: false, showShortcuts: false, submenuDirection: "start", autoDismiss: false, emptyMessage: "Nothing here" }),
+        diagnostics("Button", { label: "Add", popup: "menu", expanded: true }),
         diagnostics("Accordion", { visibilityMode: "multiple", canClose: true, canReorder: true, canCollapseAll: true, multiple: false }),
         diagnostics("Section", { canClose: false, chrome: { close: true } }),
         diagnostics("TreeNavigator", { search: true }),
@@ -531,6 +580,8 @@ test("the composition validator accepts the overlay data forms and rejects bad v
         diagnostics("Dialog", { modal: "yes" }),
         diagnostics("Dialog", { initialFocus: "second" }),
         diagnostics("Dialog", { header: "yes" }),
+        diagnostics("Button", { popup: "tree" }),
+        diagnostics("Button", { expanded: "yes" }),
         diagnostics("Menu", { submenuDirection: "up" }),
         diagnostics("Menu", { emptyMessage: 42 }),
         diagnostics("Accordion", { visibilityMode: "single" }),

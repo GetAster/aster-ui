@@ -20,6 +20,7 @@
     --aster-grid-row-min-height: auto;
     --aster-grid-tree-indent: 18px;
     --aster-grid-summary-height: auto;
+    --aster-listbox-selected-fill: var(--aster-accent-soft);
     --aster-menu-cell-height: auto;
     --aster-menu-icon-size: 14px;
     --aster-window-header-height: calc(var(--aster-ctl) + var(--aster-pad) - 1px);
