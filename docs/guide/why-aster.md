@@ -40,11 +40,11 @@ Aster puts records, queries, selection and edits in a shared data layer. Its con
 | Reporting | Exact summaries and export operate on the query, including unloaded records. |
 | Interaction | Controls provide keyboard behaviour, focus handling, themes and reduced-motion support. |
 
-These guarantees apply to changes the context learns about through requests,
-refreshes or notifications supplied by the application. Receiving another
-client’s writes also requires a service notification or refresh mechanism.
-Production realtime integration is pending the server contract; the agreed
-transport direction is WebTransport with SSE fallback. See
+These guarantees cover every change the context learns about: its own saves,
+refreshes, and other users' changes that the application reports with
+`ctx.reload(set, key, "external")`, for example from a server event. An open
+edit takes in such a change where it touches nothing the user edited, and
+reports a conflict where it does. See
 [service and realtime boundaries](data-model.md#service-and-realtime-boundaries).
 
 The benefit is a consistent foundation for these interactions. Your application still decides its workflows, permissions, server policy and presentation.

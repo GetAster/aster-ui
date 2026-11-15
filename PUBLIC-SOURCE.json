@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "c81a329be1379ebdd494f4341ba5bb2bc61e61b8a3bdf4983e54197701cb3aa7"
+      "sha256": "fe104ef5b40ac5b1e9289404a366cbd505cb6d17e5161fb26105d55bfc5c1110"
     },
     {
       "path": "CHANGELOG.md",
@@ -683,7 +683,7 @@
     },
     {
       "path": "docs/guide/data-model.md",
-      "sha256": "baabde87e0d129402011a9696ba6b98d2e8f6db3a02e2e6ac8645f86fc938366"
+      "sha256": "2f55d6cfff3dc1e4beaedca000aa3e472764205aa9c4ad931e46a7e96feb10c3"
     },
     {
       "path": "docs/guide/data.md",
@@ -699,7 +699,7 @@
     },
     {
       "path": "docs/guide/evaluating-aster-ui.md",
-      "sha256": "101637ce3e677e29c1fd4f6286fc7902f93e46e3edd9bea599f51c0a212da40f"
+      "sha256": "1571fdbda59dc0a30435256f35e6e82b622df8fb71f6d04a32505ada5eaa092f"
     },
     {
       "path": "docs/guide/fields-and-layouts.md",
@@ -751,7 +751,7 @@
     },
     {
       "path": "docs/guide/why-aster.md",
-      "sha256": "3eddb7c878dcef7ba98dcf9ccea8983935374bc380c03fcf7d9197f391717ac8"
+      "sha256": "bb32916c3b714c3e69ab9ae244e3c2684b962ab64c519116492ee6cff4d50368"
     },
     {
       "path": "docs/guide/workspace-patterns.md",

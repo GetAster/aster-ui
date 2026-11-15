@@ -191,15 +191,14 @@ keys in custom templates, and let signals update the affected values. See
 
 ## Service and realtime boundaries
 
-The connected views in this guide synchronize changes known to their shared
-context. Learning about writes made by another client also requires a service
-notification or refresh mechanism.
-
-The current remote demo adapter does not subscribe to a production realtime
-channel. The agreed transport direction is WebTransport with SSE fallback;
-client integration awaits the server event and reconnect contract. Examples that
-simulate another user's change are demonstrations, not a deployed realtime
-service. Authentication is similarly application-configured; see
+The connected views in this guide synchronize every change known to their
+shared context. When another user changes a record, the application reports it
+with `ctx.reload(set, key, "external")`, typically from a server event or a
+periodic refresh. The context reads the record again, every view showing it
+updates, a collection drops it if it no longer matches the filter, and an open
+edit either takes in the change or reports a conflict on the fields the user
+edited. The examples' "another user" controls drive this same path.
+Authentication is application-configured; see
 [authentication and session recovery](authentication.md).
 
 For detailed APIs use [DataContext](../reference/#class:DataContext),
