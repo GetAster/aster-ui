@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "38c62c0e8256ed8bcb1b23a308d84d8271d6d77121b6e739a993139ee42fa950"
+      "sha256": "c81a329be1379ebdd494f4341ba5bb2bc61e61b8a3bdf4983e54197701cb3aa7"
     },
     {
       "path": "CHANGELOG.md",
@@ -51,7 +51,7 @@
     },
     {
       "path": "apps/docs/build/agent-docs.ts",
-      "sha256": "2f8f756b0c47c97829b88e33fbfa94e0007fc7db00ed24819c1d7171cfecccf3"
+      "sha256": "5595ca329daa4a59057d3f2653cc6b07954cf369fb654e579f0452b3d709702c"
     },
     {
       "path": "apps/docs/build/examples.ts",
