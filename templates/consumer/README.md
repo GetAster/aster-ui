@@ -95,12 +95,10 @@ version and pin each other exactly; keep them at the same version. The template
 leaves out the experimental `@getaster/elements-preview`; add it at the same
 version when you need it.
 
-A dependency cooldown (in your package manager or a guard such as PMG) can hide
-a new release for several days: installs resolve the previous version and
-`npm view` does not list the new one. Exempt the `@getaster` packages from the
-cooldown while keeping malware checks, or install each package's tarball URL,
-`https://registry.npmjs.org/@getaster/<name>/-/<name>-<version>.tgz`, e.g.
-`bun add https://registry.npmjs.org/@getaster/elements-preview/-/elements-preview-0.4.0.tgz`.
+A dependency cooldown (in your package manager or a guard such as PMG) delays
+new versions for several days, so installs resolve the previous release for a
+while. That is the policy doing its job: use the release it allows, or ask
+whoever owns the policy whether an exception is warranted.
 
 ## License
 

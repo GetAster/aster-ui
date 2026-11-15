@@ -64,6 +64,7 @@ test("release staging only copies public areas and records the supplied public r
     expect(existsSync(join(output, "docs/guide/index.html"))).toBe(true);
     const receipt = JSON.parse(readFileSync(join(output, "deployment.json"), "utf8"));
     expect(receipt.revision).toBe(revision);
+    expect(receipt.packageRevision).toBe(revision);
     expect(receipt.files["docs/guide/index.html"]).toMatch(/^[a-f0-9]{64}$/);
     expect(() => stageProductSite(source, output, "1.0.0", revision)).toThrow("empty");
   } finally { rmSync(root, { recursive: true, force: true }); }

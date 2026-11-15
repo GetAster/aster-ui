@@ -14,10 +14,11 @@ be a better fit for your application.
 ## Where Aster is strong
 
 - **Applications integrating existing systems.** With Aster WebData on the server,
-  register backend handlers as virtual data sources. WebData automatically
-  publishes their declared schema and exposes their records through OData;
-  handlers supply the REST, CLI or legacy-service calls. Server handlers can read
-  and write other data sources through the engine, while UI views consume a common typed contract.
+  write short Python or TypeScript scripts as virtual data sources. WebData
+  publishes their declared schema and exposes their records through OData; the
+  scripts make the REST or legacy-service calls on configured connections. They
+  can read and write other sets through `db`, while UI views consume a common
+  typed contract.
   This is valuable when the application must work across systems, not just
   display a single database table.
 - **Connected editing workflows.** A grid, form, detail panel and chart can share
@@ -48,7 +49,7 @@ need to speak OData.
 Use [Aster WebData](https://getaster.now/products/aster-webdata/) for server setup.
 See [the SQL and API walkthrough](integrate-sql-and-apis.md) for a concrete source
 definition, the request flow and the UI binding. Evaluate the backend-specific
-handler work and deployment alongside the UI features.
+script work and deployment alongside the UI features.
 
 ## When another approach may be better
 
@@ -56,9 +57,8 @@ handler work and deployment alongside the UI features.
 |---|---|
 | A small, mostly read-only list or content website | Native HTML and a small amount of application code. Aster's data and ownership concepts may add little value. |
 | An established application already coordinates records, queries and drafts well | Components or a headless grid that fit its existing state model. Adopting a second data foundation can cost more than it saves. |
-| A browser-only application with no server integration layer | A client that consumes the existing APIs directly. Aster's SQL/API integration path uses the companion WebData server and its virtual-source handlers. |
+| A browser-only application with no server integration layer | A client that consumes the existing APIs directly. Aster's SQL/API integration path uses the companion WebData server and its virtual-source scripts. |
 | Specialist scheduling, charting or rich editing is the main requirement | A specialist component, evaluated on its own requirements. Aster can host third-party components, but an integration adapter does not supply the vendor runtime or all its features. |
-| A requirement for established API stability or extensive production evidence | A mature alternative with evidence that meets that requirement. Aster is currently a pre-1.0 project. |
 
 No one needs to replace a working stack merely to use declarative layouts or a
 data grid. Compare the coordination work Aster removes with the concepts and

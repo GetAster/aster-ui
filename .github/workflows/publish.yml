@@ -15,6 +15,10 @@ on:
         description: 'Deploy the checked website after npm publication'
         default: true
         type: boolean
+      site_only:
+        description: 'Website only: run on a release/* branch from the released commit; no npm publication'
+        default: false
+        type: boolean
 permissions:
   contents: read
 concurrency:
@@ -22,15 +26,19 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    if: github.repository == 'GetAster/aster-ui' && github.ref == 'refs/heads/main'
+    # A package release runs from main. A website-only run comes from a release/*
+    # branch whose package sources match the released commit (scripts/site-only.ts).
+    if: github.repository == 'GetAster/aster-ui' && ((!inputs.site_only && github.ref == 'refs/heads/main') || (inputs.site_only && startsWith(github.ref, 'refs/heads/release/')))
     runs-on: ubuntu-latest
     timeout-minutes: 25
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version.outputs.version || steps.site-only.outputs.version }}
+      package_revision: ${{ steps.site-only.outputs.package_revision || github.sha }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.3
@@ -39,10 +47,15 @@ jobs:
           node-version: '24'
           package-manager-cache: false
       - name: Derive release version
+        if: '!inputs.site_only'
         id: version
         run: node scripts/version.ts --channel "$RELEASE_CHANNEL" --build "$GITHUB_RUN_NUMBER" | sed 's/^/version=/' >> "$GITHUB_OUTPUT"
         env:
           RELEASE_CHANNEL: ${{ inputs.channel }}
+      - name: Check the website-only branch against the released packages
+        if: inputs.site_only
+        id: site-only
+        run: bun scripts/site-only.ts >> "$GITHUB_OUTPUT"
       - run: bash scripts/scan-dependencies.sh
       - name: Retain dependency scan and SBOM
         if: always()
@@ -60,15 +73,19 @@ jobs:
       - name: Check versioning and publication paths
         run: bun test ./packages/docs ./tests/integration/version.test.ts ./tests/integration/agent-docs.test.ts ./tests/integration/product-site.test.ts
       - name: Build release tarballs
+        if: '!inputs.site_only'
         run: bun run packages:build --version "$RELEASE_VERSION"
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
-      - run: bun scripts/check-package-consumer.ts
-      - run: bun scripts/check-template-consumer.ts
+      - if: '!inputs.site_only'
+        run: bun scripts/check-package-consumer.ts
+      - if: '!inputs.site_only'
+        run: bun scripts/check-template-consumer.ts
       - name: Build the matching release website
-        run: bun run site:release --version "$RELEASE_VERSION" --revision "$GITHUB_SHA"
+        run: bun run site:release --version "$RELEASE_VERSION" --revision "$GITHUB_SHA" --package-revision "$PACKAGE_REVISION"
         env:
-          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version || steps.site-only.outputs.version }}
+          PACKAGE_REVISION: ${{ steps.site-only.outputs.package_revision || github.sha }}
       - name: Upload checked website
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -77,6 +94,7 @@ jobs:
           retention-days: 7
           if-no-files-found: error
       - name: Upload checked packages
+        if: '!inputs.site_only'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: npm-release
@@ -85,6 +103,7 @@ jobs:
           if-no-files-found: error
   publish:
     needs: build
+    if: '!inputs.site_only'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: npm
@@ -117,7 +136,8 @@ jobs:
 
   deploy-site:
     needs: [build, publish]
-    if: ${{ !inputs.dry_run && inputs.deploy_site }}
+    # A website-only run skips publish; a package release deploys only after it succeeds.
+    if: ${{ !cancelled() && needs.build.result == 'success' && (needs.publish.result == 'success' || (inputs.site_only && needs.publish.result == 'skipped')) && !inputs.dry_run && inputs.deploy_site }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: ui-site
@@ -138,9 +158,10 @@ jobs:
           name: ui-site
           path: dist-site/
       - name: Check release identity
-        run: node --input-type=module -e 'import fs from "node:fs"; const r = JSON.parse(fs.readFileSync("dist-site/deployment.json")); if (r.version !== process.env.RELEASE_VERSION || r.revision !== process.env.GITHUB_SHA) throw new Error("Site release identity mismatch")'
+        run: node --input-type=module -e 'import fs from "node:fs"; const r = JSON.parse(fs.readFileSync("dist-site/deployment.json")); if (r.version !== process.env.RELEASE_VERSION || r.revision !== process.env.GITHUB_SHA || r.packageRevision !== process.env.PACKAGE_REVISION) throw new Error("Site release identity mismatch")'
         env:
           RELEASE_VERSION: ${{ needs.build.outputs.version }}
+          PACKAGE_REVISION: ${{ needs.build.outputs.package_revision }}
       - run: npm ci --prefix scripts/cloudflare --ignore-scripts --no-audit --no-fund
       - run: node scripts/prepare-cloudflare.mjs
       - run: scripts/cloudflare/node_modules/.bin/cf deploy --prebuilt --dry-run

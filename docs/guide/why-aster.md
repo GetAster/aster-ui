@@ -51,19 +51,19 @@ The benefit is a consistent foundation for these interactions. Your application 
 
 ## Build applications across existing systems
 
-[Aster WebData](https://getaster.now/products/aster-webdata/) provides the
-virtual-data-source interface for backend code.
-Declare the source schema and register its handler; the server publishes the
-metadata and exposes its records through OData. A Rust handler can call a REST
-API, invoke a CLI or use a legacy service through its own integration code. Handlers can read and
-write other data sources through the engine, so a workflow can coordinate data
-from several systems behind a common service contract.
+[Aster WebData](https://getaster.now/products/aster-webdata/) serves database
+tables and virtual data sources through one OData service. A virtual source is a
+short Python or TypeScript script that returns rows: it can call a REST API or a
+legacy service's HTTP interface on a configured connection, and read and write
+other sets through `db`. Declare its fields beside it; the server publishes the
+metadata, checks the rows and handles the query, so a workflow can coordinate
+data from several systems behind a common service contract.
 
 For a device portal, that could mean database inventory, live status from a
-management API and a legacy administrative tool in one workspace. Aster UI uses
+management API and records from a legacy service in one workspace. Aster UI uses
 the resulting metadata and shared data model for its grids, forms and queries.
-WebData owns the common service layer; your handler owns backend-specific I/O,
-and the UI owns the connected views.
+WebData owns the common service layer; your script owns the calls to each
+backend, and the UI owns the connected views.
 
 This is a strong reason to consider the wider platform for data integration
 projects. Cross-source workflows still need explicit failure handling: they do
@@ -77,7 +77,7 @@ For a small, read-only list with a few links, native HTML and a little applicati
 
 It becomes more useful when several views share editable data, results are paged, or the screen needs the enterprise interactions above. Evaluate it against those requirements and the cost of maintaining their combinations.
 
-Aster UI consumes the OData metadata and requests that WebData provides for SQL and virtual sources. You implement the backend handler against the supplied virtual-source interface; WebData handles its service exposure. Third-party visualizations can use Aster’s public data and component-host APIs, but integration still needs an explicit owner and lifecycle.
+Aster UI consumes the OData metadata and requests that WebData provides for SQL and virtual sources. You write the virtual-source scripts; WebData handles their service exposure. Third-party visualizations can use Aster’s public data and component-host APIs, but integration still needs an explicit owner and lifecycle.
 
 ## See the model at work
 

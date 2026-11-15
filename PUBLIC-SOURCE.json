@@ -11,7 +11,7 @@
     },
     {
       "path": ".github/workflows/publish.yml",
-      "sha256": "83f47a6e5c506aaeef04e1472bf612882c35a48bc82e06a0778a27d1a8ba451d"
+      "sha256": "f3e879db637139daa1ad7f65241aa1215dc0574017c29fe6fdad2cb228b8882d"
     },
     {
       "path": ".gitignore",
@@ -23,7 +23,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "20b7863224b7cb6edbc009c2ef30a14a585fca79b285595a11f066bbd8b54bc6"
+      "sha256": "38c62c0e8256ed8bcb1b23a308d84d8271d6d77121b6e739a993139ee42fa950"
     },
     {
       "path": "CHANGELOG.md",
@@ -39,7 +39,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "b68525b17c47672b57c3ec2b1b49601cdf0808740acd6c76e6588d84443d2e64"
+      "sha256": "1258833c4fa4aaa92f0d093953c62b267b7967dccb0f75032564ec9c93ff5801"
     },
     {
       "path": "VERSION",
@@ -51,7 +51,7 @@
     },
     {
       "path": "apps/docs/build/agent-docs.ts",
-      "sha256": "9f0f8d18c27bcd67c479c7f0870ccd18bc1ce846e00eabc5610ad6a6648271ee"
+      "sha256": "2f8f756b0c47c97829b88e33fbfa94e0007fc7db00ed24819c1d7171cfecccf3"
     },
     {
       "path": "apps/docs/build/examples.ts",
@@ -79,7 +79,7 @@
     },
     {
       "path": "apps/docs/src/app/docs.ts",
-      "sha256": "12a40a008f274ce0b4b1d988e92b2f6453dca2039638f67b0833d027e5cde735"
+      "sha256": "2b18e74ceab91caf4bf4ccd41f5c9fc3af7663f750dbefa207356e6657a45d81"
     },
     {
       "path": "apps/docs/src/app/main.ts",
@@ -131,7 +131,7 @@
     },
     {
       "path": "apps/docs/src/styles/docs.css",
-      "sha256": "4fa2fd12dacce1ce2473c231200c386001809374360c4fbaea6da53649420c30"
+      "sha256": "4138a8ac24fae27d37d9d3b503b6f4e39f1bfdd29bf0363b206b4ab3e9ffc2d5"
     },
     {
       "path": "apps/docs/src/styles/fonts.css",
@@ -143,7 +143,7 @@
     },
     {
       "path": "apps/docs/src/templates/product.ts",
-      "sha256": "b638ac43c6d19720d4009a179b6661529b4001ce7dedba8715a059e760404cc1"
+      "sha256": "1be473becac1e11e43fb49f25c09cf4d569283502416564563da1b8b670721e3"
     },
     {
       "path": "apps/docs/src/templates/shell.ts",
@@ -619,11 +619,11 @@
     },
     {
       "path": "docs/diagrams/integration-map-narrow.svg",
-      "sha256": "a24c13c7d14b19c591a469ca8fefec76d86022559b1dca108fbd5387102161ae"
+      "sha256": "29979d71b63efe312584e56f3ae60d94666b37df266da07c8ffaafded46d91d1"
     },
     {
       "path": "docs/diagrams/integration-map.svg",
-      "sha256": "ca72c490c59f3e42d59b42a569da03e2151370046d0c1c3a11bad7c205c1aef0"
+      "sha256": "965772aa81574a719bc8657d96f5c06645bcbee96c101fe24ae2e8b85b62f332"
     },
     {
       "path": "docs/diagrams/retained-view-lifecycle-narrow.svg",
@@ -683,7 +683,7 @@
     },
     {
       "path": "docs/guide/data-model.md",
-      "sha256": "2d4ca07fda526e6d0db552c8172f4a7303a373e287d8ee4bd53d67ea65047c52"
+      "sha256": "baabde87e0d129402011a9696ba6b98d2e8f6db3a02e2e6ac8645f86fc938366"
     },
     {
       "path": "docs/guide/data.md",
@@ -699,7 +699,7 @@
     },
     {
       "path": "docs/guide/evaluating-aster-ui.md",
-      "sha256": "9ed4ecd4e7073977aefc53942dab263f38421476faffbcf06f8148f78e4716a5"
+      "sha256": "101637ce3e677e29c1fd4f6286fc7902f93e46e3edd9bea599f51c0a212da40f"
     },
     {
       "path": "docs/guide/fields-and-layouts.md",
@@ -719,7 +719,7 @@
     },
     {
       "path": "docs/guide/integrate-sql-and-apis.md",
-      "sha256": "ca20378cac38001dbaec5d3fcda1c31c1dafc5de3197babff551bf945fb620d2"
+      "sha256": "5c7ce8f6ab78ec2efe278e958c5343674e9f8964e4d2e98db179cc077c7d9c4d"
     },
     {
       "path": "docs/guide/keyed-sessions.md",
@@ -727,7 +727,7 @@
     },
     {
       "path": "docs/guide/library.md",
-      "sha256": "a794632c804e69ca61580a5a1a1ede342d98bcd2859f174be14702cc35e5f4b2"
+      "sha256": "9b0a644738652b8d254867c7b0cfae2bf8b63fe22c6451ea4cfdc78711ef8146"
     },
     {
       "path": "docs/guide/managed-workspace.md",
@@ -751,7 +751,7 @@
     },
     {
       "path": "docs/guide/why-aster.md",
-      "sha256": "108de097ab83d7d390cd248c9dc5023e31efd762d74e3eea7481b2e59b691794"
+      "sha256": "3eddb7c878dcef7ba98dcf9ccea8983935374bc380c03fcf7d9197f391717ac8"
     },
     {
       "path": "docs/guide/workspace-patterns.md",
@@ -2211,7 +2211,7 @@
     },
     {
       "path": "scripts/build-product-site.ts",
-      "sha256": "aa764ee9cd389525d0509440b2789ce85d74d5bbe0b71698952131f82065a8a6"
+      "sha256": "c48ad837fb6e8744b2c09363d01b7e9c495048a62a0f9c0340820512dff5d261"
     },
     {
       "path": "scripts/build-site.ts",
@@ -2290,6 +2290,10 @@
       "sha256": "08c8711c758a2d8847eb95583fc985ce03a07a6c110b8927ee29fd150cf1ba10"
     },
     {
+      "path": "scripts/site-only.ts",
+      "sha256": "88ac6f840c193c2177aad6654b001226e617f617d214aa8dbc8f011a542d7c8f"
+    },
+    {
       "path": "scripts/site/index.html",
       "sha256": "bf48fa56431cbf610593f3f00c0451248d2ab022d4c79e4b971c30602862b9e8"
     },
@@ -2331,7 +2335,7 @@
     },
     {
       "path": "templates/consumer/README.md",
-      "sha256": "912163533d5e2479b95342270d0089a6d4f41dcb897fe236123e6dd54d1103ed"
+      "sha256": "a245789b385cc4b449be9101715f3f1ff0d20e2ade360f2c4c5a0e1193d25f9c"
     },
     {
       "path": "templates/consumer/build.ts",
@@ -2971,7 +2975,7 @@
     },
     {
       "path": "tests/integration/product-site.test.ts",
-      "sha256": "c502f1bf4ec1fa325287b3a83721e997434eaa5a5c1a002950792429e89b53fc"
+      "sha256": "ab619e61d3caf49ab5fb62292f06197aa731d853f524a1f0013a6deb2f3aede5"
     },
     {
       "path": "tests/integration/record-edit.test.ts",
@@ -2992,6 +2996,10 @@
     {
       "path": "tests/integration/shared-filters.test.ts",
       "sha256": "311b254afbfa564524b4045d3fd8ad001a1c14dad616e123d644169fde417204"
+    },
+    {
+      "path": "tests/integration/site-only.test.ts",
+      "sha256": "5fe8878c8943bdb91edb6185beab8c6cf1a8f6892e4b049bd1d9cd6f03f11bf4"
     },
     {
       "path": "tests/integration/tree.test.ts",
@@ -3015,7 +3023,7 @@
     },
     {
       "path": "tests/site-release/navigation.spec.ts",
-      "sha256": "89d7ca12e2405016427fd6c977480cfe9e3881e5f57a65f9bc006692b96dfbbd"
+      "sha256": "728730fc67c381f3e7dc4c8365a50f4b8dac3ef9bdb84947c6a15454f584db0f"
     },
     {
       "path": "tests/tsconfig.json",

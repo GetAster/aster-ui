@@ -1,84 +1,85 @@
 # Build a web application over SQL and backend APIs
 
 Aster provides a path from existing systems to a working web interface.
-**Aster WebData supplies the server integration mechanism: virtual data sources.**
-You implement the code that reads or writes your backend, declare its fields,
-and register it with the server. WebData exposes that source through OData,
-including metadata and query handling. Aster UI connects to that service and
-uses the data in grids, forms, tiles and other views.
+**Aster WebData serves your database tables and virtual data sources through one
+OData service.** A virtual data source is a short Python or TypeScript script that
+returns rows from somewhere else, such as a REST API or another set; you declare
+its fields beside it. WebData publishes the metadata and handles the query. Aster
+UI connects to that service and uses the records in grids, forms, tiles and other
+views.
 
-OData is the common contract WebData provides to the UI. Your original database,
-REST API, CLI or legacy service keeps its native interface.
+OData is the common contract WebData provides to the UI. Your original database
+or REST API keeps its native interface.
 
-## What you implement and what Aster provides
+## What you write and what Aster provides
 
 ```diagram
 {
   "source": "docs/diagrams/integration-map.svg",
   "narrow": "docs/diagrams/integration-map-narrow.svg",
-  "description": "Aster UI uses OData to reach WebData on the server, which connects SQL sources and your virtual-source handlers to existing systems."
+  "description": "Aster UI uses OData to reach WebData on the server, which serves SQL tables and your virtual-source scripts over existing systems."
 }
 ```
 
-The browser sees one service contract. Your backend-specific calls stay in the
-server-side handler; when SQL and API records need matching, that handler owns
+The browser sees one service contract. Calls to your backend stay in the
+server-side script; when SQL and API records need matching, that script owns
 the matching logic.
-
-
 
 | Part | Responsibility |
 |---|---|
-| Your virtual-source handler | Call the backend, map its values to the declared fields, and implement the reads and writes the source supports. |
-| Aster WebData | Register the source alongside SQL sources, publish OData metadata, process requests, enforce configured access policy and run supported query operations. |
+| Your virtual-source script | Call the API on a configured connection, map its values to the declared fields, and implement the reads and writes the source supports. |
+| Aster WebData | Serve the source beside SQL tables, publish OData metadata, check every returned row against the declared fields, own each connection's credential, timeout, retries and rate limit, enforce access rules, and do the filtering, sorting and paging the script leaves undone. |
 | Aster UI | Consume the common service through a data context; share records, queries, selection and edits between views. |
 | Your application | Choose the screens, business rules, source-matching logic and how to handle failures in external systems. |
 
-The virtual-source interface is part of WebData. Backend-specific code plugs
-into that interface; metadata generation and OData request processing belong to
-the server.
-
 ## Example: combine SQL customers with account status from an API
 
-Suppose customer names and contact details live in SQL, while account status
-comes from your existing backend API. You want one customer workspace in a web
-application, with filtering, paging and an editor.
+Suppose customer names and contact details live in a SQL table, while account
+status comes from your existing backend API. You want one customer workspace in a
+web application, with filtering, paging and an editor.
 
-Define the SQL-backed customer source and a virtual source for the backend API.
-If the screen needs a combined row, register a virtual `CustomerWorkspace`
-source whose read handler fetches customer records through the engine, calls
-your API and matches the results by customer ID. Cross-source engine calls let
-the handler participate in the same server data layer as other sources.
-
-The handler owns that matching logic. A source definition for its returned rows
-can look like this:
+Serve the SQL table as a set, `Customer`, and declare the API once as an HTTP
+connection, `accounts`, in the server configuration. A virtual
+`CustomerWorkspace` source then reads customers through `db`, asks the API for
+their status and matches the two by customer ID:
 
 ```yaml
 dataSource:
   ID: CustomerWorkspace
   serverType: virtual
-  handler: customer_workspace
+  script: customer_workspace.py
   fields:
     - { name: id, type: integer, primaryKey: true }
     - { name: name, type: text, length: 200 }
     - { name: accountStatus, type: text, length: 40 }
 ```
 
-The registered `customer_workspace` handler implements WebData's `VirtualSource`
-contract. Its `fetch` method returns records matching that schema. A Rust
-handler can use its own HTTP client or CLI integration, and the supplied context
-provides engine calls such as `fetch` and `get` for other data sources.
+```python
+def read(query):
+    customers = db.fetch('Customer')
+    r = http.get('/accounts/status', connection='accounts')
+    if not r.ok:
+        fail('AccountsError', f'the accounts API answered {r.status_code}')
+    status = {a['customerId']: a['status'] for a in r.json()}
+    return [{'id': c['id'], 'name': c['name'], 'accountStatus': status.get(c['id'])}
+            for c in customers]
+```
 
-Once the definition and handler are registered, WebData publishes the entity
-set and its metadata. The UI can request:
+`db` reads stored sets as the caller, so the `Customer` set's access rules
+still apply. The connection's configuration holds where the credential is; the
+script never sees it. The same script can be written in TypeScript with web
+`fetch` and `aster.db`.
+
+WebData then publishes the entity set and its metadata. The UI can request:
 
 ```http
 GET /odata/CustomerWorkspace?$filter=accountStatus%20eq%20%27Active%27&$orderby=name&$top=40
 ```
 
-WebData handles the OData request. A minimal handler supplies the complete,
-bounded result for the engine to filter, sort and page. For a large source,
-declare and implement query pushdown so the handler can ask the underlying
-system for the relevant data efficiently.
+WebData handles the OData request. A script that declares nothing returns the
+complete, bounded result, and WebData filters, sorts and pages it. For a large
+source, a `pushdown:` block passes the filter, order or page the script can hand
+to the underlying system, and WebData does the rest.
 
 ## Bind the resulting data to a grid
 
@@ -112,27 +113,30 @@ See [Get started](getting-started.md) for page setup and
 
 ## Write through the same integration
 
-A virtual source can implement `add`, `update` and `remove` as well as `fetch`.
-Declare the writes it supports and implement their backend-specific behaviour.
-An edit saved through Aster UI then travels through OData to the source's write
-handler; the returned record updates the shared UI data model.
+A virtual source takes writes for the functions it names: map `add`, `update`
+and `remove` under `functions:` for the writes it supports. An edit saved through
+Aster UI then travels through OData to that function, and the returned row
+updates the shared UI data model. An update or delete carries the row's ETag, and
+WebData refuses a stale one with `412` before the script runs, so the UI's
+conflict handling works as it does for a table.
 
-Write handlers and server operations can also call other data sources through
-the engine. For example, a workflow can update a SQL customer record and request
-an account change from your API. Source permissions, execution context and
-external failure handling still apply.
+A write function can also call other sets through `db` and your API through its
+connection. For example, it can update a SQL customer record and request an
+account change from the API. Access rules, the request's deadline and external
+failure handling still apply.
 
-Cross-source workflows and distributed transactions are different requirements.
-Atomic write support depends on the participating backends' declared transaction
-capabilities; calling several systems does not make their external effects
-atomic. Automatic joins across arbitrary backends are also separate from a
-handler that combines records explicitly. Check the server release's supported
-operations and design partial-failure handling for the workflow.
+Calling several systems does not make their effects atomic. In a `$batch`, an
+atomic group that makes more than one write and writes a virtual set is
+refused, and the script
+must handle a partial failure between the API and the database itself. Automatic
+joins across arbitrary backends are also separate from a script that combines
+records explicitly. Check the server release's supported operations and design
+partial-failure handling for the workflow.
 
 ## Choose this path for an integration application
 
 This combination is useful when you want to bring existing systems into an
-interactive application: backend code implements virtual sources, WebData gives
+interactive application: scripts implement virtual sources, WebData gives
 them a common service contract, and the UI supplies connected data views.
 
 Use [Aster WebData](https://getaster.now/products/aster-webdata/) for the companion

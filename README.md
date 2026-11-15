@@ -45,8 +45,8 @@ Install the current release:
 npm install @getaster/data @getaster/elements
 ```
 
-Add the mock or preview controls separately when needed. Aster is pre-1.0 and
-its APIs may evolve; the preview package has intentionally experimental APIs.
+Add the mock or preview controls separately when needed. The preview package
+has intentionally experimental APIs.
 To produce compiled ESM packages, declarations, styles and local tarballs:
 
 ```sh
