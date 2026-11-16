@@ -10,6 +10,9 @@ main { max-width: 860px; margin: auto; }
 .field-row { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
 .field-row .kind { color: var(--aster-text-3); font-size: 12px; }
 .field-row .description { grid-column: 1 / -1; color: var(--aster-text-2); font-size: 13px; }
+.flag { font-size: 12px; color: var(--aster-accent); }
+.source { color: var(--aster-text-3); }
+#laid-out { margin-top: 12px; }
 @media (max-width: 480px) { body { padding: 12px; } }
 </style></head><body><main>
 <h1>List editor, row by row</h1>
@@ -21,5 +24,9 @@ main { max-width: 860px; margin: auto; }
 </div>
 <aster-list-editor id="fields"></aster-list-editor>
 <aster-menu id="kinds"></aster-menu>
+<h2>Laid out in lines</h2>
+<p>The same fields as lines of cells, the same arrangement whether a row reads or edits. The type, chosen from Add field, is read-only from the start, and an inherited field's name and description are read-only; where a field comes from shows only while its row reads. Narrower than 520 px, each cell takes a line of its own.</p>
+<aster-list-editor id="laid-out"></aster-list-editor>
+<div class="bar"><aster-button id="add-laid"></aster-button><aster-button id="save-laid"></aster-button></div>
 <script type="module" src="./list-editor.js"></script>
 </main></body></html>

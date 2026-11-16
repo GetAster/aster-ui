@@ -47,7 +47,13 @@ them. `ListEditor` and `RuleEditor` never call `save()`: put the list in a
   words.
 - Removing an existing row marks it for deletion: it shows struck through and
   as text, with Undo, until the list is saved. Removing a new row discards it.
-  A row with changes offers Revert.
+  A row with changes offers Revert. In `"row"` mode the row being edited
+  offers Cancel editing in that place instead: it does exactly what Escape
+  does, putting back the row as it was when editing began (changes kept
+  before then stay pending) or discarding a new row no Enter has kept, and
+  focus moves as Escape moves it. A row that reads with changes kept from an
+  earlier edit offers Revert, which puts back its saved values and returns
+  focus to the row.
 - Every action button names its row, by the value of its first column or "new
   row": "Remove Write the brief". A row that is new or marked for removal
   starts its first cell with a hidden "New: " or "To be removed: ".
@@ -57,6 +63,9 @@ them. `ListEditor` and `RuleEditor` never call `save()`: put the list in a
 
 Each cell is the control [[staticMethod:controlFor]] picks from the field's
 metadata, bound to the row's [[class:EditModel]]; see [[group:fields]].
+A field read-only on the row, by its metadata, a policy or a rule, shows as
+text with its reason on hover, on a new row too. A key the metadata marks
+immutable stays editable until the row is saved.
 
 ### Example
 
@@ -415,9 +424,11 @@ set, even to an empty string, or when [[object:ListEditorChrome]] `add` is `fals
 
 ## attr:ListEditor.editing
 
-`"always"` (the default) or `"row"`. Always shows every row's controls, as the
-element always has. Row shows them on the one row being edited, and every other
-row as text or [[attr:ListEditor.row]]. Reactive.
+`"always"` (the default) or `"row"`. Always shows every row's controls and
+actions. Row shows them on the one row being edited (double-click it, or Enter on
+the focused row), and every other row as text or [[attr:ListEditor.row]], without
+actions; a row marked for removal keeps its Undo. The reorder handle stays on
+every row. Reactive.
 
 ## attr:ListEditor.row
 
@@ -441,6 +452,80 @@ editor.chrome = { add: false };
 declare const editor: ListEditor;
 ```
 
+## attr:ListEditor.layout
+
+`readonly (readonly ListColumn[])[] | undefined`. The row as lines of cells,
+used for both reading and editing, so a row keeps its arrangement while it
+shows its controls. Each line is a list of [[object:ListColumn]]s. The first
+line's widths are the list's tracks; a cell on a later line takes the next
+`span` of them. The handle and the actions stay on the first line. A cell
+whose field a rule hides on that row (see
+[[attr:ListEditOptions.fieldRules]]), or whose `show` doesn't match the row's
+state, leaves its place empty. With more than one line there is no header row.
+
+When the editor is as narrow as [[attr:ListEditor.responsive]] says (520 px
+of its own width by default), every cell takes a line of its own, in layout
+order, between the handle and the actions; an empty cell takes none.
+Default `undefined`: one line, [[attr:ListEditor.columns]]. Setting it to an
+empty list, or a list with an empty line, throws. Reactive.
+
+```ts
+editor.editing = "row";
+editor.layout = [
+  [{ field: "name", width: "minmax(8rem, 1fr)" }, { field: "kind", width: "8rem" }, { field: "required", width: "7rem" }],
+  [{ field: "description", span: "all" }],
+  [{ field: "source", span: "all", show: "reading" }],
+];
+declare const editor: ListEditor;
+```
+
+The same layout works in a YAML composition, since it is plain data.
+[[attr:ListEditor.row]] still replaces a reading row when it is set.
+
+## attr:ListEditor.responsive
+
+[[type:ListResponsive]]. When a [[attr:ListEditor.layout]] stacks its cells,
+one per line, judged by the editor's own width rather than the window's:
+`true` at 520 px or narrower, `false` never, or `{ below: n }` at `n` pixels
+or narrower. Set it to the narrowest width at which your first line still
+fits, so a compact layout keeps its columns in a narrow desktop panel and
+still stacks on a phone. Default `true`. Setting anything else throws.
+Reactive.
+
+```ts
+// Name, type and flags fit in 360 px: keep them on one line in a side panel.
+editor.responsive = { below: 360 };
+declare const editor: ListEditor;
+```
+
+## type:ListResponsive
+
+`boolean | { readonly below: number }`: see [[attr:ListEditor.responsive]].
+`true` is the same as `{ below: 520 }`.
+
+## attr:ListEditor.renderers
+
+`Readonly<Record<string, ListCellRenderer>>`. Renderers by field name, used
+wherever a cell shows its value as text: a row that reads, a row marked for
+removal, and a field the row can't change while it is being edited. An
+editable field being edited is always its control. Default `{}`. Reactive.
+JavaScript only.
+
+```ts
+import { html, nothing } from "lit-html";
+
+editor.renderers = {
+  name: (values) => html`<strong>${String(values.name ?? "")}</strong>`,
+  required: (values) => (values.required ? html`<span class="flag">Required</span>` : nothing),
+};
+declare const editor: ListEditor;
+```
+
+## type:ListCellRenderer
+
+`(values: Entity, id: string) => View`: the row's current values and its
+[[attr:ListRow.id]]. Signals read while it runs keep the cell up to date.
+
 ## method:ListEditor.edit
 
 - `id`: a row's [[attr:ListRow.id]].
@@ -463,13 +548,14 @@ declare const editor: ListEditor;
 
 The parts of the editor it draws, as [[object:ListEditorChrome]]. Default `{}`.
 Reactive: assign a new object; the stored object is a copy. The YAML composition
-catalog accepts the same shape: `chrome: { add: false }`.
+catalog accepts the same shape: `chrome: { add: false, actions: false }`.
 
 ## object:ListEditorChrome
 
 | Field | Default | Effect |
 |---|---|---|
 | `add` | `true` | Draw the Add button. Without it, rows are added from outside with [[method:ListEdit.add]]. |
+| `actions` | `true` | Draw the actions column: icon buttons for Remove, Revert and Undo, each with the row in its accessible name and a tooltip. Without it, rows are removed and reverted from outside with [[method:ListEdit.remove]], [[method:ListEdit.restore]] and the row's edit. |
 
 ## attr:ListEditor.selection
 
@@ -520,9 +606,12 @@ title (the field's metadata title, else its name).
 
 ## attr:ListColumn.width
 
-A CSS grid track size such as `"8rem"` or `"minmax(10rem, 2fr)"`. Default `"1fr"`.
-The handle column (24 px) and the actions column (`auto`) are added around the
-columns you give.
+A CSS grid track size such as `"8rem"` or `"minmax(10rem, 2fr)"`. Default
+`"minmax(0, 1fr)"`. The handle column (24 px) and the actions column (two icon
+buttons wide, unless `chrome.actions` is `false`) are added around the columns you
+give. Every row shares the list's tracks, so a row's content, or an action
+appearing on it (Revert once a row is moved or changed), doesn't resize its
+columns.
 
 ## attr:ListColumn.options
 
@@ -531,6 +620,17 @@ a short list that loads whole, or a [[class:PickerOptions]] for search, columns
 and "Create …". Share one `PickerOptions` between all rows of a column. Without
 it the field gets whatever control its type calls for. See [[group:fields]].
 
+## attr:ListColumn.control
+
+The control to edit the field with, as [[attr:FormField.control]]: a name
+such as `"multiline"` for unrestricted text, or a custom renderer (JavaScript
+only). Default: the control the field's metadata calls for.
+
+```ts
+editor.layout = [[{ field: "name" }, { field: "kind", width: "8rem" }], [{ field: "description", span: "all", control: "multiline" }]];
+declare const editor: ListEditor;
+```
+
 ## attr:ListColumn.display
 
 A function from the [[object:ListRow]] to the text to show where the cell is text
@@ -538,6 +638,22 @@ rather than a control: a read-only editor, a row marked for removal, or a field
 the row can't change. It is not used for editable cells. Default: the value
 formatted by the field's type (a key shows as the key). Use it to show the name
 that an `options` picker would show.
+
+## attr:ListColumn.span
+
+In a [[attr:ListEditor.layout]], how many of the first line's tracks the cell
+takes, from the track after the previous cell on its line. `"all"` takes the
+rest of the line. A span past the line's end is cut at it. Default `1`. Not
+used by [[attr:ListEditor.columns]].
+
+## attr:ListColumn.show
+
+In a [[attr:ListEditor.layout]], when the cell is drawn: `"always"` (the
+default), `"reading"` while the row reads, or `"editing"` while it shows its
+controls. Use it for what only matters in one state, such as where an
+inherited field comes from. To show or hide a field by what a row holds, use
+a `visible` rule in [[attr:ListEditOptions.fieldRules]]. Not used by
+[[attr:ListEditor.columns]].
 
 ## class:RuleEditor
 

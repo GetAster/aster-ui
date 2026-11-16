@@ -1,7 +1,6 @@
 # Installation and distribution
 
-Aster UI is available on npm under the **`@getaster` organization**. The **0.4 release line** is published under the default `latest` tag. Aster is
-still pre-1.0; production API stability is not yet promised.
+Aster UI is available on npm under the **`@getaster` organization**. The **0.4 release line** is published under the default `latest` tag.
 
 The four packages are released together at one version and pin each other
 exactly. Install them at the same version; mixing versions installs two copies
@@ -26,6 +25,31 @@ The mock includes the WASM binary and license notices; no Rust compiler is
 needed. The mock, examples and charting vendor runtime are separate from the
 production controls. See [Get started](getting-started.md) for the shared data
 model and a working example.
+
+## Coding agents and editor tooling
+
+`@getaster/elements` ships an agent skill and a
+[Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest).
+Place the skill in your project with:
+
+```sh
+npx aster-skill          # or bunx; writes .claude/skills/aster-ui and .agents/skills/aster-ui
+npx aster-skill check    # exits 1 when a copy is missing or from another version
+```
+
+The skill tells Claude Code, Codex and other agents that read those folders to
+build every screen through the data layer, including mockups (use the mock
+service until a real one exists), to configure elements through properties, and
+to run `aster-lint` and the type checker before handing work back. Run it again
+after upgrading, or call it from your project's `postinstall` script as the
+[consumer template](https://github.com/GetAster/aster-ui-template) does. A
+symbolic link at either location is treated as your own copy and left alone.
+
+`custom-elements.json`, named by the package's `customElements` field, lists
+every element with its tag, properties and their types and defaults, methods
+and events. Editors, Storybook and other tools that read the manifest use it
+to describe the elements; it declares no attributes, because Aster elements
+are configured through properties.
 
 ## Stylesheets
 
@@ -53,12 +77,11 @@ the development or static server must serve the installed file at
 URL string to `createMockService`; see the
 [mock reference](../reference/#attr:MockServiceOptions.wasm).
 
-A dependency cooldown policy can hide a new release for several days: installs
-resolve the previous version and `npm view` does not list the new one. Exempt
-the four `@getaster` packages from the cooldown while keeping malware checks
-enabled, or install each package from its tarball URL,
-`https://registry.npmjs.org/@getaster/<name>/-/<name>-<version>.tgz`. You can
-also evaluate the browser distribution built from source.
+A dependency cooldown policy delays new package versions for several days, so
+installs resolve the previous release for a while and `npm view` may not list
+the newest one. That is the policy doing its job: use the release it allows, or
+ask whoever owns the policy whether an exception is warranted. You can also
+evaluate the browser distribution built from source.
 
 ## Build the browser distribution
 

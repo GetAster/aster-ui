@@ -362,6 +362,58 @@ describe("list edit", () => {
     expect(bad.edit.errors.value.title).toBeDefined();
     expect(list.rows.value.some((r) => r.edit.values.value.title === "Check the copy" && !r.isNew)).toBe(true);
   });
+
+  test("an immutable key is editable on a new row and read-only once saved", async () => {
+    const service = await createMockService({
+      metadata: {
+        $Version: "4.01", $EntityContainer: "Studio.Container",
+        Studio: {
+          Code: { $Kind: "EntityType", $Key: ["code"], code: { $MaxLength: 8, "@Core.Immutable": true }, label: { $Nullable: true } },
+          Container: { $Kind: "EntityContainer", Codes: { $Collection: true, $Type: "Studio.Code" } },
+        },
+      },
+      data: { Codes: [{ code: "A", label: "First" }] },
+    });
+    const studio = await DataContext.connect(service.transport);
+    const codes = studio.collection({ set: "Codes", orderBy: [{ field: "code" }] });
+    await codes.loadAll();
+    const list = new ListEdit(studio, codes);
+    expect(list.rows.value[0]!.edit.state("code").value.readOnly).toBe(true);
+    const added = list.add({ code: "B", label: "Second" });
+    expect(added.edit.state("code").value.readOnly).toBe(false);
+    expect((await list.save()).failed).toEqual([]);
+    const saved = list.rows.value.find((r) => r.edit.values.value.code === "B")!;
+    expect(saved.isNew).toBe(false);
+    expect(saved.edit.state("code").value.readOnly).toBe(true);
+  });
+
+  test("field rules apply to every row, reading the row and the page", async () => {
+    const tasks = ctx.collection({ set: "Tasks", filter: { op: "eq", field: "projectId", value: 4 }, orderBy: [{ field: "id" }] });
+    await tasks.loadAll();
+    const locked = signal(false);
+    const scope = new PageScope(undefined, { ctx });
+    scope.publish("page", valuesPublication({ locked }));
+    const list = new ListEdit(ctx, tasks, {
+      defaults: (): Entity => ({ projectId: 4, title: "", due: null, assigneeId: null, done: false }),
+      scope,
+      fieldRules: {
+        title: { readOnly: { when: { op: "or", args: [{ op: "eq", field: "row.mode", value: "update" }, { op: "eq", field: "page.locked", value: true }] }, reason: "Saved titles are fixed." } },
+        due: { visible: { op: "ne", field: "row.values.title", value: "" } },
+      },
+    });
+    const saved = list.rows.value[0]!;
+    const added = list.add();
+    // Each row reads its own mode and values.
+    expect(saved.edit.state("title").value.readOnly).toBe(true);
+    expect(saved.edit.state("title").value.reasons.readOnly).toBe("Saved titles are fixed.");
+    expect(added.edit.state("title").value.readOnly).toBe(false);
+    expect(added.edit.state("due").value.visible).toBe(false);
+    added.edit.set("title", "Plan the launch");
+    expect(added.edit.state("due").value.visible).toBe(true);
+    // And the page's facts, for every row at once.
+    locked.value = true;
+    expect(added.edit.state("title").value.readOnly).toBe(true);
+  });
 });
 
 describe("saving while typing", () => {

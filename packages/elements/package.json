@@ -16,7 +16,8 @@
   },
   "bin": {
     "aster-theme-check": "./tools/aster-theme-check.ts",
-    "aster-lint": "./tools/aster-lint.ts"
+    "aster-lint": "./tools/aster-lint.ts",
+    "aster-skill": "./tools/aster-skill.ts"
   },
   "license": "Apache-2.0",
   "repository": {

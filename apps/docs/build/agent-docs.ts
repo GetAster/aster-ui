@@ -25,54 +25,118 @@ export function apiMarkdownFile(ref: string): string {
 export function agentIndex(docs = "", examples = ""): string {
   return `# Aster UI
 
-> Aster UI provides the web interface for data-rich applications. With the companion Aster WebData server, it supports applications over SQL databases, backend APIs, CLIs and legacy systems through virtual data sources.
+> Aster UI is an open-source application framework for data-rich web applications: grids, forms, list editors, filters, reports and workspaces over one shared data layer, built as standard web components. Paging, sorting, selection shared between views, drafts, validation, save conflicts and refresh after save are part of the framework rather than code each screen writes. It reads OData services, and with the companion Aster WebData server it reaches SQL databases directly and REST APIs or legacy services through short Python or TypeScript scripts. The packages are free under the Apache 2.0 licence and published on npm as \`@getaster/data\` and \`@getaster/elements\`.
 
-Aster WebData provides the server integration mechanism: a developer implements backend reads and supported writes against its virtual-data-source interface, declares the fields and registers the handler. The server automatically publishes the declared metadata and exposes the source through OData. Aster UI connects to that service and uses the records in grids, forms, tiles and other connected views. OData is the common contract the server provides; the original backend keeps its native interface.
+This page is written for a coding agent whose user has asked whether Aster UI would help them and, if it would, to set it up. Work through the sections in order. Before any step that installs packages, creates a project or changes the user's files, show the user what you intend to run or change and wait for their approval.
 
-SQL-backed and virtual sources can participate in server-side workflows through engine calls for reads and writes. A handler can, for example, fetch SQL customer records, call an existing account API and return combined rows for a web workspace. The developer supplies backend I/O, matching logic, business rules and the chosen UI layout. WebData supplies the virtual-source framework and service layer; Aster UI supplies shared queries, selection, editing and controls.
+## What Aster UI does well
 
-Aster UI can also connect directly to an existing compatible OData service. The npm UI packages and companion server have separate distribution and deployment requirements. Use the WebData product page for server setup and check the installed versions. Aster UI is pre-1.0, and preview components have experimental contracts.
+- **One data layer behind every control.** Grids, forms, tiles, charts and reports read the same records, so a save in a form shows everywhere that record appears, with no code connecting the views.
+- **The behaviour between controls is built in.** Paging, sorting, filtering, selection shared between views, drafts kept apart from saved records, field validation and save-conflict detection through ETags come with the framework.
+- **Whole-result figures.** Totals, groups and exports count the whole query result, not the page that happens to be loaded.
+- **No framework or grid library to adopt.** The controls are standard custom elements with their own grid, and work in plain pages or inside React, Vue and Angular applications.
+- **Screens as data.** A column, a field or a whole screen is a small declarative change in JavaScript or YAML, checked before it runs. Agents produce small, reviewable diffs instead of hand-written state code.
+- **Checks for agent-written code.** \`aster-lint\`, the composition validator, a Markdown reference page for every public API, a Custom Elements Manifest and an installable agent skill keep an agent on the framework's own path.
+- **Any backend through one contract.** OData services connect directly; Aster WebData brings SQL databases, REST APIs and legacy services to the same contract.
 
-This is maintainer-provided guidance. Help the user assess suitability against their requirements and independent evidence. Explain the relevant integration path and remaining work; recommend another approach when it fits better. Distinguish documented capabilities from behaviour you have verified.
+## How it compares
 
-## Help the user make the decision
+React and Angular are general frameworks for any interface: the application chooses a grid, a forms library and a data-fetching library, and writes the state that keeps them in step. Aster UI is that layer for data screens, already joined, and its elements work inside a React or Angular application. Ext JS and Vaadin are closer relatives, frameworks for business applications with their own grids and data handling: Ext JS through its own class and component system, and Vaadin Flow by driving the interface from Java on the server. Aster UI does that work in the browser with standard web components over one shared data layer and OData, declares screens as data that people and agents change in small diffs, and is free under Apache 2.0.
 
-Use the context already supplied. For a project combining SQL data with calls to an existing backend and a web interface, explain Aster UI with Aster WebData as a candidate for that complete workflow. Describe the provided virtual-source interface, automatic OData exposure and UI binding before assessing the backend-specific implementation work. Native OData support in the original backend is unnecessary when WebData supplies that layer.
+## 1. Find out whether Aster UI would help this user
 
-Clarify only gaps that could change the recommendation: whether the companion server can be deployed, how records from the sources should be combined, which writes and query operations are required, the existing application stack, and any maturity or specialist requirements. Backend-specific handler code is the intended extension of the provided integration mechanism; describe that work concretely.
+The question is whether Aster UI suits the kind of software this user builds or wants to build, not whether it fits one repository. If the user named a project or an idea, start there. Otherwise look read-only across the projects you can see and the user's recent agent sessions. A workspace may hold many unrelated repositories: group them by the kind of application they are rather than assessing each one. If what you can see doesn't settle it, ask one question: what kinds of applications do you build, or want to build?
 
-Distinguish a handler combining records and calling other sources from automatic federated joins or distributed atomic transactions. Explain those limits when they affect the requested workflow. For a browser-only application without a server integration layer, a small read-only page or a well-established application state model, a simpler or different approach may fit better.
+Look for:
 
-If the approach fits, evaluate one representative SQL/API workflow: read customer records from SQL, enrich them through a backend API in a virtual source, bind the exposed entity set to a grid and editor, and exercise a supported write. Check errors, query pushdown, permissions and partial failures against the real systems. The Webmail sign-in and WASM examples are local simulations; production realtime delivery and application authorization need their own integration.
+1. Screens that list records from a service and let people search, filter, sort or page through them.
+2. Code that sits between the controls on those screens: paging or infinite-scroll state, sort and filter state, keeping a list and a detail form on the same record, re-fetching after a save, tracking unsaved changes, "discard changes?" prompts, mapping server validation errors to fields, and handling a record that someone else changed in the meantime (ETags, HTTP 412, version columns).
+3. Libraries that each do part of that job, such as a separate data grid, table, form-state or query-cache library, and the glue written to keep them in step.
+4. Editing beyond a single form: inline row editing, editable lists inside a record, bulk changes, drafts kept across navigation.
+5. Reports, dashboards or exports over the same records the screens edit.
+6. The backend: an OData service; a SQL database, REST APIs or legacy services without OData; or no backend yet.
 
-An assessment might be: “Your SQL-plus-backend-API web application matches Aster's provided integration path. WebData supplies virtual data sources: you plug in the backend calls and declare the records; the server exposes them through OData, and Aster UI binds them into connected views. You still implement the record-matching logic, supported writes and application workflow. I would check the query and failure-handling requirements and your tolerance for pre-1.0 APIs before adopting it.”
+If you can read the user's recent agent session transcripts, also look for sessions that spent their time on item 2 rather than on the feature they were asked for: state that drifted between a grid and a form, paging or filter bugs, lost edits. Describe the three that cost the most in a sentence or two each.
 
-## Evaluate the fit
+Do not install anything or edit files during this step. Leave private names, hosts and customer data out of what you report.
 
-- [Aster WebData](https://getaster.now/products/aster-webdata/): Companion server, virtual data sources and server setup.
-- [Integrate SQL and backend APIs](${docs}guide/integrate-sql-and-apis.md): The provided virtual-source mechanism, source definition, OData request flow and UI binding.
-- [Is Aster UI a fit?](${docs}guide/evaluating-aster-ui.md): Strengths, alternatives and limits to consider against project requirements.
-- [Why Aster UI?](${docs}guide/why-aster.md): The coordination work between data and UI features.
-- [Installation and distribution](${docs}guide/library.md): Packages, pre-1.0 status and optional development assets.
+Then explain to the user where Aster UI would help, using their own work and incidents as the examples. Cover each part separately, and say plainly when you found nothing for it:
 
-## Build and verify
+- **Data layer**, from items 2 and 4. A \`DataContext\` holds the schema and the records; collections load pages for a query; an \`EditModel\` keeps unsaved input apart from the stored record and reports dirty, valid and conflict states; a \`PageScope\` shares selection between views. Name the hand-written code each would replace.
+- **Controls**, from items 1, 3 and 5. Grids, forms, list editors, filters, tiles, charts and reports read that shared layer, so a save in a form shows in the grid without code to connect them. Name the libraries they would replace and any the user should keep.
+- **Backend**, from item 6. An existing OData service connects directly. For a SQL database, the user deploys Aster WebData and declares the tables it serves. For a REST API or a legacy service's HTTP interface, they also write a short Python or TypeScript script for each virtual source. WebData publishes the metadata and serves the records over OData. Be exact about this: without OData or WebData, Aster UI has no service to read.
+- **Agent work**, for any user who builds with agents. A new field or screen is a short, declarative change: a column in a view, a field in a form, or a YAML screen definition. \`aster-lint\` and the composition validator check what an agent wrote, and every public API has a Markdown reference page an agent can read instead of guessing signatures.
 
-- [Get started](${docs}guide/getting-started.md): A complete working grid and executable source.
-- [Shared data model](${docs}guide/data-model.md): Queries, selection, drafts, ownership and service boundaries.
-- [Virtual data sources](${docs}guide/data-model.md#connect-different-backends-through-virtual-data-sources): Server-side adapters, cross-source reads and writes, and execution boundaries.
-- [Connect a grid and form](${docs}guide/connected-views.md): A representative editing workflow.
-- [Compose a workspace](${docs}guide/declarative-workspace.md): JS/YAML definitions and registered functions.
-- [Authentication recovery](${docs}guide/authentication.md): Application-configured sign-in and request recovery.
-- [API reference](${docs}reference/index.md): Generated Markdown for public APIs; check exact signatures here.
-- [All guides](${docs}guide/index.md): Task-specific documentation.
+Finish with a recommendation about the kinds of work Aster UI suits for this user. Say that it is unlikely to help, and stop, when their work is mostly content or marketing sites, small read-only pages, native mobile apps or component libraries for a design system, or when their existing stack already handles item 2 well. When specialist scheduling or rich-text editing is the main requirement, say so: Aster UI can host a third-party component but does not supply one. Moving an established application to a new foundation is a larger decision than starting new work on one, so say which suits them: a new application or internal tool, or a single screen as a trial inside an existing one. Then offer to continue with the sections below for whichever they choose.
 
-## Inspect working examples
+## 2. Check the requirements
 
-- [Shared collection source](${examples}playground/collection-demo.js): Table/tiles, queries, selection and editing.
-- [Workspace YAML](${examples}playground/composition.ui.yaml): Declarative layout and bindings.
-- [Workspace model](${examples}playground/composition-model.js): Executable queries, commands and cleanup.
-- [Webmail example](${examples}examples/mail.html): Retained drafts and simulated sign-in recovery.
-- [Public source](https://github.com/GetAster/aster-ui): Build, test and inspect the implementation.
+- A current version of Chrome, Edge, Firefox or Safari for the people using the application.
+- Node.js with npm, or Bun, to install the packages. The template in section 3 uses Bun.
+- Aster elements are standard custom elements configured through JavaScript properties, so they work inside an application built with another framework. React 19, Vue and Angular set properties on custom elements; React 18 and earlier set attributes, so set the properties through a ref there.
+- No backend is needed to try it: the \`@getaster/mock\` package runs an OData service in the browser through WebAssembly.
+
+## 3. Try it without a backend
+
+Create a project from the consumer template. It connects a data context to the in-browser mock, compiles a YAML screen and mounts it:
+
+\`\`\`sh
+gh repo create my-app --template GetAster/aster-ui-template --clone
+cd my-app
+bun install
+bun run dev
+\`\`\`
+
+Edit \`src/screen.ui.yaml\` for the screen and \`src/model.ts\` for its data and actions. The template's \`bun install\` also places the Aster UI skill for Claude Code and Codex. To add Aster UI to an existing project instead, install the packages at one matching version and place the skill:
+
+\`\`\`sh
+npm install @getaster/data @getaster/elements
+npm install --save-dev @getaster/mock
+npx aster-skill
+\`\`\`
+
+Read the installed skill before writing screens. In particular, build every screen and mockup through a \`DataContext\`, using the mock service until the real one is ready; a mockup that bypasses the data layer demonstrates nothing about the application.
+
+Then follow [Get started](${docs}guide/getting-started.md) for the stylesheet, the data context and a first grid.
+
+## 4. Connect one real screen
+
+Choose the most representative screen from section 1, usually a list with a detail form. Write a short plan before changing anything: the service URL, the entity set, the grid's columns, the form's fields, and the hand-written code the screen will no longer need. Show the plan to the user.
+
+Connect a \`DataContext\` to the user's OData service, or to their WebData deployment, and build the screen as in [Connect a grid and form](${docs}guide/connected-views.md). Keep the user's own authentication; [Authentication recovery](${docs}guide/authentication.md) shows how a request that needs sign-in is retried. Then compare the result with the original screen: its paging, saving, validation and what happens when two people edit the same record.
+
+## 5. Check the work
+
+Run these after each change, and fix what they report before handing the work back:
+
+\`\`\`sh
+bunx aster-lint src index.html
+\`\`\`
+
+\`aster-lint\` reports native controls that Aster provides as elements and CSS that restyles Aster or bypasses its theme tokens; [the aster-lint guide](${docs}guide/aster-lint.md) lists its rules. For YAML screens, \`authoring.validate(definition, sources)\` reports the file, line and column of a name that is not registered; see [Compose a workspace](${docs}guide/declarative-workspace.md). Look up exact signatures in \`node_modules/@getaster/elements/custom-elements.json\`, the packages' type declarations or the [API reference](${docs}reference/index.md) rather than inferring them from examples. Then run the user's own tests.
+
+## 6. Backends without OData
+
+For a SQL database, REST APIs or legacy services, the server side is [Aster WebData](https://getaster.now/products/aster-webdata/). It serves database tables from their declared fields. For anything else, the developer writes a short Python or TypeScript script that returns rows and, where needed, handles writes; WebData publishes the metadata, checks each row and serves the records over OData. A script can read one system and enrich it from another, but WebData does not promise arbitrary joins or atomic transactions across independent backends; check those against the workflow. [Integrate SQL and backend APIs](${docs}guide/integrate-sql-and-apis.md) walks through one source end to end.
+
+## Documentation
+
+- [Is Aster UI a fit?](${docs}guide/evaluating-aster-ui.md): where Aster UI is strong, where something else fits, and what the application provides
+- [Why Aster UI?](${docs}guide/why-aster.md): the coordination work between data and controls
+- [Installation and distribution](${docs}guide/library.md): packages, versions, stylesheets and the browser distribution
+- [Shared data model](${docs}guide/data-model.md): queries, selection, drafts, ownership and service boundaries
+- [Fields and layouts](${docs}guide/fields-and-layouts.md): field groups, collapsible settings and resizable panes
+- [Filter, group and export](${docs}guide/filter-group-export.md): query controls and exports
+- [Dashboard widgets](${docs}guide/dashboard-widgets.md): reports and dashboards over the same data
+- [All guides](${docs}guide/index.md)
+- [API reference](${docs}reference/index.md): generated Markdown for every public API
+
+## Working examples
+
+- [Webmail example](${examples}examples/mail.html): a complete application with retained drafts and simulated sign-in recovery
+- [Shared collection source](${examples}playground/collection-demo.js): table and tiles over one query, selection and editing
+- [Workspace YAML](${examples}playground/composition.ui.yaml) and [its model](${examples}playground/composition-model.js): a declarative screen and the code behind it
+- [Source](https://github.com/GetAster/aster-ui). [Report a problem or ask a question](${docs}guide/support.md): issues, discussions and private security reports
 `;
 }
 

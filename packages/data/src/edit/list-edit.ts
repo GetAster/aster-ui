@@ -5,7 +5,9 @@ import type { DataContext } from "../context.ts";
 import { ODataError } from "../odata/errors.ts";
 import type { Entity, EntityType, Value } from "../schema/model.ts";
 import { keyFromText, keyText, keyValues, type KeyText } from "../store/keys.ts";
-import { EditModel, type EditDraft, type EditOptions } from "./edit-model.ts";
+import { editPublication } from "../scope/edit-publication.ts";
+import { PageScope } from "../scope/scope.ts";
+import { EditModel, type EditDraft, type EditOptions, type FieldRules } from "./edit-model.ts";
 
 export interface ListRow {
   /** The record's key, or `new:<n>` until a new row is saved. */
@@ -28,6 +30,15 @@ export interface ListEditOptions extends EditOptions {
    * renumbers it from 1, and a new row goes last.
    */
   readonly positionField?: string;
+  /**
+   * [[object:FieldRules]] applied to every row, by field name. Conditions read
+   * the row as `row` (its `values`, `record` and `mode`, as
+   * [[staticMethod:editPublication]] publishes them) and anything `scope`
+   * publishes, so a field can be read-only or hidden on some rows only.
+   */
+  readonly fieldRules?: Readonly<Record<string, FieldRules>>;
+  /** The page scope `fieldRules` read beyond the row. Default: a scope of its own. */
+  readonly scope?: PageScope;
 }
 
 export interface ListSaveResult {
@@ -67,6 +78,8 @@ export class ListEdit {
   readonly collection: Collection | undefined;
   readonly #ctx: DataContext;
   readonly #options: ListEditOptions;
+  /** The scope rows' rules read when no `scope` is given. */
+  #scope: PageScope | undefined;
   readonly #existing: ReadonlySignal<readonly Existing[]>;
   readonly #edits = new Map<KeyText, EditModel>();
   readonly #new = signal<readonly { id: string; edit: EditModel; links: Readonly<Record<string, string>> }[]>([]);
@@ -337,6 +350,16 @@ export class ListEdit {
   #newEdit(values: Entity): EditModel {
     const edit = new EditModel(this.#ctx, this.set, undefined, values, this.#options);
     for (const field of edit.type.fields) if (!field.computed) edit.forcePending(field.name, true);
+    return this.#ruled(edit);
+  }
+
+  /** Gives a row's model the list's field rules, each row in a scope of its own where it is `row`. */
+  #ruled(edit: EditModel): EditModel {
+    const rules = this.#options.fieldRules;
+    if (!rules) return edit;
+    const scope = (this.#options.scope ?? (this.#scope ??= new PageScope(undefined, { ctx: this.#ctx }))).child();
+    scope.publish("row", editPublication(edit));
+    edit.applyRules(scope, "row", rules);
     return edit;
   }
 
@@ -356,7 +379,7 @@ export class ListEdit {
       } else {
         edit = new EditModel(this.#ctx, this.set, key, {}, this.#options);
       }
-      this.#edits.set(key, edit);
+      this.#edits.set(key, this.#ruled(edit));
     }
     return edit;
   }

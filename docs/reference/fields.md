@@ -1447,6 +1447,18 @@ or `"search"`. Default `""`, which uses the type's mode, if any.
 html`<aster-field .model=${edit} .field=${"phone"} .keyboard=${"tel"}></aster-field>`;
 ```
 
+## attr:Field.multiline
+
+`true` edits the value in a textarea that grows with the text, whatever the
+field's metadata says about its length. A string field that allows more than
+500 characters does so already; use this for unrestricted text, rather than
+giving the field a maximum length it doesn't have. Shift+Enter adds a line
+where Enter submits, as in a [[class:ListEditor]] row. Default `false`.
+
+```ts
+html`<aster-field .model=${edit} .field=${"description"} .multiline=${true}></aster-field>`;
+```
+
 ## attr:Field.trailing
 
 A template shown beside the frame, inside the same row, such as an Invite

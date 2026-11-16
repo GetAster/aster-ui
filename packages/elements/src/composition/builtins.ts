@@ -50,6 +50,11 @@ import { CommandBar } from "../composition/command-bar.ts";
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && [Object.prototype, null].includes(Object.getPrototypeOf(value));
 const fn = (value: unknown): boolean => typeof value === "function";
 const view = (value: unknown): boolean => value === nothing || object(value) && "_$litType$" in value;
+/** A list editor cell: a field, an optional span of tracks and the state it shows in. */
+const listCell = (c: unknown): boolean => object(c) && typeof c.field === "string"
+  && (c.span === undefined || c.span === "all" || (Number.isInteger(c.span) && (c.span as number) > 0))
+  && (c.show === undefined || c.show === "always" || c.show === "reading" || c.show === "editing")
+  && (c.control === undefined || ["text", "multiline", "number", "date", "check", "select", "picker"].includes(c.control as string) || fn(c.control));
 const value = (v: unknown): boolean => v === null || ["string", "boolean"].includes(typeof v) || typeof v === "number" && Number.isFinite(v) || Array.isArray(v) && v.every(value);
 const options = t.array(t.object({ value: t.custom("OData value", (v): v is import("@getaster/data").Value => value(v)), label: t.string }));
 const tabItems = t.array(t.object({ value: t.string, label: t.string, closable: t.optional(t.boolean), disabled: t.optional(t.boolean) }));
@@ -76,7 +81,7 @@ const numeric = (v: unknown): v is string | number => {
 };
 const sourceOptions = (v: unknown) => v === undefined || v instanceof Collection || v instanceof PickerOptions;
 const formControlName = checked<FormControlName>("form control name", (v): v is FormControlName =>
-  v === "text" || v === "number" || v === "date" || v === "check" || v === "select" || v === "picker");
+  v === "text" || v === "multiline" || v === "number" || v === "date" || v === "check" || v === "select" || v === "picker");
 const formItem = checked<import("../form/form.ts").FormItem>("field name, configured field or derived value", v =>
   typeof v === "string" || (object(v) && optionalNumber(v.span) && (
     (typeof v.field === "string" && sourceOptions(v.options)
@@ -221,6 +226,7 @@ export const asterComponents = Object.freeze({
     placeholder: t.string,
     readOnly: t.boolean,
     keyboard: t.string,
+    multiline: t.boolean,
     trailing: checked<Field["trailing"]>("Field.trailing", view),
   }),
   NumberField: element<NumberField>()("aster-number-field", {
@@ -402,14 +408,17 @@ export const asterComponents = Object.freeze({
   }),
   ListEditor: element<ListEditor>()("aster-list-editor", {
     list: t.optional(t.instance(ListEdit)),
-    columns: checked<ListEditor["columns"]>("ListEditor.columns", v => Array.isArray(v) && v.every(c => object(c) && typeof c.field === "string")),
+    columns: checked<ListEditor["columns"]>("ListEditor.columns", v => Array.isArray(v) && v.every(listCell)),
     label: t.string,
     addLabel: t.string,
     readOnlyReason: t.optional(t.string),
     empty: checked<ListEditor["empty"]>("ListEditor.empty", view),
     editing: literals("always", "row"),
     row: t.optional(checked<NonNullable<ListEditor["row"]>>("ListEditor.row", fn)),
-    chrome: t.object({ add: t.optional(t.boolean) }),
+    chrome: t.object({ add: t.optional(t.boolean), actions: t.optional(t.boolean) }),
+    layout: t.optional(checked<NonNullable<ListEditor["layout"]>>("ListEditor.layout", v => Array.isArray(v) && v.length > 0 && v.every(line => Array.isArray(line) && line.length > 0 && line.every(listCell)))),
+    responsive: checked<ListEditor["responsive"]>("ListEditor.responsive", v => typeof v === "boolean" || (object(v) && Object.keys(v).length === 1 && typeof v.below === "number" && Number.isFinite(v.below) && v.below >= 0)),
+    renderers: checked<ListEditor["renderers"]>("ListEditor.renderers", v => object(v) && Object.values(v).every(fn)),
     selection: t.optional(t.instance(Selection)),
   }),
   RuleEditor: element<RuleEditor>()("aster-rule-editor", {

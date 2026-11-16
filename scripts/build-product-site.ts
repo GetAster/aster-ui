@@ -32,9 +32,10 @@ function* files(root: string): Generator<string> {
   }
 }
 
-export function stageProductSite(source: string, destination: string, version: string, revision: string): void {
+/** `packageRevision` is the public commit whose packages the site describes: the site revision for a release, and the released commit for a website-only update. */
+export function stageProductSite(source: string, destination: string, version: string, revision: string, packageRevision = revision): void {
   if (!/^(?:development|\d+\.\d+\.\d+(?:-[\w.-]+)?)$/.test(version)) throw new Error("Invalid site release version");
-  if (revision !== "working-tree" && !/^[a-f0-9]{40}$/.test(revision)) throw new Error("Use the public source commit SHA or working-tree");
+  for (const sha of [revision, packageRevision]) if (sha !== "working-tree" && !/^[a-f0-9]{40}$/.test(sha)) throw new Error("Use the public source commit SHA or working-tree");
   if (existsSync(destination) && readdirSync(destination).length) throw new Error("Product site destination must be empty");
   mkdirSync(destination, { recursive: true });
   const areas = [["aster", "showcase"], ["guide", "docs/guide"], ["reference", "docs/reference"], ...["lib", "playground", "docs-assets", "examples"].map(name => [name, name])] as const;
@@ -88,7 +89,7 @@ export function stageProductSite(source: string, destination: string, version: s
   const pages = [...files(destination)].filter(path => path.endsWith(".html") && !path.endsWith("404.html")).map(path => siteOrigin + "/" + relative(destination, path).replace(/index\.html$/, ""));
   writeFileSync(join(destination, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${pages.map(url => `<url><loc>${url}</loc></url>`).join("")}</urlset>`);
   const hashes = Object.fromEntries([...files(destination)].map(path => [relative(destination, path), createHash("sha256").update(readFileSync(path)).digest("hex")]));
-  writeFileSync(join(destination, "deployment.json"), JSON.stringify({ site: siteOrigin, version, revision, files: hashes }, null, 2) + "\n");
+  writeFileSync(join(destination, "deployment.json"), JSON.stringify({ site: siteOrigin, version, revision, packageRevision, files: hashes }, null, 2) + "\n");
 }
 
 if (import.meta.main) {
@@ -96,13 +97,14 @@ if (import.meta.main) {
   const option = (name: string, fallback: string) => process.argv[process.argv.indexOf(name) + 1] ?? fallback;
   const version = process.argv.includes("--version") ? option("--version", "") : "development";
   const revision = process.argv.includes("--revision") ? option("--revision", "") : "working-tree";
+  const packageRevision = process.argv.includes("--package-revision") ? option("--package-revision", "") : revision;
   if (!process.argv.includes("--stage-only")) {
     const build = Bun.spawnSync(["bun", "scripts/build-site.ts"], { cwd: root, stdout: "inherit", stderr: "inherit" });
     if (build.exitCode) process.exit(build.exitCode);
   }
   const destination = join(root, "dist-site");
   rmSync(destination, { recursive: true, force: true });
-  stageProductSite(join(root, "dist-local"), destination, version, revision);
+  stageProductSite(join(root, "dist-local"), destination, version, revision, packageRevision);
   const problems = checkPublicLinks(destination, [""]);
   if (problems.length) throw new Error(`Published site links failed:\n${problems.join("\n")}`);
   console.log(`Product site staged at ${destination}`);

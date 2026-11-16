@@ -204,7 +204,7 @@ test("first-visit data guidance separates implementation details and npm install
   await nav.getByRole("link", { name: "The shared data model", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Understand the shared data model");
   await expect(page.locator("main")).not.toContainText("For reviewers");
-  await expect(page.locator("main")).toContainText("WebTransport with SSE fallback");
+  await expect(page.locator("main")).toContainText(`ctx.reload(set, key, "external")`);
   await nav.getByRole("link", { name: "Installation & distribution", exact: true }).click();
   await expect(page.locator("main")).toContainText("@getaster");
   await expect(page.locator("main")).toContainText("0.4 release line");

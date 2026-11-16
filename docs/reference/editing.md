@@ -1043,6 +1043,39 @@ number. With it, [[attr:ListEdit.ordered]] is true and
 [[method:ListEdit.move]] works. A `RecordEdit` also sorts the owned
 collection's query by it.
 
+## attr:ListEditOptions.fieldRules
+
+[[object:FieldRules]] by field name, applied to every row's
+[[class:EditModel]] as [[method:EditModel.applyRules]] would. Each row is
+published as `row` in a scope of its own (its `values`, `record` and `mode`,
+as [[staticMethod:editPublication]] publishes them), so one rule can make a
+field read-only on saved rows only, or hide it where another field is empty.
+Conditions can also read whatever [[attr:ListEditOptions.scope]] publishes.
+A field a rule hides is not drawn by a [[class:ListEditor]] with a
+[[attr:ListEditor.layout]]; a read-only one shows as text with its reason on
+hover. Default: none.
+
+```ts
+import { ListEdit, type Condition } from "@getaster/data";
+
+const inherited: Condition = { op: "ne", field: "row.record.source", value: null };
+new ListEdit(ctx, fields, {
+  scope,
+  fieldRules: {
+    kind: { readOnly: { when: { op: "eq", field: "row.mode", value: "update" }, reason: "Change a field's type in the model." } },
+    name: { readOnly: { when: inherited, reason: "Rename an inherited field where it's declared." } },
+    source: { visible: { op: "ne", field: "row.values.source", value: null } },
+  },
+});
+```
+
+## attr:ListEditOptions.scope
+
+The [[class:PageScope]] that [[attr:ListEditOptions.fieldRules]] read beyond
+the row, such as the page's own facts or a selection elsewhere. Each row's
+scope is a child of it, so `row` never clashes with a key the page publishes.
+Default: a scope of the list's own.
+
 ## object:ListRow
 
 One row of [[attr:ListEdit.rows]]. Plain data, rebuilt whenever the list

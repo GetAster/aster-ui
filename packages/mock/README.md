@@ -5,8 +5,8 @@ The service runs in WebAssembly and exposes the same transport interface used
 by `@getaster/data`, so a test can exercise metadata, queries and writes without
 starting an HTTP server.
 
-This is a development tool, not a production database or authorization boundary.
-Aster is pre-1.0; APIs may change.
+Use it for development, examples and tests; a production application connects
+to its own OData service.
 
 ## Install
 

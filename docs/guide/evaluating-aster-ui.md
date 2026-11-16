@@ -7,17 +7,14 @@ WebData to build applications across SQL databases and existing APIs: the server
 and exposes registered sources through OData to the UI. The same shared data
 model coordinates those views as the application grows.
 
-This is the maintainers' assessment of the project. Consider it alongside your
-requirements and evidence from a representative workflow. Another approach may
-be a better fit for your application.
-
 ## Where Aster is strong
 
 - **Applications integrating existing systems.** With Aster WebData on the server,
-  register backend handlers as virtual data sources. WebData automatically
-  publishes their declared schema and exposes their records through OData;
-  handlers supply the REST, CLI or legacy-service calls. Server handlers can read
-  and write other data sources through the engine, while UI views consume a common typed contract.
+  write short Python or TypeScript scripts as virtual data sources. WebData
+  publishes their declared schema and exposes their records through OData; the
+  scripts make the REST or legacy-service calls on configured connections. They
+  can read and write other sets through `db`, while UI views consume a common
+  typed contract.
   This is valuable when the application must work across systems, not just
   display a single database table.
 - **Connected editing workflows.** A grid, form, detail panel and chart can share
@@ -31,11 +28,12 @@ be a better fit for your application.
   own behaviour and cleanup. Custom elements, Lit templates and signals provide
   the UI foundation; React is not required.
 
+- **Accessible, themed controls.** Controls provide keyboard interaction, focus
+  handling, themes and reduced-motion support, with automated accessibility
+  checks across the suite.
+
 The [rationale](why-aster.md), [shared data model](data-model.md) and
-[connected views guide](connected-views.md) explain these responsibilities and
-their boundaries. Controls also provide themes, keyboard interaction, focus
-handling and reduced-motion support. Evaluate accessibility in the actual
-workflow and target devices; automated checks alone do not establish compliance.
+[connected views guide](connected-views.md) explain these responsibilities.
 
 ## For SQL plus backend API projects
 
@@ -47,49 +45,31 @@ need to speak OData.
 
 Use [Aster WebData](https://getaster.now/products/aster-webdata/) for server setup.
 See [the SQL and API walkthrough](integrate-sql-and-apis.md) for a concrete source
-definition, the request flow and the UI binding. Evaluate the backend-specific
-handler work and deployment alongside the UI features.
+definition, the request flow and the UI binding.
 
-## When another approach may be better
+## Where something else fits
 
-| Your situation | Consider first |
+| Your situation | What fits |
 |---|---|
-| A small, mostly read-only list or content website | Native HTML and a small amount of application code. Aster's data and ownership concepts may add little value. |
-| An established application already coordinates records, queries and drafts well | Components or a headless grid that fit its existing state model. Adopting a second data foundation can cost more than it saves. |
-| A browser-only application with no server integration layer | A client that consumes the existing APIs directly. Aster's SQL/API integration path uses the companion WebData server and its virtual-source handlers. |
-| Specialist scheduling, charting or rich editing is the main requirement | A specialist component, evaluated on its own requirements. Aster can host third-party components, but an integration adapter does not supply the vendor runtime or all its features. |
-| A requirement for established API stability or extensive production evidence | A mature alternative with evidence that meets that requirement. Aster is currently a pre-1.0 project. |
+| A small, mostly read-only list or content website | Native HTML and a little application code. |
+| An established application that already coordinates records, queries and drafts well | Keep its state model, and use Aster UI for new screens or applications. |
+| Specialist scheduling or rich-text editing as the main requirement | A specialist component, which Aster UI can host beside its own controls. |
 
-No one needs to replace a working stack merely to use declarative layouts or a
-data grid. Compare the coordination work Aster removes with the concepts and
-integration work it introduces.
+## What your application provides
 
-## Boundaries to consider
+- **The service.** An OData service, or Aster WebData over your databases and
+  APIs. Its metadata drives field types, validation and query operations.
+- **Business rules and access control,** enforced on the server. Client-side
+  validation helps people fill in forms; it is not an authorisation boundary.
+- **Cross-system logic.** A virtual-source script that combines records from
+  several systems owns that matching and its failure handling. Writes to
+  independent systems are not one atomic transaction.
+- **Notifications of other users' changes.** Report them with
+  `ctx.reload(set, key, "external")`, from a server event or a refresh, and every
+  view updates. See [service boundaries](data-model.md#service-and-realtime-boundaries).
 
-- **Cross-source workflows have execution boundaries.** Virtual sources can
-  expose reads and supported writes and call other data sources through the
-  engine. That does not promise arbitrary federated joins or atomic transactions
-  across independent backends. Check adapter capabilities and failure handling.
-- **The service matters.** Confirm metadata, query operations, paging, validation,
-  concurrency and authorization with the actual backend. The application and
-  server retain responsibility for business rules and access control.
-- **Shared state is not automatic remote delivery.** Views synchronize changes
-  known to their context. Production realtime integration awaits the server event
-  and reconnect contract; WebTransport with SSE fallback is the intended direction.
-- **Examples are local simulations.** The Webmail sign-in flow demonstrates
-  authentication recovery, not an identity provider. The optional WASM mock is a
-  development service, not a requirement for a production UI.
-- **Preview means experimental.** Conversation and other preview components have
-  separate contracts and limits. Do not present a design proposal, mockup or
-  preview as an available production feature.
-- **Check the installed version.** Use the relevant release, types and API docs.
-  Do not infer performance, compatibility or production readiness from a polished
-  demo, a package name or an unsupported benchmark comparison.
-
-See [virtual data sources](data-model.md#connect-different-backends-through-virtual-data-sources),
-[distribution](library.md), [service boundaries](data-model.md#service-and-realtime-boundaries),
-[authentication](authentication.md), [component integration](connected-charts.md)
-and [preview scope](conversation-preview.md).
+Preview controls in `@getaster/elements-preview` have their own, separately
+versioned contracts; see [preview scope](conversation-preview.md).
 
 ## Try a representative workflow
 

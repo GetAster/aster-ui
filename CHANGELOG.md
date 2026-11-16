@@ -7,6 +7,58 @@ published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
 but its installs were still inside the registry's dependency cooldown when
 0.4.0 shipped.
 
+## 0.4.72
+
+List editors in `@getaster/elements` can lay a row out as lines of cells,
+apply field rules per row and stack at a width the host chooses, and the
+packages now carry what a coding agent needs to build with them: an agent
+skill and a Custom Elements Manifest.
+
+### Added
+
+- **Agent skill and `aster-skill`.** `@getaster/elements` ships an agent skill
+  for Claude Code, Codex and other agents that read `.agents/skills`. Run
+  `npx aster-skill` to place it in a project (`aster-skill check` reports a
+  missing or stale copy); run it again after upgrading. Symbolic links at the
+  skill's location are left alone.
+- **`custom-elements.json`.** `@getaster/elements` declares a Custom Elements
+  Manifest (`customElements` in `package.json`) listing every element's
+  properties, methods and events, for editors and tools such as Storybook.
+- **List editor layouts.** `ListEditor.layout` draws a row as lines of cells,
+  with `ListColumn.span` and `ListColumn.show`, for reading and editing alike.
+  `ListEditor.responsive` sets where it stacks: `true` at 520 px of the
+  editor's own width, `false` never, or `{ below }` a chosen width.
+- **Per-row field rules.** `ListEditOptions.fieldRules` and `scope` apply field
+  rules to every row, with the row published as `row`, so a field can be
+  read-only or hidden on some rows.
+- **`ListEditor.renderers`** draws values wherever a cell shows text, and
+  **`ListColumn.control`** overrides a column's control as `FormField.control`
+  does.
+- **Multiline text.** `Field.multiline` and the `"multiline"` control name edit
+  unrestricted text in a growing textarea.
+- **List editor row actions.** Remove, Revert and Undo are icon buttons named
+  for their row, with a tooltip, in a fixed column, so a Revert appearing no
+  longer resizes the columns; `chrome.actions = false` drops the column. In
+  row mode the row being edited offers Cancel editing (Esc), and a row with
+  kept changes offers Revert while it reads.
+
+### Changed
+
+- **Read-only fields read as text on new list editor rows too.** A field the
+  rules make read-only on a row shows as text even before the row is saved; an
+  immutable key stays editable until the row is saved.
+
+### Fixed
+
+- **Focus ring in Firefox list editors.** Moving between rows with the arrow
+  keys, Home and End, or moving a row with Alt+↑/↓, now shows the focus ring
+  in Firefox after an earlier click on a row.
+
+### Template
+
+- The [consumer template](https://github.com/GetAster/aster-ui-template) places
+  the agent skill on `bun install` and adds `AGENTS.md` for coding agents.
+
 ## 0.4.47
 
 List editors in `@getaster/elements` can now read as the host's own layout

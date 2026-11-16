@@ -44,31 +44,32 @@ when ready. See [installation and distribution](library.md) for the files involv
 
 ## Connect different backends through virtual data sources
 
-[Aster WebData](https://getaster.now/products/aster-webdata/) provides **virtual data sources** as its server integration
-mechanism. Register your backend handler and its schema; the server publishes
-OData metadata and exposes the source's records and supported writes to the UI.
-Code supplies records and implements the write operations that a source supports. A handler can adapt a REST API, invoke a CLI,
-or call a legacy API and expose the result as a typed entity set with metadata.
-The adapter owns those backend calls and their mapping to the declared schema.
+[Aster WebData](https://getaster.now/products/aster-webdata/) provides **virtual data sources** beside its
+database tables. A virtual source is a short Python or TypeScript script that
+returns rows, with its fields declared beside it; the server publishes OData
+metadata and exposes the source's records and supported writes to the UI. The
+script can call a REST API or an HTTP legacy service on a configured connection
+and map the answer to the declared fields. WebData checks every row against those
+fields and does the filtering, sorting and paging the script leaves undone.
 
 Follow [the SQL and API walkthrough](integrate-sql-and-apis.md) for the complete
 request flow and a source definition.
 
 This makes the combination useful for data integration applications. For example,
 a device workspace can bring together inventory from a database, status from a
-management API and administrative commands from a legacy tool. Aster UI consumes
+management API and records from a legacy service's HTTP interface. Aster UI consumes
 the service contract for those sources through its existing collections, forms
 and grids; each view does not need its own backend-specific integration.
 
 Virtual sources can also participate in workflows that read or write other data
-sources. Server-side handlers and operations can call the engine to fetch,
-insert, update or delete records in another set, subject to access policy and
+sources. Virtual-source scripts and operations can fetch, insert, update or
+delete records in another set through `db`, subject to access policy and
 the execution context. This goes beyond displaying several APIs on one page:
 the integration logic can live behind the shared service contract.
 
 The distinction between a workflow and a transaction matters. Cross-source
-engine calls do not imply automatic joins across arbitrary backends or an atomic
-transaction covering a database, REST service and CLI. Atomic write support
+calls do not imply automatic joins across arbitrary backends or an atomic
+transaction covering a database and a REST service. Atomic write support
 is bounded by the participating backends' declared transaction capabilities.
 Design partial-failure handling for external effects and check the server
 release's supported query and write operations.
@@ -190,15 +191,14 @@ keys in custom templates, and let signals update the affected values. See
 
 ## Service and realtime boundaries
 
-The connected views in this guide synchronize changes known to their shared
-context. Learning about writes made by another client also requires a service
-notification or refresh mechanism.
-
-The current remote demo adapter does not subscribe to a production realtime
-channel. The agreed transport direction is WebTransport with SSE fallback;
-client integration awaits the server event and reconnect contract. Examples that
-simulate another user's change are demonstrations, not a deployed realtime
-service. Authentication is similarly application-configured; see
+The connected views in this guide synchronize every change known to their
+shared context. When another user changes a record, the application reports it
+with `ctx.reload(set, key, "external")`, typically from a server event or a
+periodic refresh. The context reads the record again, every view showing it
+updates, a collection drops it if it no longer matches the filter, and an open
+edit either takes in the change or reports a conflict on the fields the user
+edited. The examples' "another user" controls drive this same path.
+Authentication is application-configured; see
 [authentication and session recovery](authentication.md).
 
 For detailed APIs use [DataContext](../reference/#class:DataContext),

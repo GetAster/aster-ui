@@ -600,8 +600,10 @@ A typed editor override. A name picks one of the form's controls regardless of
 the field's metadata; a function renders a custom editor and is JavaScript
 only — the composition validator rejects it.
 
-The names are `"text"`, `"number"`, `"date"`, `"check"`, `"select"` and
-`"picker"`. The control still reads and writes the field's value using the
+The names are `"text"`, `"multiline"`, `"number"`, `"date"`, `"check"`,
+`"select"` and `"picker"`. `"multiline"` is a text field that edits in a
+textarea growing with the text, for unrestricted text whose metadata gives no
+length (see [[attr:Field.multiline]]). The control still reads and writes the field's value using the
 field's metadata type. A picker without `options` shows an empty list.
 
 A custom renderer receives a [[object:FormControlContext]] and returns a

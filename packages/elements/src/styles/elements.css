@@ -716,10 +716,24 @@
 
   /* ── list editor ── */
   aster-list-editor { display: block; }
+  /* Rows share the list's tracks, so a row's own content never resizes its columns. */
+  .aster-list-edit {
+    --list-action: 26px; --list-actions: calc(var(--list-action) * 2 + 2px);
+    display: grid; grid-template-columns: var(--list-columns); column-gap: 8px;
+  }
   .aster-list-edit-row {
-    display: grid; grid-template-columns: var(--list-columns); gap: 8px; align-items: start;
+    grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start;
     padding: var(--aster-row-y) 0; border-bottom: 1px solid var(--aster-rule-2);
   }
+  /* A layout: JS names each cell's line, first track and span; the handle and actions stay on the first line. */
+  .aster-list-edit[data-lines] .aster-list-edit-row > [data-cell] { grid-row: var(--line); grid-column: var(--col) / span var(--span); min-width: 0; }
+  .aster-list-edit[data-lines] .aster-list-edit-row > .aster-list-edit-grip { grid-column: 1; grid-row: 1; }
+  .aster-list-edit[data-lines] .aster-list-edit-row > .aster-list-edit-actions { grid-column: -2 / -1; grid-row: 1; }
+  /* Stacked (the editor's width, read by JS, is at or below its responsive width): every cell takes a line of its own, in layout order, between the handle and the actions. */
+  .aster-list-edit[data-stacked] { grid-template-columns: var(--list-columns-narrow); }
+  .aster-list-edit[data-stacked] .aster-list-edit-head { display: none; }
+  .aster-list-edit[data-stacked] .aster-list-edit-row > :is([data-cell], .aster-list-edit-read) { grid-row: auto; grid-column: var(--list-content); }
+  .aster-list-edit[data-stacked] .aster-list-edit-row > [data-cell]:empty { display: none; }
   .aster-list-edit-head { padding: 0 0 4px; font-size: 12px; font-weight: var(--aster-weight-label); color: var(--aster-text-3); }
   .aster-list-edit-static { display: block; padding: var(--aster-row-y) 0; overflow-wrap: anywhere; }
   .aster-list-edit-row[data-removing] .aster-list-edit-static { text-decoration: line-through; color: var(--aster-text-3); }
@@ -727,6 +741,9 @@
   .aster-list-edit-static[data-pending] { box-shadow: inset 2px 0 0 var(--aster-accent); padding-left: 8px; }
   .aster-list-edit-actions { display: flex; gap: 2px; justify-content: end; }
   .aster-list-edit-action { padding: var(--aster-row-y) 6px; border-radius: var(--aster-r-ctl); font-size: 12.5px; color: var(--aster-text-2); }
+  /* Sized like a text action, padding plus its line, so a row of text stays one line tall. */
+  .aster-list-edit-action[data-icon] { display: grid; place-items: center; width: var(--list-action); padding-inline: 0; }
+  .aster-list-edit-action[data-icon] svg { display: block; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .aster-list-edit-action:hover { color: var(--aster-text); background: oklch(from var(--aster-text) l c h / .05); }
   .aster-list-edit-add { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; font-weight: var(--aster-weight-label); color: var(--aster-accent); }
   .aster-list-edit-add svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.7; }

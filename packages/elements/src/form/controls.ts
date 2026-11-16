@@ -14,7 +14,7 @@ import "./custom-field.ts";
 import type { ValidateOn } from "./features.ts";
 
 /** The editors the form can be told to use for a field. */
-export type FormControlName = "text" | "number" | "date" | "check" | "select" | "picker";
+export type FormControlName = "text" | "multiline" | "number" | "date" | "check" | "select" | "picker";
 
 /** What a custom editor gets: the bound field's context plus a write that respects the field's state. */
 export interface FormControlContext extends ControlContext {
@@ -110,6 +110,9 @@ export function controlFor(model: EditModel, name: string, opts: ControlOptions)
     case "number":
       return html`<aster-number-field style=${style} .model=${model} .field=${name} .labelled=${labelled} .sharedReasons=${shared}
         .label=${label} .hint=${hint} .showErrors=${showErrors} .validateOn=${validateOn} .placeholder=${placeholder}></aster-number-field>`;
+    case "multiline":
+      return html`<aster-field style=${style} .model=${model} .field=${name} .labelled=${labelled} .sharedReasons=${shared}
+        .label=${label} .hint=${hint} .showErrors=${showErrors} .validateOn=${validateOn} .placeholder=${placeholder} .multiline=${true}></aster-field>`;
     case "text":
       return html`<aster-field style=${style} .model=${model} .field=${name} .labelled=${labelled} .sharedReasons=${shared}
         .label=${label} .hint=${hint} .showErrors=${showErrors} .validateOn=${validateOn} .placeholder=${placeholder}></aster-field>`;

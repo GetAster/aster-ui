@@ -45,8 +45,8 @@ Install the current release:
 npm install @getaster/data @getaster/elements
 ```
 
-Add the mock or preview controls separately when needed. Aster is pre-1.0 and
-its APIs may evolve; the preview package has intentionally experimental APIs.
+Add the mock or preview controls separately when needed. The preview package
+has intentionally experimental APIs.
 To produce compiled ESM packages, declarations, styles and local tarballs:
 
 ```sh
@@ -87,6 +87,14 @@ derived and shared by all four packages:
 The standalone consumer template lives in
 [templates/consumer](templates/consumer/README.md) and is published separately
 as [GetAster/aster-ui-template](https://github.com/GetAster/aster-ui-template).
+
+## Problems, questions and security
+
+- Report a problem through [Issues](https://github.com/GetAster/aster-ui/issues/new/choose); [Report a problem](https://ui.getaster.now/docs/guide/support.html) says what to include.
+- Ask questions and talk through ideas in [Discussions](https://github.com/GetAster/aster-ui/discussions).
+- Report a security problem privately, as [SECURITY.md](SECURITY.md) describes.
+
+The repository does not take pull requests at the moment; open an issue or a discussion to propose a change.
 
 ## License
 

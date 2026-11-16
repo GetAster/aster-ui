@@ -5,13 +5,13 @@ test("published home, docs search and API use the canonical routes", async ({ pa
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Keep your data and interface in sync");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("The code between your controls is already written");
   await page.screenshot({ path: info.outputPath("home.png"), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const audit = await new AxeBuilder({ page }).analyze();
   expect(audit.violations).toEqual([]);
   await page.goto("/docs/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Build connected interfaces");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Build a data-rich web application with Aster UI");
   const search = page.getByRole("searchbox", { name: "Search documentation" });
   await search.fill("Why Aster");
   await page.locator("#results").getByRole("link", { name: /Why Aster UI/ }).click();

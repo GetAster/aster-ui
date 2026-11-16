@@ -4,8 +4,7 @@ Browser-native controls for metadata-driven enterprise applications: grids,
 forms, pickers, filters, dashboards and workspaces. Controls share records and
 edit state through `@getaster/data` and use CSS for layout and theming.
 
-Aster is pre-1.0; production API stability is not yet promised. Experimental
-controls are published separately in `@getaster/elements-preview`.
+Preview controls are published separately in `@getaster/elements-preview`.
 
 ## Install
 

@@ -3,17 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "aster-skill",
     "dev": "bun --hot serve.ts",
     "build": "bun build.ts",
     "typecheck": "tsc --noEmit",
     "lint": "aster-lint src index.html"
   },
   "dependencies": {
-    "@getaster/data": "^0.4.23",
-    "@getaster/elements": "^0.4.23"
+    "@getaster/data": "^0.4.59",
+    "@getaster/elements": "^0.4.59"
   },
   "devDependencies": {
-    "@getaster/mock": "^0.4.23",
+    "@getaster/mock": "^0.4.59",
     "@types/bun": "^1.2.15",
     "typescript": "^5.9.3"
   }

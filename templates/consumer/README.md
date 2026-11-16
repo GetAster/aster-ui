@@ -26,6 +26,17 @@ bun run typecheck  # TypeScript, strict
 bun run lint       # aster-lint: Aster elements and theme tokens, not hand-made controls
 ```
 
+## Working with a coding agent
+
+`bun install` also runs `aster-skill`, which places the Aster UI skill in
+`.claude/skills/aster-ui` for Claude Code and `.agents/skills/aster-ui` for Codex
+and other agents that read that folder. The skill matches the installed package
+version: it tells the agent to build every screen through the data layer (the
+mock until a real service exists), to look up the API in the installed
+`custom-elements.json` and type declarations, and to run the checks below before
+handing work back. `AGENTS.md` carries the same rules in brief. Run
+`bunx aster-skill check` to confirm the copies are current.
+
 After `bun run build`, serve `dist/` with `/odata_mock.wasm` beside
 `index.html`; `build.ts` copies the engine there from the installed package.
 Delete the mock and the WASM file when the application talks to a real service.
@@ -42,6 +53,7 @@ Delete the mock and the WASM file when the application talks to a real service.
 | `src/yaml-plugin.ts` | A Bun loader that compiles `.ui.yaml` imports with the shipped compiler at build time. |
 | `src/styles.css` | One composed theme import, then application layout. |
 | `serve.ts`, `build.ts` | Development server and static build. |
+| `AGENTS.md`, `CLAUDE.md` | Rules for coding agents working in the project. |
 
 The YAML may name only registered models, components and renderers.
 `authoring.validate` reports an unknown name or property with the YAML file,
@@ -85,9 +97,9 @@ and CORS, and the service must support the operations you enable.
 There is nothing to unwrap. Copy this directory into your application, remove
 `node_modules/`, `dist/` and any repository remote you do not want, rename the
 `package.json`, and keep the files you use. The template pins the 0.4 release
-line from 0.4.23 (`^0.4.23`, the first release with `aster-lint`); `bun update
-@getaster/data @getaster/elements @getaster/mock` moves within it. Aster is pre-1.0, so read
-the release notes before a minor upgrade.
+line from 0.4.59 (`^0.4.59`, the first release with `aster-skill`); `bun update
+@getaster/data @getaster/elements @getaster/mock` moves within it, and reinstalls
+the matching skill. Read the release notes before moving to a new minor line.
 
 All four packages, `@getaster/data`, `@getaster/elements`,
 `@getaster/elements-preview` and `@getaster/mock`, are released together at one
@@ -95,12 +107,14 @@ version and pin each other exactly; keep them at the same version. The template
 leaves out the experimental `@getaster/elements-preview`; add it at the same
 version when you need it.
 
-A dependency cooldown (in your package manager or a guard such as PMG) can hide
-a new release for several days: installs resolve the previous version and
-`npm view` does not list the new one. Exempt the `@getaster` packages from the
-cooldown while keeping malware checks, or install each package's tarball URL,
-`https://registry.npmjs.org/@getaster/<name>/-/<name>-<version>.tgz`, e.g.
-`bun add https://registry.npmjs.org/@getaster/elements-preview/-/elements-preview-0.4.0.tgz`.
+A dependency cooldown (in your package manager or a guard such as PMG) delays
+new versions for several days, so installs resolve the previous release for a
+while. That is the policy doing its job: use the release it allows, or ask
+whoever owns the policy whether an exception is warranted.
+
+## Problems and questions
+
+Report problems and ask questions in the [Aster UI repository](https://github.com/GetAster/aster-ui): [Report a problem](https://ui.getaster.now/docs/guide/support.html) covers issues, discussions and private security reports.
 
 ## License
 

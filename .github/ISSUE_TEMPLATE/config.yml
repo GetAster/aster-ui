@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/GetAster/aster-ui/discussions
+    about: Questions about building with Aster UI, and ideas you want to talk through first.
+  - name: Report a security problem
+    url: https://github.com/GetAster/aster-ui/security/advisories/new
+    about: Send a private report here or to security@getaster.now. Do not open a public issue for a security problem.
+  - name: Documentation
+    url: https://ui.getaster.now/docs/
+    about: Guides, examples and the API reference.

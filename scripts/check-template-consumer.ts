@@ -43,6 +43,11 @@ try {
   }
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
   run(["bun", "install", "--ignore-scripts"]);
+  // The template's own postinstall places the agent skill; dependency scripts stay off.
+  run(["bun", "run", "postinstall"]);
+  for (const target of [".claude/skills/aster-ui/SKILL.md", ".agents/skills/aster-ui/SKILL.md"])
+    if (!readFileSync(join(project, target), "utf8").includes("Installed by aster-skill")) throw new Error(`postinstall did not place ${target}`);
+  if (!existsSync(join(project, "node_modules/@getaster/elements/custom-elements.json"))) throw new Error("The elements package has no custom-elements.json");
   run(["bun", "run", "typecheck"]);
   run(["bun", "run", "lint"]);
   run(["bun", "run", "build"]);
@@ -76,7 +81,7 @@ try {
       throw new Error("The development server did not serve /odata_mock.wasm");
     if (!statSync(join(project, "node_modules/@getaster/mock/wasm/odata_mock.wasm")).isFile())
       throw new Error("The mock package did not install its wasm file");
-    console.log("Template consumer: install, typecheck, lint, build, served page, styles and /odata_mock.wasm passed");
+    console.log("Template consumer: install, agent skill, typecheck, lint, build, served page, styles and /odata_mock.wasm passed");
   } finally {
     server.kill();
     await server.exited;

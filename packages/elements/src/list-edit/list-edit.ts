@@ -1,7 +1,9 @@
-import type { Collection, EditDraft, ListEdit, ListRow, Selection } from "@getaster/data";
+import type { Collection, EditDraft, Entity, ListEdit, ListRow, Selection } from "@getaster/data";
+import { computed } from "@preact/signals-core";
 import { html, nothing } from "lit-html";
 import { styleMap } from "lit-html/directives/style-map.js";
 import type { PickerOptions } from "../picker/options.ts";
+import type { FormControl } from "../form/controls.ts";
 import { AsterElement, define, each, type View } from "../base/element.ts";
 import { holds, pressDrag } from "../base/drag.ts";
 import { controlFor } from "../form/controls.ts";
@@ -9,13 +11,28 @@ import { formatValue } from "../field/values.ts";
 
 export interface ListColumn {
   readonly field: string;
-  /** A CSS track size; `1fr` by default. */
+  /** A CSS track size; `minmax(0, 1fr)` by default. */
   readonly width?: string;
   /** Makes a foreign key a picker over these records. */
   readonly options?: Collection | PickerOptions;
   /** Shows an option's text instead of the key, for read-only rows. */
   readonly display?: (row: ListRow) => string;
+  /** The control to edit with, as [[attr:FormField.control]]: a name such as `"multiline"`, or a custom renderer (JavaScript only). Default: what the field's metadata calls for. */
+  readonly control?: FormControl;
+  /** In a [[attr:ListEditor.layout]], how many of the first line's tracks the cell takes from where it starts; `"all"` takes the rest of the line. Default `1`. */
+  readonly span?: number | "all";
+  /** In a [[attr:ListEditor.layout]], when the cell is drawn: always (the default), only while the row reads, or only while it shows its controls. */
+  readonly show?: "always" | "reading" | "editing";
 }
+
+/** Draws a field's value wherever the list shows it as text: a row that reads, or a field the row can't change. */
+export type ListCellRenderer = (values: Entity, id: string) => View;
+
+/** When a layout's cells stack, one per line: at the default width (`true`), never (`false`), or at or below `below` pixels of the editor's own width. */
+export type ListResponsive = boolean | { readonly below: number };
+
+/** The width at or below which a layout stacks by default. */
+const STACK_BELOW = 520;
 
 /** When rows show their controls: always (the default), or only the one row being edited. */
 export type ListEditing = "always" | "row";
@@ -24,7 +41,14 @@ export type ListEditing = "always" | "row";
 export interface ListEditorChrome {
   /** The built-in Add button. Default `true`. */
   readonly add?: boolean;
+  /** The column of row actions (Remove, Revert, Undo). Default `true`. */
+  readonly actions?: boolean;
 }
+
+const icon = (d: string) => html`<svg viewBox="0 0 14 14" aria-hidden="true"><path d=${d}/></svg>`;
+const removeIcon = icon("M2.5 4h9M5.5 4V2.5h3V4M3.5 4l.6 7.5h5.8l.6-7.5M6 6.5v3M8 6.5v3");
+const backIcon = icon("M4.5 5.5H9a2.5 2.5 0 0 1 0 5H6M6.5 3.5l-2 2 2 2");
+const cancelIcon = icon("M3.5 3.5l7 7M10.5 3.5l-7 7");
 
 /** What one render knows about the rows' mode, so each row reads the same state. */
 interface RowsView {
@@ -40,7 +64,12 @@ interface RowsView {
  * The rows of a list edit as a grid of fields. A new row shows as pending
  * in full. Removing an existing row marks it for deletion: it shows struck
  * through and read-only, with Undo, until the list is saved. Removing a new
- * row discards it. A changed row offers Revert. While `readOnly`, rows show
+ * row discards it. A changed row offers Revert; in `"row"` mode the row being
+ * edited offers Cancel editing in its place, which does what Escape does, and
+ * a changed row that reads keeps Revert. Row actions are icon
+ * buttons, each named for its row and titled. Every row shares one set of
+ * column tracks, and the actions column is fixed, so widths hold as actions
+ * come and go. While `readOnly`, rows show
  * as text, with `readOnlyReason` above them, and nothing can be added.
  *
  * A list with a position field can be reordered: by dragging a row's handle
@@ -49,7 +78,7 @@ interface RowsView {
  *
  * With `editing = "row"` rows read as text, or as the host's `row` template,
  * until one is activated (double-click, or Enter on a focused row): that row
- * alone shows its controls. Enter keeps its changes as pending draft, Escape
+ * alone shows its controls and actions; a row being removed keeps Undo. Enter keeps its changes as pending draft, Escape
  * puts the row back as it was when editing began and discards a new row no
  * Enter has kept. The rows then follow the grid pattern (`role="grid"`,
  * focusable rows, Up and Down between them), and an optional single-select
@@ -66,6 +95,18 @@ export class ListEditor extends AsterElement {
   readonly #rowView = this.prop<((row: ListRow) => View) | undefined>(undefined);
   readonly #chrome = this.prop<ListEditorChrome>({});
   readonly #selection = this.prop<Selection | undefined>(undefined);
+  readonly #layout = this.prop<readonly (readonly ListColumn[])[] | undefined>(undefined);
+  readonly #renderers = this.prop<Readonly<Record<string, ListCellRenderer>>>({});
+  readonly #responsive = this.prop<ListResponsive>(true);
+  /** The editor's own width, as the resize observer last read it. */
+  readonly #width = this.prop(Number.POSITIVE_INFINITY);
+  /** Whether a layout stacks now; renders only when it changes, not on every resize. */
+  readonly #stacked = computed(() => {
+    const r = this.#responsive.value;
+    const below = r === false ? Number.NEGATIVE_INFINITY : r === true ? STACK_BELOW : r.below;
+    return this.#width.value <= below;
+  });
+  #resize: ResizeObserver | undefined;
   /** The row being edited in `"row"` mode. */
   readonly #editingId = this.prop<string | undefined>(undefined);
   /** The row that holds the tab stop in `"row"` mode. */
@@ -75,7 +116,7 @@ export class ListEditor extends AsterElement {
   /** New rows an Enter has kept, so Escape no longer discards them. */
   readonly #kept = new Set<string>();
   /** What to focus once it has rendered: a row's first control, its handle, the row itself, or the Add button. */
-  #focus: { readonly id: string; readonly to: "control" | "handle" | "row" | "add" } | undefined;
+  #focus: { readonly id: string; readonly to: "control" | "handle" | "row" | "add"; readonly visible?: boolean } | undefined;
   readonly #said = this.prop("");
   /** A row being dragged: where its drop line is, whether a touch lifted it, and whether that touch is outside the list. */
   readonly #drag = this.prop<{ readonly id: string; readonly to: number; readonly lifted: boolean; readonly outside: boolean } | undefined>(undefined);
@@ -140,6 +181,34 @@ export class ListEditor extends AsterElement {
   set selection(v: Selection | undefined) {
     this.#selection.value = v;
   }
+  /**
+   * The row as lines of cells, for both reading and editing: each line a list
+   * of [[object:ListColumn]]s. The first line's widths are the tracks; a later
+   * line's cells span them. Where [[attr:ListEditor.responsive]] says, each cell
+   * takes a line of its own. Default `undefined`: one line, `columns`.
+   */
+  get layout(): readonly (readonly ListColumn[])[] | undefined {
+    return this.#layout.value;
+  }
+  set layout(v: readonly (readonly ListColumn[])[] | undefined) {
+    if (v !== undefined && (!Array.isArray(v) || v.length === 0 || !v.every((line) => Array.isArray(line) && line.length > 0))) throw new TypeError("layout must be a non-empty list of non-empty lines");
+    this.#layout.value = v;
+  }
+  /** When a [[attr:ListEditor.layout]] stacks its cells one per line, as [[type:ListResponsive]]. Default `true`: at 520 px of the editor's width or narrower. */
+  get responsive(): ListResponsive {
+    return this.#responsive.value;
+  }
+  set responsive(v: ListResponsive) {
+    if (typeof v !== "boolean" && !(v && typeof v === "object" && Number.isFinite(v.below) && v.below >= 0)) throw new TypeError("responsive must be true, false or { below: pixels }");
+    this.#responsive.value = typeof v === "boolean" ? v : { below: v.below };
+  }
+  /** Renderers by field name, used wherever a cell shows its value as text. Default `{}`. */
+  get renderers(): Readonly<Record<string, ListCellRenderer>> {
+    return this.#renderers.value;
+  }
+  set renderers(v: Readonly<Record<string, ListCellRenderer>>) {
+    this.#renderers.value = { ...(v ?? {}) };
+  }
   /** Shown when there are no rows. */
   get empty(): View {
     return this.#empty.value;
@@ -148,16 +217,38 @@ export class ListEditor extends AsterElement {
     this.#empty.value = v;
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    // JS reads the width and writes intent (data-stacked); the stylesheet does the stacking.
+    this.#resize = new ResizeObserver(([entry]) => {
+      if (entry) this.#width.value = entry.contentRect.width;
+    });
+    this.#resize.observe(this);
+  }
+
+  override disconnectedCallback(): void {
+    this.#resize?.disconnect();
+    this.#resize = undefined;
+    super.disconnectedCallback();
+  }
+
   protected render(): View {
     const list = this.#list.value;
     if (!list) return nothing;
-    const columns = this.#columns.value;
+    const layout = this.#layout.value;
+    const lines = layout ?? [this.#columns.value];
+    const columns = lines[0]!;
     const type = list.type;
     const rows = list.rows.value;
     const reason = this.#readOnly.value;
     const readOnly = reason !== undefined;
     const ordered = list.ordered && !readOnly;
-    const tracks = styleMap({ "--list-columns": `${ordered ? "24px " : ""}${columns.map((c) => c.width ?? "1fr").join(" ")} auto` });
+    const actions = this.#chrome.value.actions !== false;
+    // Two icon slots: the most a row shows at once (Revert and Remove).
+    const tracks = styleMap({
+      "--list-columns": `${ordered ? "24px " : ""}${columns.map((c) => c.width ?? "minmax(0, 1fr)").join(" ")}${actions ? " var(--list-actions)" : ""}`,
+      ...(layout ? { "--list-columns-narrow": `${ordered ? "24px " : ""}minmax(0, 1fr)${actions ? " var(--list-actions)" : ""}`, "--list-content": `${ordered ? 2 : 1} / ${actions ? -2 : -1}` } : {}),
+    });
     const drag = this.#drag.value;
     const view: RowsView = {
       rows: this.#mode.value === "row",
@@ -170,15 +261,15 @@ export class ListEditor extends AsterElement {
     // Rows that take focus, are selected and activate are a grid, which a table can't be.
     const [grid, cell] = view.rows ? ["grid", "gridcell"] : ["table", "cell"];
     return html`${reason ? html`<p class="aster-hint">${reason}</p>` : nothing}
-      <div class="aster-list-edit" role=${grid} aria-label=${this.#label.value} style=${tracks} ?data-rows=${view.rows}
+      <div class="aster-list-edit" role=${grid} aria-label=${this.#label.value} style=${tracks} ?data-rows=${view.rows} ?data-lines=${layout !== undefined} ?data-stacked=${layout !== undefined && this.#stacked.value}
         @click=${(e: MouseEvent) => this.#click(e)} @dblclick=${(e: MouseEvent) => this.#dblclick(e)}
         @focusin=${(e: FocusEvent) => this.#focusin(e)} @keydown=${(e: KeyboardEvent) => this.#key(e)}>
-        ${view.rows && view.template ? nothing : html`<div class="aster-list-edit-row aster-list-edit-head" role="row">
+        ${(view.rows && view.template) || lines.length > 1 ? nothing : html`<div class="aster-list-edit-row aster-list-edit-head" role="row">
           ${ordered ? html`<span role="columnheader"><span class="aster-sr-only">Order</span></span>` : nothing}
           ${columns.map((c) => html`<span role="columnheader">${type.field(c.field)?.title ?? c.field}</span>`)}
-          <span role="columnheader"><span class="aster-sr-only">Actions</span></span>
+          ${actions ? html`<span role="columnheader"><span class="aster-sr-only">Actions</span></span>` : nothing}
         </div>`}
-        ${each(rows, (r) => r.id, (r) => this.#row(r, columns, readOnly, ordered, view, cell))}
+        ${each(rows, (r) => r.id, (r) => this.#row(r, lines, layout !== undefined, readOnly, ordered, view, cell, actions))}
         ${drag && !drag.outside ? html`<div class="aster-list-edit-drop" aria-hidden="true" style=${`--at:${drag.to}`}></div>` : nothing}
       </div>
       <span class="aster-sr-only" aria-live="polite">${this.#said.value}</span>
@@ -190,7 +281,8 @@ export class ListEditor extends AsterElement {
           </button>`}`;
   }
 
-  #row(row: ListRow, columns: readonly ListColumn[], readOnly: boolean, ordered: boolean, view: RowsView, cell: string): View {
+  #row(row: ListRow, lines: readonly (readonly ListColumn[])[], placed: boolean, readOnly: boolean, ordered: boolean, view: RowsView, cell: string, actions: boolean): View {
+    const columns = lines[0]!;
     const list = this.#list.peek()!;
     const { edit } = row;
     const editing = view.rows && view.editing === row.id && !row.removing && !readOnly;
@@ -201,35 +293,67 @@ export class ListEditor extends AsterElement {
     const said = row.removing ? "To be removed: " : row.isNew ? "New: " : "";
     const lead = (i: number) => (i === 0 && said ? html`<span class="aster-sr-only">${said}</span>` : nothing);
     const templated = view.rows && view.template && reading;
+    const renderers = this.#renderers.value;
+    const text = (c: ListColumn) => renderers[c.field]?.(edit.values.value, row.id) ?? c.display?.(row) ?? formatValue(edit.type.field(c.field), edit.values.value[c.field]);
+    // A cell's place in a layout, as intent for the stylesheet: its line, first track and span.
+    const base = ordered ? 2 : 1;
+    const placeOf = (line: number, at: number, c: ListColumn) => {
+      const span = c.span === "all" ? columns.length - at : Math.max(1, Math.min(c.span ?? 1, columns.length - at));
+      return { at: at + span, style: `--line:${line + 1};--col:${base + at};--span:${span}` };
+    };
+    let index = 0;
     const cells = templated
       ? html`<span role=${cell} class="aster-list-edit-read" style=${`grid-column: span ${columns.length}`}>${lead(0)}${view.template!(row)}</span>`
-      : reading
-      ? columns.map(
-          (c, i) => html`<span role=${cell} class="aster-list-edit-static" ?data-pending=${!row.removing && edit.pending(c.field).value}>${lead(i)}${c.display?.(row) ?? formatValue(edit.type.field(c.field), edit.values.value[c.field])}</span>`,
-        )
-      : columns.map((c, i) => {
-          // A field this row can't change (a key once set) reads as text, its reason on hover, not repeated on every row.
-          const state = edit.state(c.field).value;
-          return state.readOnly && !row.isNew
-            ? html`<span role=${cell} class="aster-list-edit-static" title=${state.reasons.readOnly ?? ""}>${lead(i)}${c.display?.(row) ?? formatValue(edit.type.field(c.field), edit.values.value[c.field])}</span>`
-            : html`<span role=${cell}>${lead(i)}${controlFor(edit, c.field, { options: c.options, labelled: false })}</span>`;
+      : lines.flatMap((line, li) => {
+          let at = 0;
+          return line.flatMap((c) => {
+            const place = placeOf(li, at, c);
+            at = place.at;
+            const state = edit.state(c.field).value;
+            const shown = c.show === "reading" ? reading : c.show === "editing" ? !reading : true;
+            // A field hidden on this row, or not shown in its current state, leaves its place empty.
+            if (placed && (!shown || !state.visible)) return [];
+            const i = index++;
+            const style = placed ? place.style : nothing;
+            if (reading) {
+              return [html`<span role=${cell} class="aster-list-edit-static" data-cell=${placed ? "" : nothing} style=${style} ?data-pending=${!row.removing && edit.pending(c.field).value}>${lead(i)}${text(c)}</span>`];
+            }
+            // A field this row can't change reads as text, its reason on hover, not repeated on every row. A new row's key is still editable: the model makes it read-only only once saved.
+            return state.readOnly
+              ? [html`<span role=${cell} class="aster-list-edit-static" data-cell=${placed ? "" : nothing} style=${style} title=${state.reasons.readOnly ?? ""}>${lead(i)}${text(c)}</span>`]
+              : [html`<span role=${cell} data-cell=${placed ? "" : nothing} style=${style}>${lead(i)}${controlFor(edit, c.field, { options: c.options, control: c.control, labelled: false })}</span>`];
+          });
         });
+    const revert = (after: () => void) => html`<button type="button" class="aster-list-edit-action" data-icon @click=${() => {
+        edit.revert();
+        after();
+      }} aria-label=${`Revert ${first}`} title="Revert changes">${backIcon}</button>`;
+    // In "row" mode the row being edited offers Cancel editing and Remove; a row that reads keeps Undo when it's being removed and Revert when it has changes.
     const action = readOnly
       ? nothing
       : row.removing
-      ? html`<button type="button" class="aster-list-edit-action" @click=${() => list.restore(row.id)}
-          aria-label=${`Undo removing ${first}`}>Undo</button>`
-      : html`${edit.dirty.value && !row.isNew
-            ? html`<button type="button" class="aster-list-edit-action" @click=${() => edit.revert()}
-                aria-label=${`Revert ${first}`}>Revert</button>`
+      ? html`<button type="button" class="aster-list-edit-action" data-icon @click=${() => list.restore(row.id)}
+          aria-label=${`Undo removing ${first}`} title="Undo remove">${backIcon}</button>`
+      : view.rows && !editing
+      // Revert's button goes with the changes, so focus returns to its row.
+      ? (edit.dirty.value && !row.isNew ? revert(() => {
+          this.#said.value = `${first} reverted`;
+          this.#toward(row.id, "row");
+        }) : nothing)
+      : html`${editing
+            // The row being edited offers Escape's own cancel, in the slot Revert takes otherwise, so the actions keep their width.
+            ? html`<button type="button" class="aster-list-edit-action" data-icon data-cancel @click=${() => this.#finish(false)}
+                aria-label=${`Cancel editing ${first}`} aria-keyshortcuts="Escape" title="Cancel editing (Esc)">${cancelIcon}</button>`
+            : edit.dirty.value && !row.isNew
+            ? revert(() => {})
             : nothing}
-          <button type="button" class="aster-list-edit-action" @click=${() => list.remove(row.id)}
-            aria-label=${`Remove ${first}`}>Remove</button>`;
+          <button type="button" class="aster-list-edit-action" data-icon @click=${() => list.remove(row.id)}
+            aria-label=${`Remove ${first}`} title="Remove">${removeIcon}</button>`;
     const handle = !ordered
       ? nothing
       : row.removing
-      ? html`<span role=${cell}></span>`
-      : html`<span role=${cell}><button type="button" class="aster-list-edit-handle" aria-label=${`Move ${first}`}
+      ? html`<span role=${cell} class="aster-list-edit-grip"></span>`
+      : html`<span role=${cell} class="aster-list-edit-grip"><button type="button" class="aster-list-edit-handle" aria-label=${`Move ${first}`}
           aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown" title="Drag, or Alt+↑ and Alt+↓"
           @keydown=${(e: KeyboardEvent) => this.#moveKey(e, row, first)}
           @pointerdown=${(e: PointerEvent) => this.#dragStart(e, row, first)}>
@@ -241,7 +365,7 @@ export class ListEditor extends AsterElement {
         tabindex=${view.rows ? (view.active === row.id ? "0" : "-1") : nothing}
         aria-selected=${view.rows && view.selectable ? (view.selected === row.id ? "true" : "false") : nothing}>
       ${handle}${cells}
-      <span role=${cell} class="aster-list-edit-actions">${action}</span>
+      ${actions ? html`<span role=${cell} class="aster-list-edit-actions">${action}</span>` : nothing}
       ${row.removeError ? html`<p class="aster-error aster-list-edit-error" role="alert">${row.removeError}</p>` : nothing}
     </div>`;
   }
@@ -252,19 +376,19 @@ export class ListEditor extends AsterElement {
     return [live.findIndex((r) => r.id === row.id), live.length];
   }
 
-  #moveTo(row: ListRow, index: number, name: string): void {
+  #moveTo(row: ListRow, index: number, name: string, keyboard = false): void {
     const [from, count] = this.#place(row);
     const to = Math.max(0, Math.min(count - 1, index));
     if (to === from) return;
     this.#list.peek()!.move(row.id, to);
     this.#said.value = `${name}, moved to ${to + 1} of ${count}`;
-    this.#focus = { id: row.id, to: "handle" };
+    this.#focus = { id: row.id, to: "handle", visible: keyboard };
   }
 
   #moveKey(e: KeyboardEvent, row: ListRow, name: string): void {
     if (!e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
     e.preventDefault();
-    this.#moveTo(row, this.#place(row)[0] + (e.key === "ArrowUp" ? -1 : 1), name);
+    this.#moveTo(row, this.#place(row)[0] + (e.key === "ArrowUp" ? -1 : 1), name, true);
   }
 
   /**
@@ -328,7 +452,9 @@ export class ListEditor extends AsterElement {
     );
     if (!target) return;
     this.#focus = undefined;
-    target.focus();
+    // A keyboard move asks for the focus ring outright: Firefox otherwise
+    // inherits "not visible" from a row the pointer focused before.
+    target.focus(want.visible ? ({ focusVisible: true } as FocusOptions) : undefined);
   }
 
   /** Starts editing a row and focuses its first control. In `"always"` mode every row is already editable, so this only focuses. Does nothing for a row that is being removed, or while read-only. */
@@ -348,14 +474,15 @@ export class ListEditor extends AsterElement {
     this.#toward(id, "control");
   }
 
-  #toward(id: string, to: "control" | "handle" | "row" | "add"): void {
-    this.#focus = { id, to };
+  #toward(id: string, to: "control" | "handle" | "row" | "add", visible = false): void {
+    this.#focus = { id, to, visible };
     // Focus now if the row is already there; otherwise after the render this change caused.
     queueMicrotask(() => this.#applyFocus());
   }
 
   #name(row: ListRow): string {
-    return String(row.edit.values.peek()[this.#columns.peek()[0]?.field ?? ""] ?? "") || "new row";
+    const first = (this.#layout.peek() ?? [this.#columns.peek()])[0]?.[0]?.field ?? "";
+    return String(row.edit.values.peek()[first] ?? "") || "new row";
   }
 
   /** Ends the row being edited: kept as a pending draft, or put back as it was when editing began. */
@@ -477,7 +604,7 @@ export class ListEditor extends AsterElement {
     e.preventDefault();
     if (to?.dataset.id !== undefined) {
       this.#choose(to.dataset.id);
-      this.#toward(to.dataset.id, "row");
+      this.#toward(to.dataset.id, "row", true);
     }
   }
 

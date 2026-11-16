@@ -25,11 +25,11 @@
 <text class="note" x="610.0" y="117" text-anchor="middle">Database</text>
 <path class="arrow" d="M357 159V213" marker-end="url(#arrow)"/>
 <rect class="step" x="239" y="215" width="237" height="64" rx="6"/>
-<text class="label" x="357.5" y="240" text-anchor="middle">Your virtual-source handler</text>
+<text class="label" x="357.5" y="240" text-anchor="middle">Your virtual-source script</text>
 <text class="note" x="357.5" y="260" text-anchor="middle">Backend calls and mapping</text>
 <path class="arrow" d="M476 247H538" marker-end="url(#arrow)"/>
 <rect class="step" x="540" y="215" width="140" height="64" rx="6"/>
-<text class="label" x="610.0" y="240" text-anchor="middle">API / CLI</text>
+<text class="label" x="610.0" y="240" text-anchor="middle">REST API</text>
 <text class="note" x="610.0" y="260" text-anchor="middle">Legacy service</text>
-<text class="note" x="350" y="347" text-anchor="middle">Your handler owns any matching of SQL and API records.</text>
+<text class="note" x="350" y="347" text-anchor="middle">Your script owns any matching of SQL and API records.</text>
 </svg>

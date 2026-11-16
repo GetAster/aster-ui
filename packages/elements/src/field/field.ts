@@ -20,6 +20,7 @@ export class Field extends BoundField {
   readonly #readonly = this.prop(false);
   readonly #trailing = this.prop<View>(nothing);
   readonly #keyboard = this.prop("");
+  readonly #multiline = this.prop(false);
 
   get value(): string {
     return this.#value.value;
@@ -38,6 +39,13 @@ export class Field extends BoundField {
   }
   set readOnly(v: boolean) {
     this.#readonly.value = v;
+  }
+  /** Edits in a textarea that grows with the text, whatever the field's length. Long text (over 500 characters allowed) always does. */
+  get multiline(): boolean {
+    return this.#multiline.value;
+  }
+  set multiline(v: boolean) {
+    this.#multiline.value = v;
   }
   /** The `inputmode` to offer, when the field's type doesn't say (a number kept as text). */
   get keyboard(): string {
@@ -69,7 +77,7 @@ export class Field extends BoundField {
     const kind = inputKind(c.meta);
     return inputView({ id: c.id, value: text, type: kind.type, keyboard: this.#keyboard.value || kind.inputmode || "",
       ...(this.labelled ? {} : { label: c.label }), placeholder: this.#placeholder.value, readOnly, required: c.state.required,
-      disabled: !c.state.enabled, invalid: c.invalid, ...(c.describedBy ? { describedBy: c.describedBy } : {}), ...(isProse(c.meta) ? { rows: 2 } : {}),
+      disabled: !c.state.enabled, invalid: c.invalid, ...(c.describedBy ? { describedBy: c.describedBy } : {}), ...(this.#multiline.value || isProse(c.meta) ? { rows: 2 } : {}),
       input: (text) => this.write(parseInput(c.meta, text)) });
   }
 }

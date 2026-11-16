@@ -5,7 +5,7 @@ shares records, queries, selections and edit state across views without dependin
 on the DOM or a UI framework.
 
 Use it on its own for application state, or with `@getaster/elements` for grids,
-forms and other browser controls. Aster is pre-1.0; API stability is not yet promised.
+forms and other browser controls.
 
 ## Install
 

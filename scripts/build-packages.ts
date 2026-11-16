@@ -3,6 +3,8 @@ import { buildVersion } from "./version.ts";
 import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { verifyWasm } from "./verify-wasm.ts";
+import { build as buildReference } from "./docs/build.ts";
+import { customElementsManifest } from "./docs/custom-elements.ts";
 
 const root = resolve(import.meta.dir, "..");
 const versionIndex = process.argv.indexOf("--version");
@@ -20,6 +22,7 @@ const run = (args: string[], cwd = root) => {
   return result.stdout.toString();
 };
 run(["bunx", "tsc", "-p", "scripts/lib", "--outDir", join(out, "types")]);
+const reference = buildReference().entries;
 const packages = ["data", "elements", "elements-preview", "mock"];
 for (const name of packages) {
   const source = join(root, "packages", name);
@@ -54,17 +57,20 @@ for (const name of packages) {
     case "elements": {
       cpSync(join(source, "src/styles"), join(destination, "styles"), { recursive: true });
       writeFileSync(join(destination, "styles/aster-ui.css"), ["base.css", "elements.css"].map(f => readFileSync(join(source, "src/styles", f), "utf8")).join("\n"));
-      manifest.files.push("styles", "bin");
+      cpSync(join(source, "skill"), join(destination, "skill"), { recursive: true });
+      writeFileSync(join(destination, "custom-elements.json"), JSON.stringify(customElementsManifest(reference, "elements"), null, 2) + "\n");
+      manifest.customElements = "custom-elements.json";
+      manifest.files.push("styles", "bin", "skill", "custom-elements.json");
       manifest.exports["./styles/*"] = "./styles/*";
       manifest.exports["./yaml"] = { types: "./dist/yaml.d.ts", import: "./dist/yaml.js", default: "./dist/yaml.js" };
       manifest.sideEffects = ["./dist/index.js", "./dist/**/*.js", "./styles/*.css"];
-      for (const tool of ["aster-theme-check", "aster-lint"]) {
+      for (const tool of ["aster-theme-check", "aster-lint", "aster-skill"]) {
         const cli = await Bun.build({ entrypoints: [join(source, `tools/${tool}.ts`)], target: "node", outdir: join(destination, "bin"), minify: false });
         if (!cli.success) throw new AggregateError(cli.logs, `${tool} build failed`);
         const path = join(destination, `bin/${tool}.js`);
         writeFileSync(path, readFileSync(path, "utf8").replace(/^#![^\n]+/, "#!/usr/bin/env node"), { mode: 0o755 });
       }
-      manifest.bin = { "aster-theme-check": "./bin/aster-theme-check.js", "aster-lint": "./bin/aster-lint.js" };
+      manifest.bin = { "aster-theme-check": "./bin/aster-theme-check.js", "aster-lint": "./bin/aster-lint.js", "aster-skill": "./bin/aster-skill.js" };
       break;
     }
     case "elements-preview":
@@ -83,7 +89,7 @@ for (const name of packages) {
   writeFileSync(join(destination, "package.json"), JSON.stringify(manifest, null, 2) + "\n");
   const packed = JSON.parse(run(["npm", "pack", "--json", "--ignore-scripts", "--pack-destination", out], destination))[0];
   for (const file of packed.files as { path: string }[]) {
-    if (!/^(?:package\.json|LICENSE|NOTICE|README\.md|dist\/|styles\/|bin\/|wasm\/)/.test(file.path) || /\.(?:test|typecheck)\.[jt]s$|\.rs$|Cargo\.(?:toml|lock)$/.test(file.path)) throw new Error(`Unexpected package content: ${file.path}`);
+    if (!/^(?:package\.json|LICENSE|NOTICE|README\.md|custom-elements\.json|dist\/|styles\/|bin\/|skill\/|wasm\/)/.test(file.path) || /\.(?:test|typecheck)\.[jt]s$|\.rs$|Cargo\.(?:toml|lock)$/.test(file.path)) throw new Error(`Unexpected package content: ${file.path}`);
   }
   console.log(`${manifest.name}@${version}: ${packed.files.length} files, ${packed.size} bytes packed`);
 }
