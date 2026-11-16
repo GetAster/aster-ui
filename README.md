@@ -88,6 +88,14 @@ The standalone consumer template lives in
 [templates/consumer](templates/consumer/README.md) and is published separately
 as [GetAster/aster-ui-template](https://github.com/GetAster/aster-ui-template).
 
+## Problems, questions and security
+
+- Report a problem through [Issues](https://github.com/GetAster/aster-ui/issues/new/choose); [Report a problem](https://ui.getaster.now/docs/guide/support.html) says what to include.
+- Ask questions and talk through ideas in [Discussions](https://github.com/GetAster/aster-ui/discussions).
+- Report a security problem privately, as [SECURITY.md](SECURITY.md) describes.
+
+The repository does not take pull requests at the moment; open an issue or a discussion to propose a change.
+
 ## License
 
 Aster UI is licensed under [Apache-2.0](LICENSE). The optional mock engine is

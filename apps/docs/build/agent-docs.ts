@@ -118,7 +118,7 @@ For a SQL database, REST APIs or legacy services, the server side is [Aster WebD
 
 ## Documentation
 
-- [Is Aster UI a fit?](${docs}guide/evaluating-aster-ui.md): strengths, limits, and when another approach fits better
+- [Is Aster UI a fit?](${docs}guide/evaluating-aster-ui.md): where Aster UI is strong, where something else fits, and what the application provides
 - [Why Aster UI?](${docs}guide/why-aster.md): the coordination work between data and controls
 - [Installation and distribution](${docs}guide/library.md): packages, versions, stylesheets and the browser distribution
 - [Shared data model](${docs}guide/data-model.md): queries, selection, drafts, ownership and service boundaries
@@ -133,7 +133,7 @@ For a SQL database, REST APIs or legacy services, the server side is [Aster WebD
 - [Webmail example](${examples}examples/mail.html): a complete application with retained drafts and simulated sign-in recovery
 - [Shared collection source](${examples}playground/collection-demo.js): table and tiles over one query, selection and editing
 - [Workspace YAML](${examples}playground/composition.ui.yaml) and [its model](${examples}playground/composition-model.js): a declarative screen and the code behind it
-- [Source](https://github.com/GetAster/aster-ui): problems and questions at https://github.com/GetAster/aster-ui/issues
+- [Source](https://github.com/GetAster/aster-ui). [Report a problem or ask a question](${docs}guide/support.md): issues, discussions and private security reports
 `;
 }
 

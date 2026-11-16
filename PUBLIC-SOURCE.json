@@ -6,6 +6,18 @@
       "sha256": "e143683e0cb1d3bed4467f62378ad1b869c136afec3e0253bacbbe4239e878ee"
     },
     {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "sha256": "5825638cff15987cc73ecf514a6ca7c6947a92a6905467fa40464bfb4bad4e3b"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "sha256": "e0435c299528bea84fe12c8faa129a211ab74f06ae4c991c174002e8ef5db1fd"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.yml",
+      "sha256": "81b7139230e1042ed5411da07e627f8da885b63f8f0a20759cda66dc2cc994eb"
+    },
+    {
       "path": ".github/workflows/check.yml",
       "sha256": "63d7870db50fb03bea00abb662f25443ce6ccab0cb12162201e614f3a80d168c"
     },
@@ -23,7 +35,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "fe104ef5b40ac5b1e9289404a366cbd505cb6d17e5161fb26105d55bfc5c1110"
+      "sha256": "fc53fb23e4ae1df02b05ea4cbe66145dfbeca9037cb56cb7b3e900eb0ee11b5a"
     },
     {
       "path": "CHANGELOG.md",
@@ -39,7 +51,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "1258833c4fa4aaa92f0d093953c62b267b7967dccb0f75032564ec9c93ff5801"
+      "sha256": "dc38f1f7ebc60b931cdb5343edd8c7565408469b878ed3f681e0e8cb3f272ef5"
+    },
+    {
+      "path": "SECURITY.md",
+      "sha256": "a03e0bf3d022ce6940407f26855c4c711c74375b3349071b34cdb6840f01dd0e"
     },
     {
       "path": "VERSION",
@@ -51,7 +67,7 @@
     },
     {
       "path": "apps/docs/build/agent-docs.ts",
-      "sha256": "5595ca329daa4a59057d3f2653cc6b07954cf369fb654e579f0452b3d709702c"
+      "sha256": "26afcd511edbe741dd3de101f949a83b40c8ab48d1b9128fa118305fa7e095bf"
     },
     {
       "path": "apps/docs/build/examples.ts",
@@ -87,7 +103,7 @@
     },
     {
       "path": "apps/docs/src/app/navigation.ts",
-      "sha256": "e6c184931d45fbad2a404163f2b078e3fc745afb65345d4b585362f2cc3180bc"
+      "sha256": "5f4f568f1adb6f21faa6dbc6cd79bacb7e5385603ce394e356cbfc28226b3187"
     },
     {
       "path": "apps/docs/src/app/viewer.ts",
@@ -740,6 +756,10 @@
     {
       "path": "docs/guide/shared-collection-views.md",
       "sha256": "4219c2648b8dbed708773f25983e946e2971bbbb541d2315d282038a17066bed"
+    },
+    {
+      "path": "docs/guide/support.md",
+      "sha256": "75a8fefb2d0691eb4c0fbfb6d9690d62505db7581c443c3cd9e4db3ce50ef7f8"
     },
     {
       "path": "docs/guide/tabs-workspace.md",
@@ -2335,7 +2355,7 @@
     },
     {
       "path": "templates/consumer/README.md",
-      "sha256": "a245789b385cc4b449be9101715f3f1ff0d20e2ade360f2c4c5a0e1193d25f9c"
+      "sha256": "1b700bbee31fc6687923893923ecfff9087b9c9b4feb8ef71d448a658bc8474f"
     },
     {
       "path": "templates/consumer/build.ts",

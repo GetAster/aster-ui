@@ -100,6 +100,10 @@ new versions for several days, so installs resolve the previous release for a
 while. That is the policy doing its job: use the release it allows, or ask
 whoever owns the policy whether an exception is warranted.
 
+## Problems and questions
+
+Report problems and ask questions in the [Aster UI repository](https://github.com/GetAster/aster-ui): [Report a problem](https://ui.getaster.now/docs/guide/support.html) covers issues, discussions and private security reports.
+
 ## License
 
 The template is application code you may copy and modify. Aster UI packages are

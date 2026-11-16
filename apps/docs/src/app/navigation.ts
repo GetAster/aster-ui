@@ -10,6 +10,7 @@ export const navigationGroups: readonly NavigationGroup[] = [
     { href: "../guide/library.html", label: "Installation & distribution" },
     { href: "../guide/data-model.html", label: "The shared data model" },
     { href: "../guide/themes.html", label: "Theming" },
+    { href: "../guide/support.html", label: "Report a problem" },
   ] },
   { label: "Component explorer", links: [
     { href: "../examples/", label: "All examples" },

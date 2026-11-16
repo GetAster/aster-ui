@@ -1,0 +1,63 @@
+name: Report a problem
+description: Something in Aster UI did not work as the documentation says.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you were doing, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce it
+      description: The smallest code or steps that show the problem. Starting from the template (https://github.com/GetAster/aster-ui-template) or an example in the documentation makes it quickest to act on. A link to a repository works too.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Console output
+      description: Errors or warnings from the browser console or the build. Remove service addresses, keys and tokens first.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      description: The installed @getaster/elements version, from `npm ls @getaster/elements` or package.json.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: The browser and its version, for example "Chrome 142" or "Safari 26.1".
+    validations:
+      required: true
+  - type: dropdown
+    id: host
+    attributes:
+      label: Application
+      description: What the elements run inside.
+      options:
+        - Plain HTML or TypeScript
+        - React
+        - Vue
+        - Angular
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: service
+    attributes:
+      label: Data service
+      description: The service the DataContext connects to.
+      options:
+        - The mock (@getaster/mock)
+        - Aster Web Data
+        - Another OData service
+        - Other
+    validations:
+      required: true

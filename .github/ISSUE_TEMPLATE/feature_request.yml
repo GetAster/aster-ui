@@ -1,0 +1,23 @@
+name: Suggest a feature
+description: Something Aster UI could do for the applications you build.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: work
+    attributes:
+      label: What you are building
+      description: The screen or workflow, and what the people using it need to do.
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: What gets in the way
+      description: What you tried with the current elements and configuration, and where it stops.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: The behaviour or configuration you have in mind, if you have one.
