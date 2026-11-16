@@ -23,7 +23,7 @@
     },
     {
       "path": ".github/workflows/publish.yml",
-      "sha256": "f3e879db637139daa1ad7f65241aa1215dc0574017c29fe6fdad2cb228b8882d"
+      "sha256": "615f803a539bd6061acc1bc65454406f8d98a5160035e17cabd414c945c57e65"
     },
     {
       "path": ".gitignore",
@@ -35,7 +35,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "7378d9ccc5f8adae41f6f4ac049c5f8b8dc5bf8aca670809746152939f7a2fa2"
+      "sha256": "6d7a2f973a60301a703dc052df9f1f0cf6dd261d9ffa1b5891d8c7e749ea0e50"
     },
     {
       "path": "CHANGELOG.md",
@@ -2318,6 +2318,10 @@
       "sha256": "cdecd033615b1e8527be14561468ca3afad392222e1bec0cf54c9d51c34f9cf0"
     },
     {
+      "path": "scripts/release-notes.ts",
+      "sha256": "432fd17df8f61d879d519bd951fb35651ad2cbde6cad26cafc91df557987b80f"
+    },
+    {
       "path": "scripts/scan-dependencies.sh",
       "sha256": "1995ff6f44d9b9ceccf243212040714105a0d778347e8ef540b5701f73a5a734"
     },
@@ -3036,6 +3040,10 @@
     {
       "path": "tests/integration/refresh-stability.test.ts",
       "sha256": "65468da1558869560fa73afafa9394cb9064cbfacfce85f6f9920a78fa27e93d"
+    },
+    {
+      "path": "tests/integration/release-notes.test.ts",
+      "sha256": "ef0b2c33dee6a53dde6ce8a8f2cd0f30e6198cbc5c1ea8cfe5e550fc0129cf3e"
     },
     {
       "path": "tests/integration/reporting.test.ts",

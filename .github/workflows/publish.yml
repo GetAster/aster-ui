@@ -71,7 +71,12 @@ jobs:
       - run: bun run check:deps
       - run: bun run docs:package
       - name: Check versioning and publication paths
-        run: bun test ./packages/docs ./tests/integration/version.test.ts ./tests/integration/agent-docs.test.ts ./tests/integration/product-site.test.ts
+        run: bun test ./packages/docs ./tests/integration/version.test.ts ./tests/integration/agent-docs.test.ts ./tests/integration/product-site.test.ts ./tests/integration/release-notes.test.ts
+      - name: Check the changelog has notes for this release
+        if: "!inputs.site_only && inputs.channel == 'stable'"
+        run: node scripts/release-notes.ts "$RELEASE_VERSION" > /dev/null
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
       - name: Build release tarballs
         if: '!inputs.site_only'
         run: bun run packages:build --version "$RELEASE_VERSION"
@@ -133,6 +138,34 @@ jobs:
       - name: Verify registry publication and tarball integrity
         if: '!inputs.dry_run'
         run: node scripts/verify-package-registry.mjs
+
+  github-release:
+    needs: [build, publish]
+    # A stable release gets a tag and a GitHub release whose notes are its CHANGELOG.md section.
+    if: ${{ needs.publish.result == 'success' && !inputs.dry_run && inputs.channel == 'stable' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Create the GitHub release
+        run: |
+          if gh release view "v$RELEASE_VERSION" > /dev/null 2>&1; then
+            echo "v$RELEASE_VERSION already has a release"
+            exit 0
+          fi
+          node scripts/release-notes.ts "$RELEASE_VERSION" > "$RUNNER_TEMP/notes.md"
+          gh release create "v$RELEASE_VERSION" --target "$GITHUB_SHA" --title "Aster UI $RELEASE_VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
 
   deploy-site:
     needs: [build, publish]
