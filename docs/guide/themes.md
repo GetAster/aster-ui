@@ -148,10 +148,13 @@ For each identity in the file, in both schemes, it checks:
 | `positive`, `caution` | `surface` | 3:1 |
 | `focus`, `indicator` | `surface` | 3:1 |
 | `toast-text`, `toast-action` | `toast-bg` | 4.5:1 |
+| `toast-mark`, `toast-success`, `toast-warning`, `toast-error` | `toast-bg` | 3:1 |
+
+The four toast marks (`toast-mark`, `toast-success`, `toast-warning`, `toast-error`) must also differ in hue by at least 40 degrees in each scheme, so an info toast never reads as an error by colour.
 
 It exits with 1 if anything fails, so it can run in CI. Only these colour
 pairs are measured; the other tokens (shadows, `scrim`, `press`,
-`mark-ring`, `toast-mark`, type, shape and motion) are checked for presence
+`mark-ring`, type, shape and motion) are checked for presence
 and spelling. The demo's browser tests run axe over its screens in each
 theme, which measures the text as it's actually drawn.
 
@@ -288,7 +291,10 @@ theme, which measures the text as it's actually drawn.
 | `--aster-toast-bg` | A toast's background. | `var(--aster-text)` |  | `oklch(27% .04 258)` | `oklch(93% .012 245)` |
 | `--aster-toast-text` | A toast's text, 4.5:1 on `toast-bg`. | `var(--aster-surface)` |  | `oklch(97% .008 245)` | `oklch(22% .035 258)` |
 | `--aster-toast-action` | A toast's action (Undo), 4.5:1 on `toast-bg`. | `oklch(85% .1 168)` | `oklch(42% .1 168)` | `oklch(80% .1 265)` | `oklch(42% .15 268)` |
-| `--aster-toast-mark` | A toast's icon. | `oklch(80% .12 168)` |  | `oklch(72% .16 32)` | `oklch(58% .17 32)` |
+| `--aster-toast-mark` | An info or loading toast's icon, 3:1 on `toast-bg`. | `oklch(78% .1 245)` | `oklch(45% .13 250)` | `oklch(78% .1 235)` | `oklch(45% .13 245)` |
+| `--aster-toast-success` | A success toast's icon, 3:1 on `toast-bg`. | `oklch(80% .13 160)` | `oklch(42% .1 160)` | `oklch(78% .12 170)` | `oklch(42% .1 170)` |
+| `--aster-toast-warning` | A warning toast's icon, 3:1 on `toast-bg`. | `oklch(83% .13 85)` | `oklch(46% .1 70)` | `oklch(82% .12 80)` | `oklch(46% .1 70)` |
+| `--aster-toast-error` | An error toast's icon, 3:1 on `toast-bg`. | `oklch(76% .13 28)` | `oklch(46% .16 28)` | `oklch(74% .14 25)` | `oklch(46% .16 25)` |
 
 ### The lamp
 

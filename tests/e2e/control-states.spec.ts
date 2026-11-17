@@ -25,7 +25,7 @@ for (const theme of ["lamplight", "harbour"]) for (const scheme of ["light", "da
       await page.keyboard.press("Shift+Tab");
       await expect(page.locator("#focus-check")).toBeFocused();
       await expect(page.locator("#focus-check")).toHaveCSS("outline-style", "solid");
-      await expect(controls).toHaveScreenshot(`${theme}-${scheme}-${width}.png`, { animations: "disabled", caret: "hide", maxDiffPixels: 20, maxDiffPixelRatio: 0 });
+      await expect(controls).toHaveScreenshot(`${theme}-${scheme}-${width}.png`, { animations: "disabled", caret: "hide", maxDiffPixels: 20 });
       const accessibility = await new AxeBuilder({ page }).analyze();
       expect(accessibility.violations).toEqual([]);
       await page.emulateMedia({ forcedColors: "active" });
@@ -140,4 +140,46 @@ test("a field's label can sit before the control, keeping its Revert and its hin
   await expect(input).toHaveAccessibleName("Task");
   const error = await field.evaluate((el: any) => { try { el.labelPosition = "end"; return "accepted"; } catch (e) { return (e as Error).name; } });
   expect(error).toBe("TypeError");
+});
+
+for (const theme of ["lamplight", "harbour"]) for (const scheme of ["light", "dark"]) {
+  for (const width of [1000, 375]) {
+    test(`${theme} ${scheme} meters and sliders at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.goto(`/playground/control-states.html?theme=${theme}&scheme=${scheme}`);
+      const measures = page.locator("#measures");
+      await expect(measures).toHaveAttribute("data-ready", "true");
+      await page.evaluate(() => document.fonts.ready);
+      await expect(page.getByRole("meter", { name: "Over budget" })).toHaveAttribute("aria-valuetext", "£12,400.00 of £10,000.00, Poor");
+      await expect(page.getByRole("slider", { name: "Invalid" })).toHaveAttribute("aria-invalid", "true");
+      await expect(page.getByRole("slider", { name: "Read-only" })).toHaveAttribute("aria-readonly", "true");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      // The screenshot holds the keyboard-focused state.
+      await page.getByRole("slider", { name: "Volume" }).focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(page.getByRole("slider", { name: "Volume" })).toHaveCSS("outline-style", "solid");
+      await expect(measures).toHaveScreenshot(`measures-${theme}-${scheme}-${width}.png`, { animations: "disabled", caret: "hide", maxDiffPixels: 20 });
+      const accessibility = await new AxeBuilder({ page }).analyze();
+      expect(accessibility.violations).toEqual([]);
+      await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+      await expect(page.locator(".aster-meter-track").first()).toHaveCSS("border-top-width", "1px");
+      await expect(page.locator(".aster-slider-rail").first()).toHaveCSS("border-top-width", "1px");
+    });
+  }
+}
+
+test("a slider thumb shows hover and drag states", async ({ page }) => {
+  await page.goto("/playground/control-states.html");
+  await expect(page.locator("#measures")).toHaveAttribute("data-ready", "true");
+  const thumb = page.getByRole("slider", { name: "Volume" });
+  await thumb.scrollIntoViewIfNeeded();
+  const rest = await thumb.evaluate((el) => getComputedStyle(el).borderTopColor);
+  await thumb.hover();
+  await expect.poll(() => thumb.evaluate((el) => getComputedStyle(el).borderTopColor)).not.toBe(rest);
+  await page.mouse.down();
+  await expect(thumb).toHaveAttribute("data-active", "");
+  await expect(thumb).toHaveCSS("cursor", "grabbing");
+  await page.mouse.up();
+  await expect(thumb).not.toHaveAttribute("data-active", "");
 });

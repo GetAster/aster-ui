@@ -1,18 +1,28 @@
+import { PUBLIC_PACKAGES } from "./package-policy.mjs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 const dryRun = process.argv.includes("--dry-run");
 const directory = resolve(dirname(fileURLToPath(import.meta.url)), "../dist-release");
-const names = ["data", "elements", "elements-preview", "mock"];
+const names = PUBLIC_PACKAGES;
+const allowedNames = new Set(names.map(name => `@getaster/${name}`));
+for (const file of readdirSync(directory).filter(file => file.endsWith(".tgz"))) {
+  const result = spawnSync("tar", ["-xOf", join(directory, file), "package/package.json"], { encoding: "utf8" });
+  if (result.status) throw new Error(`Cannot inspect publication artifact: ${file}`);
+  const manifest = JSON.parse(result.stdout);
+  if (!allowedNames.has(manifest.name) || manifest.private) throw new Error(`Package is not permitted in public publication: ${manifest.name}`);
+}
+
 if (!dryRun && (process.env.GITHUB_REPOSITORY?.toLowerCase() !== "getaster/aster-ui" || process.env.GITHUB_REF !== "refs/heads/main" || !process.env.ACTIONS_ID_TOKEN_REQUEST_URL)) {
   throw new Error("Publish from the public repository's main-branch trusted-publishing workflow");
 }
 const run = (args) => spawnSync(args[0], args.slice(1), { cwd: directory, encoding: "utf8" });
 const plans = names.map(name => {
   const manifest = JSON.parse(readFileSync(join(directory, name, "package.json"), "utf8"));
+  if (manifest.name !== `@getaster/${name}` || manifest.private) throw new Error(`Invalid public package manifest: ${name}`);
   const file = `getaster-${name}-${manifest.version}.tgz`;
   const integrity = `sha512-${createHash("sha512").update(readFileSync(join(directory, file))).digest("base64")}`;
   return { name: manifest.name, version: manifest.version, file, integrity, tag: manifest.version.includes("-") ? "next" : "latest", exists: false };

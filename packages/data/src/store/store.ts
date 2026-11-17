@@ -4,6 +4,8 @@ import { keyOf, type KeyText } from "./keys.ts";
 
 export interface StoredRecord {
   readonly entity: Entity;
+  /** Dynamic property type annotations, retained only by request-local results. */
+  readonly types?: Readonly<Record<string, string>>;
   /** Absent when the set has no `Core.OptimisticConcurrency`. */
   readonly etag?: string;
   /**
@@ -62,6 +64,13 @@ export class RecordStore {
 
   get schema(): Schema {
     return this.#schema;
+  }
+
+  /** Existing records retained independently of collection page windows. */
+  get retainedRecords(): number {
+    let count = 0;
+    for (const records of this.#sets.values()) for (const record of records.values()) if (record.peek()) count++;
+    return count;
   }
 
   /** A signal for the record; `undefined` until it's loaded, and after it's removed. */

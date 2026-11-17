@@ -1,3 +1,4 @@
+@import "./field-selection.css";
 /* These variables are read only on their owning elements. */
 @property --grid-columns { syntax: "*"; inherits: false; }
 @property --split-start { syntax: "<length>"; inherits: false; initial-value: 320px; }
@@ -306,18 +307,51 @@
   @keyframes aster-vt-in { from { opacity: 0; filter: blur(2px); transform: translateY(2px); } }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--aster-t-scheme); animation-timing-function: ease; }
 
-  /* ── toast ── */
-  .aster-toast {
-    position: fixed; left: 50%; bottom: 40px; z-index: 50; translate: -50% 10px;
-    display: flex; align-items: center; gap: 8px; padding: calc(var(--aster-pad) - 4px) 13px; border-radius: var(--aster-r-card);
-    background: var(--aster-toast-bg); color: var(--aster-toast-text); box-shadow: var(--aster-e2);
-    opacity: 0; visibility: hidden; pointer-events: none; user-select: none;
-    transition: opacity 160ms, translate 220ms var(--aster-ease), visibility 0s 220ms;
+  /* ── toast: a small stack at a logical corner or edge ── */
+  .aster-toasts {
+    position: fixed; z-index: 50; display: flex; flex-direction: column-reverse; gap: 8px;
+    inline-size: fit-content; max-inline-size: min(34rem, calc(100vw - 32px)); pointer-events: none;
+    inset-block-end: 32px; inset-inline: 0; margin-inline: auto; --shift: 10px;
   }
-  .aster-toast[data-show] { opacity: 1; visibility: visible; translate: -50% 0; pointer-events: auto; transition-delay: 0s; }
-  .aster-toast i { width: 6px; height: 6px; border-radius: 50%; background: var(--aster-toast-mark); }
-  .aster-toast button { margin-left: 6px; padding: 2px 8px; border-radius: var(--aster-r-ctl); color: var(--aster-toast-action); font-weight: var(--aster-weight-label); }
+  .aster-toasts[data-block="start"] { inset-block: 32px auto; flex-direction: column; --shift: -10px; }
+  .aster-toasts[data-inline="start"] { inset-inline: 16px auto; margin-inline: 0; align-items: flex-start; }
+  .aster-toasts[data-inline="end"] { inset-inline: auto 16px; margin-inline: 0; align-items: flex-end; }
+  .aster-toast-group { display: flex; flex-direction: inherit; gap: 8px; align-items: inherit; max-inline-size: 100%; }
+  .aster-toast-group:not(:has(.aster-toast)) { display: none; }
+  .aster-toast {
+    display: flex; align-items: center; gap: 8px; max-inline-size: 100%; padding: calc(var(--aster-pad) - 4px) 13px; border-radius: var(--aster-r-card);
+    background: var(--aster-toast-bg); color: var(--aster-toast-text); box-shadow: var(--aster-e2);
+    pointer-events: auto; user-select: none; transition: opacity var(--aster-t-ink), translate var(--aster-t-morph) var(--aster-ease);
+  }
+  @starting-style { .aster-toast { opacity: 0; translate: 0 var(--shift); } }
+  .aster-toast-text { min-inline-size: 0; overflow-wrap: anywhere; }
+  .aster-toast-mark { display: grid; flex: none; color: var(--aster-toast-mark); }
+  .aster-toast[data-variant="success"] .aster-toast-mark { color: var(--aster-toast-success); }
+  .aster-toast[data-variant="warning"] .aster-toast-mark { color: var(--aster-toast-warning); }
+  .aster-toast[data-variant="error"] .aster-toast-mark { color: var(--aster-toast-error); }
+  .aster-toast-mark svg { inline-size: 16px; block-size: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .aster-toast-spin { animation: aster-toast-spin 900ms linear infinite; }
+  @keyframes aster-toast-spin { to { rotate: 1turn; } }
+  @media (prefers-reduced-motion: reduce) { .aster-toast-spin { animation: none; } }
+  .aster-toast-progress {
+    flex: none; inline-size: 7rem; block-size: 4px; border: 0; border-radius: 999px; overflow: hidden; appearance: none;
+    background: oklch(from var(--aster-toast-text) l c h / .22); color: var(--aster-toast-mark);
+  }
+  .aster-toast-progress::-webkit-progress-bar { background: transparent; }
+  .aster-toast-progress::-webkit-progress-value { background: var(--aster-toast-mark); border-radius: 999px; }
+  .aster-toast-progress::-moz-progress-bar { background: var(--aster-toast-mark); border-radius: 999px; }
+  .aster-toast-percent { flex: none; min-inline-size: 3ch; text-align: end; font-variant-numeric: tabular-nums; }
+  .aster-toast button { padding: 2px 8px; border-radius: var(--aster-r-ctl); color: var(--aster-toast-action); font-weight: var(--aster-weight-label); }
   .aster-toast button:hover { background: oklch(from var(--aster-toast-text) l c h / .1); }
+  .aster-toast-action { margin-inline-start: 6px; }
+  .aster-toast .aster-toast-dismiss { display: grid; place-items: center; flex: none; inline-size: 24px; block-size: 24px; padding: 0; color: var(--aster-toast-text); }
+  .aster-toast-dismiss svg { inline-size: 12px; block-size: 12px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+  @media (forced-colors: active) {
+    .aster-toast { border: 1px solid CanvasText; }
+    .aster-toast-progress { forced-color-adjust: none; background: Canvas; border: 1px solid CanvasText; }
+    .aster-toast-progress::-webkit-progress-value { background: Highlight; }
+    .aster-toast-progress::-moz-progress-bar { background: Highlight; }
+  }
 
   /* ── menu ── */
   aster-menu, aster-toaster, aster-dialog { display: contents; }
@@ -371,7 +405,7 @@
     content: ""; display: inline-block; width: 5px; height: 5px; margin-left: 6px; border-radius: 50%;
     background: var(--aster-accent); translate: 0 -2px;
   }
-  :is(aster-field, aster-number-field, aster-select, aster-picker)[data-pending] .aster-field,
+  :is(aster-field, aster-number-field, aster-select, aster-picker, aster-tree-picker)[data-pending] .aster-field,
   .aster-list-edit-row[data-new] .aster-field { box-shadow: var(--aster-well), inset 2px 0 0 var(--aster-accent); }
   [data-readonly] .aster-field { background: transparent; box-shadow: inset 0 0 0 .5px var(--aster-rule); }
   [data-readonly] .aster-field :is(input, select) { color: var(--aster-text-2); }
@@ -391,6 +425,94 @@
   [data-pending] .aster-check-label::after { content: ""; display: inline-block; width: 5px; height: 5px; margin-inline-start: 6px; border-radius: 50%; background: var(--aster-accent); translate: 0 -2px; }
   [data-disabled] .aster-check-label { opacity: .6; }
   [data-readonly] .aster-check-label { color: var(--aster-text-2); }
+
+  /* ── meter: a value against a limit ── */
+  aster-meter { display: block; }
+  .aster-meter { display: grid; gap: 6px; position: relative; --meter-tone: var(--aster-text-3); }
+  .aster-meter[data-state="optimum"] { --meter-tone: var(--aster-positive); }
+  .aster-meter[data-state="suboptimum"] { --meter-tone: var(--aster-caution); }
+  .aster-meter[data-state="poor"] { --meter-tone: var(--aster-negative); }
+  /* The figure never breaks mid-value: when label and figure do not fit one line, the figure takes the next. */
+  .aster-meter-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; min-inline-size: 0; }
+  .aster-meter-label { flex: 1 1 auto; font-size: 12px; font-weight: var(--aster-weight-label); color: var(--aster-text-2); }
+  .aster-meter-value { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; margin-inline-start: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .aster-meter-mark { display: grid; color: var(--meter-tone); }
+  .aster-meter-mark svg { inline-size: 12px; block-size: 12px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  /* The native meter carries the semantics; the track paints them from tokens. */
+  .aster-meter-native { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); appearance: none; }
+  .aster-meter-track { position: relative; block-size: 8px; overflow: hidden; border-radius: 999px; background: var(--aster-sunk); box-shadow: var(--aster-well); }
+  .aster-meter-bar {
+    position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: calc(var(--fill) * 100%); border-radius: inherit;
+    background: var(--meter-tone); transition: inline-size var(--aster-t-ink) var(--aster-ease), background var(--aster-t-ink);
+  }
+  .aster-meter-edge { position: absolute; inset-block: 0; inset-inline-start: calc(var(--at) * 100%); inline-size: 1px; background: var(--aster-text); opacity: .3; }
+  @media (forced-colors: active) {
+    .aster-meter-track { border: 1px solid CanvasText; box-shadow: none; }
+    .aster-meter-bar { forced-color-adjust: none; background: Highlight; }
+    .aster-meter-edge { background: CanvasText; opacity: 1; }
+  }
+
+  /* ── slider: one thumb, or two for a range ── */
+  aster-slider { display: grid; gap: 6px; container-type: inline-size; --thumb: 20px; }
+  .aster-slider { display: flex; align-items: center; gap: 12px; min-block-size: var(--aster-ctl); }
+  .aster-slider-body { position: relative; flex: 1 1 8rem; min-inline-size: 0; }
+  .aster-slider-rail {
+    position: relative; block-size: 4px; margin-inline: calc(var(--thumb) / 2); border-radius: 999px;
+    background: var(--aster-sunk); box-shadow: var(--aster-well); touch-action: none;
+  }
+  /* The press target is the whole thumb height, not the 4px rail. */
+  .aster-slider-rail::before { content: ""; position: absolute; inset: calc(var(--thumb) / -2) calc(var(--thumb) / -2); }
+  .aster-slider-fill {
+    position: absolute; inset-block: 0; inset-inline-start: calc(var(--lo) * 100%); inline-size: calc((var(--hi) - var(--lo)) * 100%);
+    border-radius: inherit; background: var(--aster-accent);
+  }
+  .aster-slider-tick { position: absolute; inset-block-start: calc(100% + 5px); inset-inline-start: calc(var(--at) * 100%); inline-size: 2px; block-size: 5px; margin-inline-start: -1px; border-radius: 1px; background: var(--aster-text-3); }
+  .aster-slider-tick[data-in] { background: var(--aster-accent); }
+  .aster-slider-rail:has(.aster-slider-tick) { margin-block-end: 12px; }
+  .aster-slider-ticks { position: relative; block-size: 1.5em; margin-inline: calc(var(--thumb) / 2); font-size: 11.5px; color: var(--aster-text-2); font-variant-numeric: tabular-nums; }
+  .aster-slider-ticks > span[data-thin] { visibility: hidden; }
+  .aster-slider-ticks > span { position: absolute; inset-inline-start: calc(var(--at) * 100%); inline-size: 0; display: flex; justify-content: center; white-space: nowrap; }
+  .aster-slider-thumb {
+    position: absolute; inset-block-start: 50%; inset-inline-start: calc(var(--at) * 100%); inline-size: var(--thumb); block-size: var(--thumb);
+    margin-inline-start: calc(var(--thumb) / -2); translate: 0 -50%; box-sizing: border-box; border: 2px solid var(--aster-accent); border-radius: 50%;
+    background: var(--aster-surface); box-shadow: var(--aster-e1); touch-action: none;
+    transition: box-shadow var(--aster-t-micro), border-color var(--aster-t-micro), scale var(--aster-t-micro);
+  }
+  .aster-slider-thumb:hover { border-color: var(--aster-accent-hi); box-shadow: var(--aster-e2); }
+  .aster-slider-thumb[data-active] { scale: 1.12; border-color: var(--aster-accent-hi); box-shadow: var(--aster-e2); }
+  .aster-slider-value { display: grid; justify-items: end; flex: none; font-variant-numeric: tabular-nums; color: var(--aster-text-2); }
+  .aster-slider-value > * { grid-area: 1 / 1; white-space: nowrap; }
+  .aster-slider-sizer { visibility: hidden; }
+  .aster-slider-input { display: block; flex: none; inline-size: 7.5rem; }
+  /* Read-only keeps its place but reads as not editable; disabled fades. */
+  .aster-slider[data-readonly] .aster-slider-fill { background: var(--aster-text-3); }
+  .aster-slider[data-readonly] .aster-slider-thumb { border-color: var(--aster-text-3); box-shadow: var(--aster-ring); }
+  .aster-slider[data-disabled] :is(.aster-slider-body, .aster-slider-input) { opacity: .55; }
+  .aster-slider[data-disabled] .aster-slider-fill { background: var(--aster-text-3); }
+  .aster-slider[data-disabled] .aster-slider-thumb { border-color: var(--aster-text-3); box-shadow: none; }
+  .aster-slider[data-invalid] .aster-slider-rail { box-shadow: 0 0 0 .5px var(--aster-negative), inset 1px 1px 2px oklch(from var(--aster-shadow) l c h / .09); }
+  .aster-slider[data-invalid] .aster-slider-thumb { border-color: var(--aster-negative); }
+  .aster-slider[data-empty] .aster-slider-fill { inline-size: 0; }
+  aster-slider[data-pending] .aster-slider { box-shadow: inset 2px 0 0 var(--aster-accent); padding-inline-start: 8px; }
+  [data-disabled] .aster-slider-value, [data-readonly] .aster-slider-value { color: var(--aster-text-3); }
+  /* Typed boxes beside a track need room; narrower, the track takes a line and the boxes share the next. */
+  @container (max-width: 28rem) {
+    .aster-slider:has(.aster-slider-input) { flex-wrap: wrap; row-gap: 4px; }
+    .aster-slider:has(.aster-slider-input) .aster-slider-body { order: -1; flex-basis: 100%; }
+    .aster-slider-input { flex: 1 1 6rem; inline-size: auto; }
+  }
+  @media (forced-colors: active) {
+    .aster-slider-rail { box-shadow: none; border: 1px solid CanvasText; }
+    .aster-slider-fill { forced-color-adjust: none; background: Highlight; }
+    .aster-slider-thumb { forced-color-adjust: none; background: ButtonFace; border-color: ButtonText; box-shadow: none; }
+    .aster-slider-thumb:hover, .aster-slider-thumb[data-active] { border-color: Highlight; }
+    .aster-slider-thumb:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+    .aster-slider-tick, .aster-slider-tick[data-in] { background: CanvasText; }
+    .aster-slider[data-disabled] { opacity: 1; }
+    .aster-slider[data-disabled] .aster-slider-thumb, .aster-slider[data-disabled] .aster-slider-rail { border-color: GrayText; }
+    .aster-slider[data-disabled] .aster-slider-fill { background: GrayText; }
+    .aster-slider[data-invalid] .aster-slider-thumb { border-color: Mark; }
+  }
 
   /* ── select ── */
   .aster-select-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; outline: none; user-select: none; }
@@ -552,6 +674,8 @@
   .aster-tree-option-twisty svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.4; transition: rotate var(--aster-t-micro); }
   .aster-tree-option[aria-expanded="true"] > .aster-tree-option-twisty svg { rotate: 90deg; }
   .aster-tree-picker-trail { margin: 2px 0 0; font-size: 11.5px; color: var(--aster-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* In a list cell the path would make the row taller than its neighbours; the input still describes it by this text. */
+  .aster-list-edit .aster-tree-picker-trail { display: none; }
   /* Chips in a multiple picker's frame, before the input */
   .aster-picker[data-multiple] .aster-field { height: auto; min-height: var(--aster-ctl); flex-wrap: wrap; gap: 4px; padding-block: 3px; }
   .aster-picker[data-multiple] input { flex: 1; min-width: 6ch; }
@@ -737,6 +861,17 @@
   .aster-list-edit-head { padding: 0 0 4px; font-size: 12px; font-weight: var(--aster-weight-label); color: var(--aster-text-3); }
   .aster-list-edit-static { display: block; padding: var(--aster-row-y) 0; overflow-wrap: anywhere; }
   .aster-list-edit-row[data-removing] .aster-list-edit-static { text-decoration: line-through; color: var(--aster-text-3); }
+  /* A column's alignment reaches its header, its text and the input in its cell. */
+  .aster-list-edit [data-align="start"] { text-align: start; }
+  .aster-list-edit [data-align="center"] { text-align: center; }
+  .aster-list-edit [data-align="end"] { text-align: end; font-variant-numeric: tabular-nums; }
+  .aster-list-edit [data-align] input { text-align: inherit; }
+  /* An aligned header over inputs is inset by the input's own padding so its text lines up with theirs. */
+  .aster-list-edit-head [role="columnheader"][data-align][data-input] { padding-inline: 10px; }
+  /* Stacked, a cell names its column; beside a figure, above a control. */
+  .aster-list-edit-caption { display: none; }
+  .aster-list-edit[data-stacked] .aster-list-edit-caption { display: block; font-size: 12px; font-weight: var(--aster-weight-label); color: var(--aster-text-3); }
+  .aster-list-edit[data-stacked] .aster-list-edit-static[data-cell] { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   /* A changed value shown as text (read-only, or a replayed change) keeps the pending edge. */
   .aster-list-edit-static[data-pending] { box-shadow: inset 2px 0 0 var(--aster-accent); padding-left: 8px; }
   .aster-list-edit-actions { display: flex; gap: 2px; justify-content: end; }
@@ -749,6 +884,8 @@
   .aster-list-edit-add svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.7; }
   .aster-list-edit-error { grid-column: 1 / -1; }
   .aster-list-edit-empty { margin: 12px 0 0; color: var(--aster-text-3); }
+  .aster-list-edit-errors { display: grid; gap: 2px; }
+  .aster-list-edit-errors:not(:empty) { margin-top: 8px; }
   .aster-list-edit { position: relative; }
   .aster-list-edit-handle {
     display: grid; place-items: center; width: 24px; height: var(--aster-ctl); border-radius: var(--aster-r-ctl);
@@ -907,7 +1044,7 @@
   .aster-grid-row > .aster-grid-cell { grid-row: 1; }
   .aster-grid-controls {
     grid-row: 1; grid-column: 1 / -1; justify-self: end; align-self: start; position: sticky; right: 0; z-index: 2;
-    display: flex; gap: 2px; margin: 3px 6px; padding: 2px; border-radius: var(--aster-r-ctl);
+    display: flex; gap: 2px; margin: 3px 6px; margin-inline-end: max(6px, var(--aster-scrollbar-clearance)); padding: 2px; border-radius: var(--aster-r-ctl);
     background: var(--aster-surface); box-shadow: var(--aster-e2);
     opacity: 0; pointer-events: none; transition: opacity var(--aster-t-micro);
   }
@@ -964,7 +1101,7 @@
   .aster-drill-viewport { position: relative; isolation: isolate; overflow: hidden; min-height: 48px; }
   .aster-drill-list { position: relative; z-index: 1; display: grid; align-content: start; margin: 0; padding: 0; list-style: none; max-height: var(--nav-height, 320px); overflow: auto; background: var(--aster-surface); }
   .aster-drill-ghost { position: absolute; inset: 0; pointer-events: none; }
-  .aster-drill-row { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--aster-rule-2); }
+  .aster-drill-row { display: flex; align-items: center; gap: 4px; padding-inline-end: var(--aster-scrollbar-clearance); border-bottom: 1px solid var(--aster-rule-2); }
   .aster-drill-choose { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: calc(var(--aster-row-y) + 1px) 8px; border-radius: var(--aster-r-ctl); text-align: left; }
   .aster-drill-choose:hover:not([aria-disabled]) { background: var(--aster-accent-soft); }
   .aster-drill-choose[aria-disabled] { color: var(--aster-text-2); }
@@ -1063,7 +1200,7 @@
      group headers and the card layout set their own geometry. */
   .aster-grid-row:not(.aster-grid-head, .aster-grid-filters, .aster-grid-group) > .aster-grid-cell { min-height: var(--aster-grid-row-min-height); }
   .aster-grid-head .aster-grid-cell { min-height: var(--aster-grid-header-height); }
-  .aster-grid-cell[data-numeric] { text-align: right; font-variant-numeric: tabular-nums; }
+  .aster-grid-cell[data-numeric] { text-align: end; font-variant-numeric: tabular-nums; }
   .aster-grid-cell[data-align="start"] { text-align: start; }
   .aster-grid-cell[data-align="center"] { text-align: center; }
   .aster-grid-cell[data-align="end"] { text-align: end; }
@@ -1104,7 +1241,9 @@
   .aster-grid-header:hover .aster-grid-header-menu, .aster-grid-header-menu:focus-visible { opacity: 1; }
   .aster-grid-header-menu svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.5; }
   .aster-grid-resize { position: absolute; top: 0; right: -4px; bottom: 0; width: 8px; z-index: 1; cursor: col-resize; touch-action: none; }
-  .aster-grid-header:last-child .aster-grid-resize { right: 0; }
+  /* The last column ends at the scroller's edge: its controls stay clear of an overlay scrollbar. */
+  .aster-grid-header:last-child .aster-grid-resize { right: var(--aster-scrollbar-clearance); }
+  .aster-grid-header:last-child .aster-grid-header-menu { margin-inline-end: var(--aster-scrollbar-clearance); }
   .aster-grid-resize::after { content: ""; position: absolute; top: 25%; bottom: 25%; left: 3px; width: 2px; border-radius: 1px; background: transparent; transition: background var(--aster-t-micro); }
   .aster-grid-resize:hover::after { background: var(--aster-accent); }
   .aster-grid-filters .aster-grid-cell { padding: 4px 6px; background: var(--aster-surface); }
@@ -1119,6 +1258,17 @@
   .aster-grid-header[data-align="start"] .aster-grid-sort { justify-content: flex-start; }
   .aster-grid-header[data-align="center"] .aster-grid-sort { justify-content: center; }
   .aster-grid-header[data-align="end"] .aster-grid-sort { justify-content: flex-end; }
+  /* In an end-aligned header the options button and the label pack at the inline end, the button
+     just before the label, so the label ends where its cells' text ends and the button reads as its own. */
+  .aster-grid-header:is([data-numeric], [data-align="end"]):not([data-align="start"], [data-align="center"]) .aster-grid-sort { flex: 0 1 auto; padding-inline: 4px 12px; }
+  .aster-grid-header:is([data-numeric], [data-align="end"]):not([data-align="start"], [data-align="center"]) .aster-grid-header-menu { order: -1; margin-inline: auto 0; }
+  /* A sorted end-aligned header puts its arrow (and rank) before the label, so the label's end stays on the figures'. */
+  .aster-grid-header:is([data-numeric], [data-align="end"]):not([data-align="start"], [data-align="center"]) .aster-grid-sort > :not(span) { order: -1; }
+  /* A centre-aligned header centres the label with its button after it: the button's width is mirrored
+     as start padding, so the label (not the pair) sits on its cells' centre. */
+  .aster-grid-header[data-align="center"] { justify-content: center; }
+  .aster-grid-header[data-align="center"] .aster-grid-sort { flex: 0 1 auto; padding-inline: 26px 4px; }
+  .aster-grid-header[data-align="center"] .aster-grid-header-menu { margin-inline-end: 0; }
   .aster-grid-sort:hover { color: var(--aster-text); }
   .aster-grid-sort-mark { width: 10px; height: 10px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; }
   .aster-grid-sort small { font-size: 10px; color: var(--aster-text-3); }
@@ -1278,8 +1428,9 @@
   .aster-grid-selection-content { flex: 1; min-width: 8ch; overflow-wrap: anywhere; }
   .aster-grid-selection-content > :is(aster-field, aster-number-field, aster-select, aster-picker, aster-check, aster-choice) { min-width: 0; grid-template-columns: minmax(0, 1fr); }
   .aster-grid-selection { display: inline-flex; gap: 3px; align-items: center; vertical-align: middle; }
-  .aster-grid-pick { min-width: var(--aster-ctl-tight); min-height: calc(var(--aster-ctl-tight) - 2px); padding: 2px 5px;
+  .aster-grid-pick { display: inline-grid; place-items: center; text-align: center; min-width: var(--aster-ctl-tight); min-height: calc(var(--aster-ctl-tight) - 2px); padding: 2px 5px;
     border: 1px solid var(--aster-rule); border-radius: var(--aster-r-ctl); background: var(--aster-surface); color: var(--aster-text); font-variant-numeric: tabular-nums; }
+  .aster-grid-pick > svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .aster-grid-pick[aria-pressed="true"] { background: var(--aster-accent-soft); border-color: var(--aster-accent); }
   .aster-grid-pick:focus-visible { outline: 2px solid var(--aster-focus); outline-offset: -2px; }
 }
@@ -1341,3 +1492,10 @@
 }
 
 @layer aster.elements { .aster-grid-menu .aster-menu { max-height:calc(100dvh - 24px); overflow-y:auto; } }
+
+@layer aster.elements {
+  .aster-field-link { color: var(--aster-accent); text-decoration: underline; text-underline-offset: .15em; overflow-wrap: anywhere; }
+  .aster-field-link:hover { text-decoration-thickness: 2px; }
+  .aster-field-link:active { color: var(--aster-text); }
+  @media (forced-colors: active) { .aster-field-link { color: LinkText; } }
+}

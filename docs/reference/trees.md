@@ -15,7 +15,8 @@ data model for this and several views over it:
   and slides between levels. It suits a phone, where an indented tree is too
   narrow, and a "Move to…" dialog, where the person picks a new parent.
 - `aster-tree-picker` ([[class:TreePicker]]) chooses a value from a tree in a
-  form field.
+  form field or a list editor cell. A form picks it for a foreign key into a
+  tree, and a list column takes a [[class:TreeChoices]] as its `options`.
 
 The views load the same way: a level is a collection, so it loads by page and
 follows the store's changes. When a record's parent changes, it leaves one

@@ -31,6 +31,15 @@ describe("theme check", () => {
     expect(errors.some((e) => e.startsWith("light: text-2 on surface is 2."))).toBe(true);
   });
 
+  test("toast marks whose hues read as the same colour fail", () => {
+    const same = readFileSync(join(styles, "harbour.css"), "utf8").replace(/--aster-toast-mark:\s*oklch\(78% \.1 235\);/, "--aster-toast-mark: oklch(72% .16 32);");
+    const errors = check(identities(same)[0]!).errors.map((e) => `${e.scheme}: ${e.message}`);
+    expect(errors.some((e) => e.startsWith("light: toast-mark and toast-error are 7° apart in hue"))).toBe(true);
+    for (const file of ["lamplight.css", "harbour.css"]) for (const identity of theme(file)) {
+      expect(check(identity).errors.filter((e) => e.message.includes("hue"))).toEqual([]);
+    }
+  });
+
   test("colours: hex, rgb, oklch, relative oklch, color-mix and var", () => {
     const lookup = (n: string) => (n === "--x" ? parseColor("#12658b") : undefined);
     expect(parseColor("#fff")).toEqual({ r: 1, g: 1, b: 1, a: 1 });

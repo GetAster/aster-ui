@@ -6,10 +6,12 @@ import type {
   EntityType,
   Field,
   Navigation,
+  RecordRule,
   Schema,
   Skipped,
   Value,
 } from "./model.ts";
+import { readRecordRules } from "../validate/record-rule.ts";
 
 /** A metadata problem, with the JSON path of the offending member. */
 export class SchemaError extends Error {
@@ -445,8 +447,10 @@ export function parseCsdl(json: unknown): Schema {
         }
       }
 
+      const title = str(annotationsOf(o, resolve)["Core.Description"]);
       const nav: Navigation = {
         name: nd.name,
+        ...(title !== undefined ? { title } : {}),
         target,
         collection,
         keys: keys.map((k) => Object.freeze(k)),
@@ -459,6 +463,7 @@ export function parseCsdl(json: unknown): Schema {
   }
 
   const types = new FrozenMap<string, EntityType>();
+  const ruleDrafts: { readonly type: EntityType; readonly rules: RecordRule[] }[] = [];
   for (const [qualified, draft] of typeDrafts) {
     const fields = Object.freeze(fieldsByType.get(qualified)!);
     const navigations = Object.freeze(navsByType.get(qualified)!);
@@ -468,12 +473,14 @@ export function parseCsdl(json: unknown): Schema {
     const title = str(ann["Core.Description"]);
     const pluralTitle = str(ann["AsterData.PluralTitle"]);
     const titleField = str(ann["AsterData.TitleField"]);
+    const rules: RecordRule[] = [];
     const type: EntityType = {
       name: draft.name,
       qualifiedName: qualified,
       key: Object.freeze([...keysByType.get(qualified)!]),
       fields,
       navigations,
+      rules,
       ...(title !== undefined ? { title } : {}),
       ...(pluralTitle !== undefined ? { pluralTitle } : {}),
       ...(titleField !== undefined ? { titleField } : {}),
@@ -482,6 +489,7 @@ export function parseCsdl(json: unknown): Schema {
       navigation: (n) => navMap.get(n),
     };
     types.set(qualified, Object.freeze(type));
+    ruleDrafts.push({ type, rules });
   }
 
   const sets = new FrozenMap<string, EntitySet>();
@@ -504,6 +512,11 @@ export function parseCsdl(json: unknown): Schema {
         annotations: Object.freeze(sd.annotations),
       }),
     );
+  }
+  // Rules compile against the sets' types, so they are read once every set exists.
+  for (const { type, rules } of ruleDrafts) {
+    rules.push(...readRecordRules(type, type.annotations, (name) => sets.get(name)?.type, resolve));
+    Object.freeze(rules);
   }
   types.seal();
   sets.seal();

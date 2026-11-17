@@ -1033,3 +1033,57 @@ Returns the loaded `StoredRecord`, including hidden-field markers, or `undefined
 for an unloaded or absent position. Reads that record's signal, so renderers and
 effects follow changes without constructing the whole `items` array. It starts
 no fetch; call `ensure` or `view` through the owning screen when needed.
+
+## method:Collection.dispose
+
+Cancels pending reads and prevents late answers from entering the shared store.
+Repeated calls have no effect. Context-created collections must be released
+through `DataContext.release`, which also stops query following and synchronization.
+
+## Request-local calculated columns
+
+`Query.compute` declares an OData expression and the client type used to format
+criteria before the first response. The server infers and authorizes the expression;
+the declaration is not server type inference.
+
+```ts
+const query = {
+  set: "Lines",
+  compute: [{ alias: "LineTotal", expression: "Quantity mul UnitPrice", type: "Edm.Decimal" }],
+  select: ["ID", "LineTotal"],
+  filter: { op: "gt", field: "LineTotal", value: "20.00" },
+  orderBy: [{ field: "LineTotal", descending: true }],
+} satisfies Query;
+const lines = context.collection(query);
+```
+
+`Collection.type` and exported `queryType(type, compute)` expose read-only alias
+fields without changing the schema. Read computed values through `items` or
+`recordAt`; aliases never enter the canonical record store. Each collection keeps
+its own results even when another collection uses the same key and alias with a
+different expression. `StoredRecord.types` preserves dynamic property type
+annotations. Decimal and Int64 remain exact strings; null remains null. An
+annotation conflicting with the declared type rejects the whole page before any
+canonical records are stored. Decimal, Int64, Duration and DateTimeOffset computed
+non-null values require response annotations. Null values may omit them.
+
+`NavigatorOccurrence.compute` uses the same descriptors; aliases belong only to
+that occurrence. Its `fields`, `filter` and `orderBy` may refer to its own aliases.
+Aliases must be unique identifiers and cannot shadow declared fields or navigations.
+Expressions are sent to the server unchanged; there is no client evaluator.
+
+`Summary` and `ODataSource.aggregate` accept computed queries (the aggregate request
+uses `compute`). Summaries send `$apply=compute(...)/filter(...)/aggregate(...)`,
+so totals cover every matching row before paging. Store changes invalidate computed
+windows and trigger server refresh rather than placing rows using old calculated
+values. Because expression dependencies are server-defined, computed windows
+conservatively refresh for changes in any related set. Cancellation, replacement
+and disposal discard collection-local calculated values and reject late answers.
+
+Relationship summaries correlate the navigation's referential constraints with
+the complete parent address. If a constraint needs a non-key parent field, the
+summary reads the parent before requesting the child aggregation. Hidden or
+missing correlation fields fail explicitly. Navigations without referential
+constraints cannot be summarized by this API and are rejected; they never fall
+back to totals over the entire child set. Changing the relationship address on
+a followed query refreshes its summary.

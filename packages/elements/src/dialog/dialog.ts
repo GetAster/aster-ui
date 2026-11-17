@@ -127,6 +127,7 @@ export class Dialog extends AsterElement {
     this.#opener = opener;
     if (this.#modal.value) dialog.showModal();
     else dialog.show();
+    this.emit("open", undefined, { cancelable: false });
     this.#focusInitial(focus?.(), previous);
   }
 

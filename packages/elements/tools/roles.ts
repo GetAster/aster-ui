@@ -71,7 +71,10 @@ export const ROLES: Readonly<Record<string, string>> = {
   "toast-bg": "A toast's background.",
   "toast-text": "A toast's text, 4.5:1 on `toast-bg`.",
   "toast-action": "A toast's action (Undo), 4.5:1 on `toast-bg`.",
-  "toast-mark": "A toast's icon.",
+  "toast-mark": "An info or loading toast's icon, 3:1 on `toast-bg`.",
+  "toast-success": "A success toast's icon, 3:1 on `toast-bg`.",
+  "toast-warning": "A warning toast's icon, 3:1 on `toast-bg`.",
+  "toast-error": "An error toast's icon, 3:1 on `toast-bg`.",
 
   lamp: "Lamplight's lamp colour; a neutral white elsewhere.",
   glow: "How much lamp, 0 to 1; `0` turns it off.",

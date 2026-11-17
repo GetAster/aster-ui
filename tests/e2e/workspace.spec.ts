@@ -108,7 +108,8 @@ test("saved placement survives refresh, restores maximized/minimized states and 
     return [Math.round(b.x), Math.round(b.y), Math.round(b.width)];
   }).toEqual([490, 460, 390]);
   await page.evaluate(() => localStorage.setItem("aster-showcase-workspace-v1", JSON.stringify({ version: 1, windows: [{ id: "not-registered", open: true, placement: { state: "normal" } }], active: "not-registered" })));
-  await page.getByRole("button", { name: "Restore layout", exact: true }).click();
+  await page.getByRole("button", { name: "Restore layout", exact: true }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("status").filter({ hasText: "Saved layout restored" })).toBeVisible();
   await expect(page.locator("aster-window")).toHaveCount(2);
 });
@@ -150,13 +151,15 @@ test("saved layout validation is atomic and does not close an existing dirty win
     { id: "notes", open: true, placement: { state: "maximized" } },
     { id: "device", open: true, placement: { state: "normal", bounds: { x: 0, y: 0, width: -2, height: 100 } } },
   ], active: "notes" })));
-  await page.getByRole("button", { name: "Restore layout", exact: true }).click();
+  await page.getByRole("button", { name: "Restore layout", exact: true }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.locator("#workspace-status")).toHaveText("The saved layout could not be restored.");
   await expect(notes).toHaveAttribute("data-state", "normal");
   await page.evaluate(() => localStorage.setItem("aster-showcase-workspace-v1", JSON.stringify({ version: 1, windows: [
     { id: "notes", open: false, placement: { state: "normal" } },
   ], active: null })));
-  await page.getByRole("button", { name: "Restore layout", exact: true }).click();
+  await page.getByRole("button", { name: "Restore layout", exact: true }).focus();
+  await page.keyboard.press("Enter");
   await expect(notes).toBeVisible();
   await expect(notes.getByRole("textbox", { name: "Workspace notes" })).toHaveValue("Keep this draft");
 });

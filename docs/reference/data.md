@@ -885,6 +885,14 @@ than place the record on stale data. Key fields are always known. Stored
 fields count as current when the new read has the same ETag, or when the set
 has no ETags at all.
 
+## attr:StoredRecord.types
+
+Optional readonly map of dynamic property names to their OData type annotations,
+such as `{ LineTotal: "#Decimal" }`. `ODataSource` preserves these independently
+of entity values. A calculated collection retains only its configured aliases'
+annotations in its local result; these annotations never extend shared schema
+or enter canonical records. Decimal and Int64 values remain exact strings.
+
 ## attr:StoredRecord.hidden
 
 A record with hidden fields always has `known`, and a hidden field is never
@@ -929,3 +937,19 @@ See [[type:Origin]].
   values and raise a conflict where both changed a field.
 
 Groups recount on `save` and `external`, not on `fetch`.
+
+## Relationship-addressed reads
+
+`Query.relationship` identifies an immediate navigation by parent `set`, complete
+ordered `key` tuple and `navigation`. `Query.set` remains the target set used for
+record identity and query-field validation. `ODataSource.query` requests
+`ParentSet(key)/navigation` and preserves that address for subsequent pages.
+Missing constraints never become unfiltered target-set requests.
+
+The range argument accepts `signal`; the source forwards it to the transport
+for the first request and continuations. Collections abort on query replacement,
+refresh and final release, and retain generation checks so late transport answers
+cannot enter the store even when a transport ignores cancellation.
+`DataContext.release` now cancels pending reads as well as stopping synchronization.
+Applications that share a relationship window between presentations must coordinate
+its ownership and release it after the final consumer unmounts.

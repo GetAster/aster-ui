@@ -7,6 +7,18 @@ const table = (page: Page) => page.getByRole("grid", { name: "Device fleet table
 const row = (page: Page, id: number) => page.locator(`#fleet-table .aster-grid-row[data-key="[${id}]"]`);
 const tile = (page: Page, id: number) => page.locator(`#fleet .aster-tile[data-key="[${id}]"]`);
 const chosen = (page: Page) => page.evaluate(() => (globalThis as any).tileDemo.fleet.grid.selection.keys.value);
+async function expectPickCentered(page: Page): Promise<void> {
+  const icon = page.locator("#fleet-table .aster-grid-pick > svg").first();
+  await expect(icon).toBeVisible();
+  await expect(icon).toHaveAttribute("aria-hidden", "true");
+  const offset = await icon.evaluate(el => {
+    const icon = el.getBoundingClientRect(), button = el.parentElement!.getBoundingClientRect();
+    return { x: Math.abs(icon.left + icon.width / 2 - button.left - button.width / 2),
+      y: Math.abs(icon.top + icon.height / 2 - button.top - button.height / 2) };
+  });
+  expect(offset.x).toBeLessThan(0.6);
+  expect(offset.y).toBeLessThan(0.6);
+}
 async function open(page: Page): Promise<void> {
   await page.goto("/playground/tiles.html?debug");
   await expect(page.getByRole("grid", { name: "Files in Home" }).getByRole("gridcell")).toHaveCount(6);
@@ -173,6 +185,7 @@ test("shared table ranks pass axe, reduced motion and narrow layout", async ({ p
     for (const scheme of ["light", "dark"]) {
       await chooseAppearance(page, "Scheme", scheme);
       await settle(page);
+      await expectPickCentered(page);
       expect((await new AxeBuilder({ page }).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
     }
   }
@@ -180,6 +193,7 @@ test("shared table ranks pass axe, reduced motion and narrow layout", async ({ p
   expect(await table(page).evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   await page.emulateMedia({ forcedColors: "active", colorScheme: "dark" });
   await settle(page);
+  await expectPickCentered(page);
   expect((await new AxeBuilder({ page }).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });
 

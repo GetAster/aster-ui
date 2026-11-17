@@ -15,6 +15,7 @@ screen of fields is saved with one [[method:EditModel.save]].
 | `aster-field` | [[class:Field]] | Text and numbers. Long text (over 500 characters allowed) is a textarea. |
 | `aster-check` | [[class:Check]] | A Boolean, as a checkbox. |
 | `aster-select` | [[class:Select]] | One of a field's allowed values (`Validation.AllowedValues`). |
+| `aster-slider` | [[class:Slider]] | A number, or a range between two numbers, by dragging or keys; two thumbs make a "between" control. |
 | `aster-date` | [[class:DateField]] | An `Edm.Date`, typed or chosen from a calendar. |
 | `aster-picker` | [[class:Picker]] | A foreign key: one related record, chosen by its name. |
 | `aster-tree-picker` | [[class:TreePicker]] | One node of a hierarchy, such as a category tree. |
@@ -24,6 +25,9 @@ the label and "Optional" marker, the read-only reason, the error, the
 changed-value marking with a Revert button, and the "Hidden" box for a value
 the server withholds. [[staticMethod:controlFor]] picks the right one from
 metadata, and [[class:Form]] lays out many (see [[group:forms]]).
+
+[[class:Meter]] (`aster-meter`) is the read-only companion: a value against a limit,
+bound to a field and, for the limit, another field.
 
 Three controls aren't bound to an edit model:
 
@@ -155,6 +159,21 @@ class CodeField extends BoundField {
 }
 define("my-code-field", CodeField);
 ```
+
+## attr:BoundField.hostReadOnly
+
+Boolean, default `false`. Restricts this control to read-only without changing
+its borrowed edit model. `false` never overrides a model restriction. The
+control's write and revert paths enforce the restriction, including custom
+controls using the supplied guarded write callback. Forms set this property
+from their own read-only policy.
+
+## attr:BoundField.hostDisabled
+
+Boolean, default `false`. Disables this control without changing other controls
+bound to the same model. Its write and revert paths refuse changes while this
+property is true. Both host restriction properties accept JavaScript and YAML
+composition bindings.
 
 ## attr:BoundField.model
 
@@ -1072,7 +1091,10 @@ now.". It's part of the input's `aria-describedby`.
 
 ## class:TreePicker
 
-Tag `aster-tree-picker`. Bind it with [[attr:BoundField.model]] and
+Tag `aster-tree-picker`. A form and a list editor column create it for you:
+[[staticMethod:controlFor]] gives one to a field whose `options` is a
+[[class:TreeChoices]], and to a foreign key into a tree set when it has no
+`options` (see [[group:forms]]). Bind it by hand with [[attr:BoundField.model]] and
 [[attr:BoundField.field]] to the field that holds a node's key, and give it
 [[attr:TreePicker.options]]. Use it where names repeat across branches, so a
 flat list can't tell them apart. The closed control shows the chosen node's
@@ -1140,6 +1162,23 @@ on its own for showing where a node sits:
 ```ts
 const record = categories.record(task.categoryId)?.value;
 const where = record ? [...categories.trail(record), categories.text(record)].join(" › ") : "";
+```
+
+## classMethod:TreeChoices.of
+
+`TreeChoices.of(ctx, set)` is the default choices for a foreign key into `set`,
+when the metadata makes `set` a tree, or `undefined` when it doesn't. A set is
+a tree when its type has a single-valued navigation to its own set,
+constrained by one field (such as `Task.parent` on `parentId`): that field is
+the parent field. The node shows the type's title field, every node can be
+chosen, and siblings are in the server's order. One instance is kept per
+context and set, so every form on a context shares it. [[staticMethod:controlFor]]
+uses it; make a `TreeChoices` yourself to choose a display, search fields, an
+order or which nodes can be chosen.
+
+```ts
+const tasks = TreeChoices.of(ctx, "Tasks"); // parentField "parentId"
+const projects = TreeChoices.of(ctx, "Projects"); // undefined: not a tree
 ```
 
 ## attr:TreeChoices.ctx
@@ -1551,3 +1590,359 @@ The record's key as [[type:KeyText]], made with `keyText([value])`.
 ## attr:SwitchBinding.field
 
 An `Edm.Boolean` field. Any value but `true` shows as off.
+
+## class:Slider
+
+Tag: `aster-slider`. A number, or a range between two numbers, chosen by dragging
+or with the keyboard. It is a [[class:BoundField]], so it is a form editor like
+the others (label, hint, error, changed marking and Revert, read-only reasons), and
+it also works on its own with `value` or `values`.
+
+Each thumb is an ARIA `slider` and follows the WAI-ARIA APG slider and multi-thumb
+slider patterns. Arrow keys move by [[attr:Slider.step]] (the horizontal arrows
+reverse in right-to-left text); Page Up and Page Down move by
+[[attr:Slider.largeStep]]; Home and End go to the ends of the thumb's room. With a
+pointer, press a thumb to drag it, or press the track to move the nearer thumb
+there; Escape during a drag puts it back. A read-only slider stays focusable and
+announced but refuses change; a disabled one leaves the tab order.
+
+With [[attr:Slider.range]] there are two thumbs, named "Minimum" and "Maximum"
+before the label. They cannot cross: the lower thumb's `aria-valuemax` is the upper
+one's value (less [[attr:Slider.minGap]]) and the upper one's `aria-valuemin` the
+lower one's. Bind it to two fields with `field` and [[attr:Slider.endField]], or
+use `values`.
+
+The slider takes its range from the field's `Validation.Minimum` and
+`Validation.Maximum` when [[attr:Slider.min]] and [[attr:Slider.max]] are not set
+(else 0 and 100), and its step from the field's scale (else 1). A decimal or 64-bit
+integer field is written as exact text; others as numbers. A stored value outside
+the range is drawn at the end of the track and flagged as invalid rather than hidden.
+
+```ts
+const price = document.createElement("aster-slider") as Slider;
+Object.assign(price, {
+  label: "Price", labelled: true, range: true, values: [20, 80], step: 5,
+  ticks: 25, format: { style: "currency" }, chrome: { input: true, tickLabels: true },
+});
+price.addEventListener("value-change", (e) => console.log((e as CustomEvent).detail.values));
+```
+
+A form uses it with `control: "slider"` (see [[attr:FormField.control]]); pass a
+renderer to set `step`, `ticks` or `range`:
+
+```ts
+const behind: FormField = { field: "behindDays", control: "slider" };
+```
+
+The split of configuration follows the host-configuration contract. Policy: the
+model's read-only and disabled state, plus [[attr:Slider.readOnly]] and
+[[attr:Slider.disabled]]. Features: none. Chrome: [[attr:Slider.chrome]].
+`format` and the other values are plain data, so the same configuration works in a
+composition catalog:
+
+```yaml
+children:
+  price:
+    type: Slider
+    props:
+      label: Price
+      labelled: true
+      range: true
+      values: [20, 80]
+      step: 5
+      ticks: 25
+      format: { style: currency }
+      chrome: { input: true, tickLabels: true }
+```
+
+### Between: a range as a shared filter
+
+In range mode, [[attr:Slider.filter]] contributes the committed range to the page's
+[[class:SharedFilters]] as `field >= low` and `field <= high`, under a name. Every
+collection that consumes the shared filter narrows, and the [[class:Slicer]] shows
+the range as a removable chip such as "Budget £200k to £300k"; removing the chip
+puts the thumbs back to the whole range. Nothing is contributed until the thumb is
+released, so a drag does not run a query for every pixel, and a bound at the end of
+the range is left out.
+
+```ts
+declare const filters: SharedFilters;
+declare const slider: Slider;
+slider.filter = { filters, by: "budget", field: "budget", set: "Projects", label: "Budget" };
+```
+
+The grid's column filter does not offer this: it holds one operator and one value
+per column and the criteria model has no `between` operator, so the range goes
+through the shared filter instead.
+
+## attr:Slider.range
+
+Boolean. Two thumbs and a range between them. Default `false`. Reactive.
+
+## attr:Slider.value
+
+The value when no model is bound: a number, a numeric string, or `null` for no value
+(the thumb sits at the minimum and says "No value"). Default `null`.
+
+## attr:Slider.values
+
+The range when no model is bound, as `[low, high]`. Default: the whole of `min` to
+`max`. Throws for anything but a pair of numbers.
+
+## attr:Slider.endField
+
+In range mode with a model, the field that holds the upper value; `field` holds the
+lower. Its errors show with the slider's.
+
+## attr:Slider.min
+
+The lowest value. Default: the field's `Validation.Minimum`, else `0`.
+
+## attr:Slider.max
+
+The highest value. Default: the field's `Validation.Maximum`, else `100`.
+
+## attr:Slider.step
+
+The smallest change, and the grid values snap to, counted from `min`. A positive
+number. Default: `10` to the power of minus the field's scale, else `1`.
+
+## attr:Slider.largeStep
+
+The change for Page Up and Page Down. A positive number. Default: a tenth of the
+range, at least one step.
+
+## attr:Slider.minGap
+
+The least distance between the thumbs of a range. Default `0`: they may meet.
+
+## attr:Slider.ticks
+
+`true` for a tick at every step (thinned to at most 50), a number for a tick every so
+many units, a list of values for exact ticks, or `false`. Default `false`. Ticks are
+decoration for sighted people; the thumb's value text is what is announced.
+
+## attr:Slider.format
+
+How values read in the value text, tick labels, the paired boxes and `aria-valuetext`:
+a [[object:ValueFormat]], or a function from the value and range to text
+(JavaScript only). Default: a number with up to two decimals.
+
+## attr:Slider.readOnly
+
+Boolean. Keeps the thumbs focusable and announced but stops changes. Default `false`.
+
+## attr:Slider.disabled
+
+Boolean. Takes the thumbs out of the tab order and stops changes. Default `false`.
+
+## attr:Slider.chrome
+
+What shows, as a [[object:SliderChrome]]. Default `{}`. Reactive; unknown keys throw.
+
+## attr:Slider.filter
+
+A [[object:SliderFilter]] that makes a range slider contribute to a shared filter.
+Default none. Needs `range`.
+
+## event:Slider.value-input
+
+Fires on every movement while a thumb is dragged or a box is typed in. `detail` is
+`{ value }`, or `{ values }` in range mode. Not cancelable; it bubbles. The model
+and the shared filter are not touched yet.
+
+## event:Slider.value-change
+
+Fires when a change is committed: a thumb is released, a key is pressed, or a typed
+value is accepted with Enter or by leaving the box. `detail` is `{ value }` or
+`{ values }`. The model has already been written. Not cancelable; it bubbles.
+
+## object:SliderChrome
+
+What shows around the track.
+
+## attr:SliderChrome.input
+
+Boolean. A number box beside the track (one for each thumb in a range) to type a
+value, with the same bounds and step; an invalid entry shows the number field's
+message and the thumb keeps its value. Default `false`. On a narrow container the
+boxes move under the track.
+
+## attr:SliderChrome.value
+
+Boolean. The formatted value after the track. Default `true`; not drawn when `input`
+is.
+
+## attr:SliderChrome.tickLabels
+
+Boolean. Numbers under the ticks. Default `false`.
+
+## object:SliderFilter
+
+What [[attr:Slider.filter]] takes.
+
+## attr:SliderFilter.filters
+
+The page's [[class:SharedFilters]].
+
+## attr:SliderFilter.by
+
+The contributor's name. One slider per name.
+
+## attr:SliderFilter.field
+
+The field the range narrows.
+
+## attr:SliderFilter.set
+
+The entity set the criteria are written against. Needed for a decimal or 64-bit
+integer field, whose bounds are then sent as text. Without it the criteria apply by
+field name wherever a collection has the field.
+
+## attr:SliderFilter.label
+
+The chip's text before the range. Default: the slider's label.
+
+## type:SliderTicks
+
+`boolean`, a positive spacing, or a list of numbers. See [[attr:Slider.ticks]].
+
+## class:Meter
+
+Tag: `aster-meter`. A value against a limit: spent against a budget, storage used,
+a score. It renders a native `<meter>`, so assistive technology reads the browser's
+own role, range and value, and draws the same state from theme tokens (the
+positive, caution and negative colours).
+
+The state follows the HTML meter algorithm. [[attr:Meter.optimum]] says which region
+is best, and the value's region against [[attr:Meter.low]] and [[attr:Meter.high]]
+makes the state `optimum`, `suboptimum` or `poor`. For spent against a budget, set
+`optimum` to `0`: below `low` is good, between is a caution, above `high` is poor.
+Thresholds can be shares of the range (`"60%"`), so they follow a limit that moves.
+The state is never colour alone: each has a mark shape, and the accessible value
+text ends in its word.
+
+```ts
+const meter = document.createElement("aster-meter") as Meter;
+Object.assign(meter, {
+  model, field: "spent", maxField: "budget",
+  optimum: 0, low: "60%", high: "90%",
+  format: { style: "currency" }, chrome: { value: "ratio" },
+});
+```
+
+Bound to a model it reads the live value, so the bar and state follow edits, and
+`maxField` takes the limit from another field. A value past the maximum fills the
+bar and keeps its true number in the label. There is no policy or feature layer
+(it only displays); [[attr:Meter.chrome]] says what shows.
+
+```yaml
+children:
+  spend:
+    type: Meter
+    props:
+      field: spent
+      maxField: budget
+      optimum: 0
+      low: 60%
+      high: 90%
+      format: { style: currency }
+      chrome: { value: ratio }
+```
+
+## attr:Meter.model
+
+The [[class:EditModel]] the value comes from. A field the model hides stays hidden.
+
+## attr:Meter.field
+
+The field whose value is shown. Its title is the default label.
+
+## attr:Meter.maxField
+
+Another field that supplies the maximum, such as a budget. Needs `model`.
+
+## attr:Meter.value
+
+The value when no model is bound: a number, a numeric string or `null` ("No value").
+
+## attr:Meter.min
+
+The lowest value. Default: the field's `Validation.Minimum`, else `0`.
+
+## attr:Meter.max
+
+The highest value. Default: `maxField`, else the field's `Validation.Maximum`, else
+`1` (the native default).
+
+## attr:Meter.low
+
+The top of the low region: a number, or a share of the range such as `"60%"`.
+Default `min`. Clamped into the range as the browser does.
+
+## attr:Meter.high
+
+The bottom of the high region, as for `low`. Default `max`.
+
+## attr:Meter.optimum
+
+The best value, as for `low`. Default: the middle of the range.
+
+## attr:Meter.label
+
+The label and accessible name. Default: the field's title.
+
+## attr:Meter.format
+
+How figures read: an [[object:ValueFormat]] or a function (JavaScript only).
+Default: a number with up to two decimals.
+
+## attr:Meter.labels
+
+A [[object:MeterLabels]]: the words that end the accessible value text.
+
+## attr:Meter.chrome
+
+What shows, as a [[object:MeterChrome]]. Default `{}`. Reactive; unknown keys throw.
+
+## object:MeterChrome
+
+What shows around the bar.
+
+## attr:MeterChrome.label
+
+Boolean. The label above the bar. Default `true`; the meter keeps its accessible name
+either way.
+
+## attr:MeterChrome.value
+
+`"value"` (default), `"ratio"` ("6,200 of 10,000"), `"percent"` (the share of the
+range) or `false`. The accessible text is always the full "value of max, state".
+
+## attr:MeterChrome.state
+
+Boolean. A mark whose shape says the state. Default `true`.
+
+## object:MeterLabels
+
+The words for each state.
+
+## attr:MeterLabels.optimum
+
+Default "Good".
+
+## attr:MeterLabels.suboptimum
+
+Default "Caution".
+
+## attr:MeterLabels.poor
+
+Default "Poor".
+
+## type:MeterThreshold
+
+A number, or text such as `"80%"`, a share of `max - min`.
+
+## type:MeterState
+
+`"optimum"`, `"suboptimum"` or `"poor"`.

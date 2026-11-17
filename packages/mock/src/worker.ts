@@ -18,7 +18,7 @@ export interface MockClient {
 }
 
 type Call =
-  | { readonly op: "transport" | "external"; readonly request: ODataRequest }
+  | { readonly op: "transport" | "external"; readonly request: Omit<ODataRequest, "signal"> }
   | { readonly op: "dump" | "reset" | "flush" }
   | { readonly op: "fault"; readonly latencyMs: number; readonly writeLatencyMs: number; readonly failNext?: { status: number; error?: { code: string; message: string } } };
 
@@ -72,7 +72,7 @@ export function exposeMock(mock: MockService, port: Port): void {
  */
 export function connectMockWorker(worker: Port): MockClient {
   let next = 0;
-  const waiting = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+  const waiting = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void; cleanup: () => void }>();
   const listeners = new Set<(change: ChangeEvent) => void>();
   worker.addEventListener("message", (e: MessageEvent<Reply>) => {
     const reply = e.data;
@@ -82,15 +82,35 @@ export function connectMockWorker(worker: Port): MockClient {
     }
     const w = waiting.get(reply.id);
     waiting.delete(reply.id);
+    w?.cleanup();
     if (reply.error !== undefined) w?.reject(new Error(reply.error));
     else w?.resolve(reply.result);
   });
-  const call = <T>(c: Call): Promise<T> =>
+  const call = <T>(c: Call, signal?: AbortSignal): Promise<T> =>
     new Promise<T>((resolve, reject) => {
+      if (signal?.aborted) { reject(signal.reason); return; }
       const id = ++next;
-      waiting.set(id, { resolve: resolve as (v: unknown) => void, reject });
-      worker.postMessage({ id, call: c } satisfies Message);
+      const cleanup = () => signal?.removeEventListener("abort", abort);
+      const abort = () => {
+        waiting.delete(id);
+        cleanup();
+        reject(signal?.reason);
+      };
+      waiting.set(id, { resolve: resolve as (v: unknown) => void, reject, cleanup });
+      signal?.addEventListener("abort", abort, { once: true });
+      try {
+        worker.postMessage({ id, call: c } satisfies Message);
+      } catch (error) {
+        waiting.delete(id);
+        cleanup();
+        reject(error);
+      }
     });
+  // AbortSignal stays on the page; a cancelled caller ignores the worker's eventual reply.
+  const requestCall = (op: "transport" | "external", request: ODataRequest) => {
+    const { signal, ...serializable } = request;
+    return call<ODataResponse>({ op, request: serializable }, signal);
+  };
   const state = { latencyMs: 0, writeLatencyMs: 0 };
   const sendFaults = (failNext?: { status: number; error?: { code: string; message: string } }) =>
     void call({ op: "fault", ...state, ...(failNext ? { failNext } : {}) });
@@ -114,8 +134,8 @@ export function connectMockWorker(worker: Port): MockClient {
     },
   };
   return {
-    transport: (request) => call<ODataResponse>({ op: "transport", request }),
-    external: (request) => call<ODataResponse>({ op: "external", request }),
+    transport: (request) => requestCall("transport", request),
+    external: (request) => requestCall("external", request),
     onChange(listener) {
       listeners.add(listener);
       return () => void listeners.delete(listener);

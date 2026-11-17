@@ -125,3 +125,10 @@ implementation source is not included. Bundled third-party components retain
 their respective licenses. Their attribution inventory is in `wasm/NOTICE`, with
 license texts in `wasm/licenses/`. Preserve these files when redistributing the
 binary.
+
+Request calculations use the entity-set `AsterData.RequestCalculations` policy
+annotation; absent policy stays disabled. Role-restricted tests can supply the
+trusted initialization fixture `principal: { subject: "test-user", roles: ["analyst"] }`.
+The fixture is captured at creation; headers never provide authority. See
+[the mock reference](../../docs/reference/mock.md#request-calculations) for exact
+Decimal values, nested calculations and authorization coverage limits.

@@ -7,7 +7,8 @@ import type { Entity, EntityType, Navigation } from "../schema/model.ts";
 import { ODataError } from "../odata/errors.ts";
 import type { DeltaEntry } from "../odata/source.ts";
 import { keyFromText, keyText, keyValues, type KeyText } from "../store/keys.ts";
-import { EditModel, type EditDraft, type EditOptions } from "./edit-model.ts";
+import type { RuleOutcome, RuleState } from "../schema/model.ts";
+import { EditModel, type EditDraft, type EditOptions, type RecordError } from "./edit-model.ts";
 import { ListEdit, type ListDraft, type ListEditOptions, type ListRow } from "./list-edit.ts";
 
 /** A record and its owned rows as they were: what a replay shows a change over. Plain data. */
@@ -37,9 +38,18 @@ export interface RecordSave {
   readonly failed: readonly string[];
 }
 
-/** What fails validation: the record's fields, and each owned list's rows. */
+/** Where a record-collection rule stands over the working state. `deferred`: the client can't judge it, the server will at save. */
+export interface RuleResult {
+  readonly id: string;
+  readonly message: string;
+  readonly state: RuleOutcome;
+}
+
+/** What fails validation: the record's fields, each owned list's rows, and the rules over the record and its rows. */
 export interface RecordProblems {
   readonly record: readonly string[];
+  /** The ids of the failing rules (`EntityType.rules`). */
+  readonly rules: readonly string[];
   readonly owned: Readonly<Record<string, readonly { readonly id: string; readonly fields: readonly string[] }[]>>;
 }
 
@@ -59,12 +69,26 @@ export class RecordEdit {
   readonly edit: EditModel;
   readonly owned: Readonly<Record<string, ListEdit>>;
   readonly dirty: ReadonlySignal<boolean>;
+  /** Fields, rows and the failing rules (not the deferred ones) all pass. Never disables saving: a rule may depend on what the save changes. */
   readonly valid: ReadonlySignal<boolean>;
+  /**
+   * Each of the entity type's rules over the working state: the record's own values, the owned rows
+   * not marked for removal (new rows and unsaved edits included). Derived; it never changes `dirty`.
+   * A rule the server refused is `fail` until the record or its rows change.
+   */
+  readonly rules: ReadonlySignal<readonly RuleResult[]>;
   /** Settles when every owned collection has loaded. */
   readonly ready: Promise<void>;
   readonly #ctx: DataContext;
   readonly #collections: Collection[] = [];
   readonly #replay: boolean;
+  /** Owned rows have loaded, so a rule over them can be judged. */
+  readonly #loaded = signal(false);
+  /** A save or validation has shown the failing rules; they follow the working state from then on. */
+  readonly #shown = signal(false);
+  /** The rules the server refused, and the working state they were refused for. */
+  readonly #reported = signal<{ readonly ids: ReadonlySet<string>; readonly at: RuleState } | undefined>(undefined);
+  readonly #state: ReadonlySignal<RuleState>;
 
   constructor(ctx: DataContext, set: string, key: KeyText, options?: RecordEditOptions);
   /** @internal */
@@ -103,7 +127,51 @@ export class RecordEdit {
     }
     const lists = Object.values(this.owned);
     this.dirty = computed(() => this.edit.dirty.value || lists.some((l) => l.dirty.value));
-    this.valid = computed(() => this.edit.valid.value && lists.every((l) => l.valid.value));
+    const rules = replay ? [] : this.edit.type.rules;
+    void this.ready.then(() => (this.#loaded.value = true));
+    this.#state = computed(() => this.#working());
+    this.rules = computed(() => {
+      if (rules.length === 0) return NO_RESULTS;
+      const state = this.#state.value;
+      const reported = this.#reported.value;
+      const refused = reported?.at === state ? reported.ids : NO_IDS;
+      const loaded = this.#loaded.value;
+      return rules.map((r): RuleResult => ({ id: r.id, message: r.message, state: refused.has(r.id) ? "fail" : loaded ? r.evaluate(state) : "deferred" }));
+    });
+    this.valid = computed(() => this.edit.valid.value && lists.every((l) => l.valid.value) && !this.rules.value.some((r) => r.state === "fail"));
+    if (rules.length === 0) return;
+    // What is shown: failing rules once a save has shown them, and any the server refused.
+    const shown = computed((): readonly RecordError[] => {
+      const reported = this.#reported.value;
+      const refused = reported?.at === this.#state.value ? reported.ids : NO_IDS;
+      return this.rules.value.flatMap((result, i) => {
+        if (result.state !== "fail" || !(this.#shown.value || refused.has(result.id))) return [];
+        const name = rules[i]!.list;
+        const list = name === undefined ? undefined : this.owned[name];
+        return [{ id: result.id, message: result.message, ...(list ? { list } : {}) }];
+      });
+    });
+    this.edit.useRecordErrors(shown);
+    for (const list of lists) list.useErrors(computed(() => shown.value.filter((e) => e.list === list).map((e) => e.message)));
+  }
+
+  /** The working state a rule judges: the record with `patch` laid over it, and the owned rows not marked for removal. */
+  #working(patch: Entity = {}): RuleState {
+    const rows: Record<string, readonly Entity[]> = {};
+    for (const [name, list] of Object.entries(this.owned)) rows[name] = list.rows.value.filter((r) => !r.removing).map((r) => r.edit.values.value);
+    return { record: { ...this.edit.values.value, ...patch }, rows };
+  }
+
+  /**
+   * Which rules would fail if `patch` were applied to the record, over the working rows: the reason a
+   * button that changes state, such as Post (`{ status: "posted" }`), gives for being unavailable. It
+   * writes nothing and changes nothing; a rule the client can't judge is not listed, the server decides.
+   * Reads signals, so a view that calls it follows the edit.
+   */
+  explain(patch: Entity): readonly { readonly id: string; readonly message: string }[] {
+    if (this.#replay || !this.#loaded.value) return [];
+    const state = this.#working(patch);
+    return this.edit.type.rules.filter((r) => r.evaluate(state) === "fail").map(({ id, message }) => ({ id, message }));
   }
 
   /**
@@ -164,7 +232,9 @@ export class RecordEdit {
       const failing = list.rows.peek().filter((r) => !r.removing && !r.edit.validate());
       if (failing.length) owned[name] = failing.map((r) => ({ id: r.id, fields: Object.keys(r.edit.errors.peek()) }));
     }
-    return { record: Object.keys(this.edit.errors.peek()), owned };
+    const rules = this.rules.peek().filter((r) => r.state === "fail").map((r) => r.id);
+    if (rules.length) this.#shown.value = true;
+    return { record: Object.keys(this.edit.errors.peek()), rules, owned };
   }
 
   /**
@@ -174,13 +244,13 @@ export class RecordEdit {
    * something is invalid (see `problems()`). On a 412 the newer record is
    * taken in: with no overlap the edit is sent once more, otherwise
    * `edit.conflict` says so. Server errors land on the fields and rows they
-   * name.
+   * name; a rule the server refused, by its id, is shown as a failing rule.
    */
   async save(): Promise<RecordSave | undefined> {
     if (this.#replay || this.#busy || !this.dirty.peek()) return undefined;
     if (this.edit.conflict.peek() || this.edit.deleted.peek()) return undefined;
     const problems = this.problems();
-    if (problems.record.length || Object.keys(problems.owned).length) return undefined;
+    if (problems.record.length || problems.rules.length || Object.keys(problems.owned).length) return undefined;
     this.#busy = true;
     this.#failure.value = undefined;
     try {
@@ -194,6 +264,8 @@ export class RecordEdit {
           batch(() => {
             this.edit.accept(saved.record);
             for (const list of Object.values(this.owned)) list.accept();
+            this.#shown.value = false;
+            this.#reported.value = undefined;
           });
           await Promise.all(this.#collections.map((c) => c.refresh()));
           return { ok: true, change, before, failed: [] };
@@ -279,8 +351,14 @@ export class RecordEdit {
   #showErrors(e: ODataError, paths: ReadonlyMap<string, ListRow>): void {
     const byRow = new Map<EditModel, Record<string, string[]>>();
     const own: Record<string, string[]> = {};
+    const refused = new Set<string>();
+    const ruleIds = new Set(this.edit.type.rules.map((r) => r.id));
     for (const d of e.details) {
       const target = d.target ?? "";
+      if (target === "" && ruleIds.has(d.code)) {
+        refused.add(d.code);
+        continue;
+      }
       const at = target.lastIndexOf("/");
       const row = at < 0 ? undefined : paths.get(target.slice(0, at));
       const field = target.slice(at + 1);
@@ -295,8 +373,9 @@ export class RecordEdit {
     batch(() => {
       if (Object.keys(own).length) this.edit.showErrors(own);
       for (const [edit, errs] of byRow) edit.showErrors(errs);
+      if (refused.size) this.#reported.value = { ids: refused, at: this.#state.peek() };
     });
-    this.#failure.value = byRow.size || Object.keys(own).length ? undefined : e.message;
+    this.#failure.value = byRow.size || refused.size || Object.keys(own).length ? undefined : e.message;
   }
 
   /** Why the last save failed, when it isn't about a field. */
@@ -305,6 +384,8 @@ export class RecordEdit {
 
   revert(): void {
     batch(() => {
+      this.#shown.value = false;
+      this.#reported.value = undefined;
       this.edit.revert();
       for (const list of Object.values(this.owned)) list.revert();
     });
@@ -334,6 +415,9 @@ export class RecordEdit {
     for (const c of this.#collections) this.#ctx.release(c);
   }
 }
+
+const NO_RESULTS: readonly RuleResult[] = [];
+const NO_IDS: ReadonlySet<string> = new Set();
 
 function ownedNavigations(ctx: DataContext, set: string): Navigation[] {
   return ctx.schema.set(set).type.navigations.filter((n) => n.owned && n.collection);

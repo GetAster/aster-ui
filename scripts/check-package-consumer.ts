@@ -1,3 +1,4 @@
+import { PUBLIC_PACKAGES } from "./package-policy.mjs";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -21,7 +22,7 @@ try {
   writeFileSync(join(directory, "package.json"), JSON.stringify({ private: true, type: "module", dependencies }));
   run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund"]);
   const readmeExamples: string[] = [];
-  for (const name of ["data", "elements", "elements-preview", "mock"]) {
+  for (const name of PUBLIC_PACKAGES) {
     const installed = join(directory, "node_modules/@getaster", name);
     for (const file of ["README.md", "NOTICE"]) {
       if (!fromRegistry && readFileSync(join(installed, file), "utf8") !== readFileSync(join(root, "packages", name, file), "utf8")) {
@@ -35,12 +36,14 @@ try {
       readmeExamples.push(file);
     }
   }
-  writeFileSync(join(directory, "consumer.ts"), `import { Lifetime } from '@getaster/data';
+  writeFileSync(join(directory, "consumer.ts"), `import { Lifetime, queryType, type Query } from '@getaster/data';
 import { Grid } from '@getaster/elements';
 import { ConversationSession } from '@getaster/elements-preview/conversation';
 import { createMockService } from '@getaster/mock';
 const selection = new Lifetime();
 void [selection, Grid, ConversationSession, createMockService];
+const query: Query = {set:'Lines', compute:[{alias:'LineTotal', expression:'Quantity mul UnitPrice', type:'Edm.Decimal'}]};
+void [query, queryType];
 `);
   const bundled = await Bun.build({ entrypoints: [join(directory, "consumer.ts")], target: "browser" });
   if (!bundled.success) throw new AggregateError(bundled.logs, "Packaged browser modules did not bundle");
@@ -54,8 +57,9 @@ void [selection, Grid, ConversationSession, createMockService];
     run(["node", "readme-mock.mjs"]);
   }
   cpSync(join(root, "fixtures/aster/metadata.json"), join(directory, "metadata.json"));
+  for (const file of ["metadata", "data"]) cpSync(join(root, `fixtures/calculations/${file}.json`), join(directory, `calculations-${file}.json`));
   writeFileSync(join(directory, "runtime.mjs"), `import { readFileSync } from 'node:fs';
-import { Lifetime } from '@getaster/data';
+import { Lifetime, DataContext } from '@getaster/data';
 import { createMockService } from '@getaster/mock';
 const selection = new Lifetime();
 if (!selection) throw new Error('Data import failed');
@@ -64,6 +68,19 @@ const wasm = readFileSync(new URL(import.meta.resolve('@getaster/mock/wasm/odata
 const mock = await createMockService({metadata, data: {}, wasm});
 const response = await mock.transport({method:'GET', url:'/$metadata'});
 if (response.status !== 200) throw new Error('Packaged WASM did not load');
+const calculationMetadata = JSON.parse(readFileSync(new URL('./calculations-metadata.json', import.meta.url)));
+const calculationData = JSON.parse(readFileSync(new URL('./calculations-data.json', import.meta.url)));
+const calculations = await createMockService({metadata:calculationMetadata, data:calculationData, wasm});
+const context = await DataContext.connect(calculations.transport);
+const lines = context.collection({set:'Lines', filter:{op:'and',args:[{op:'eq',field:'Tenant',value:'A'},{op:'eq',field:'OrderID',value:1}]}, compute:[{alias:'LineTotal',expression:'Quantity mul UnitPrice',type:'Edm.Decimal'}]}, {pageSize:1});
+const total = context.summary(lines.query, [{field:'LineTotal',method:'sum',as:'total'}]);
+try {
+  await lines.ensure(0,1); await total.refresh();
+  if (lines.recordAt(0)?.entity.LineTotal !== '25.0000') throw new Error('Packaged computed result differs');
+  if (lines.recordAt(0)?.types?.LineTotal !== '#Decimal') throw new Error('Packaged computed type was lost');
+  if (context.store.get('Lines','[1]')?.entity.LineTotal !== undefined) throw new Error('Packaged alias leaked into canonical records');
+  if (total.values.value?.total !== '162.5000' || total.values.value?.count !== 4) throw new Error('Packaged parent summary differs');
+} finally {total.dispose(); lines.dispose();}
 console.log('Installed package declarations, data runtime and WASM verified');
 `);
   run(["node", "runtime.mjs"]);

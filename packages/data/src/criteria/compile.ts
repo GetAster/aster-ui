@@ -1,5 +1,5 @@
 import type { EntitySet, EntityType, Field, Schema, Value } from "../schema/model.ts";
-import type { Criteria, Query, SortKey } from "./ast.ts";
+import type { ComputeColumn, Criteria, Query, SortKey } from "./ast.ts";
 import { assertLiteral, CriteriaError, plain } from "./values.ts";
 
 export { CriteriaError };
@@ -168,11 +168,32 @@ export function resolvePath(path: string, type: EntityType, schema: Schema | und
   return f;
 }
 
+/** Query-local metadata; the declared model is never modified. */
+export function queryType(type: EntityType, compute: readonly ComputeColumn[] = []): EntityType {
+  if (!compute.length) return type;
+  const fields = [...type.fields];
+  const names = new Set(fields.map((f) => f.name));
+  for (const c of compute) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(c.alias) || names.has(c.alias) || type.navigation(c.alias)) throw new CriteriaError(`Invalid or shadowing compute alias ${c.alias}`);
+    if (!/^Edm\.(String|Boolean|Byte|SByte|Int16|Int32|Int64|Single|Double|Decimal|Date|TimeOfDay|DateTimeOffset|Duration|Guid|Binary)$/.test(c.type)) throw new CriteriaError(`Invalid compute type for ${c.alias}`);
+    if (!c.expression.trim()) throw new CriteriaError(`Empty compute expression for ${c.alias}`);
+    if (c.title !== undefined && typeof c.title !== "string") throw new CriteriaError(`Invalid compute title for ${c.alias}`);
+    names.add(c.alias);
+    fields.push({ name: c.alias, ...(c.title !== undefined ? { title: c.title } : {}), type: c.type, nullable: true, computed: true, immutable: true, annotations: {} });
+  }
+  return { ...type, fields, field: (name) => fields.find((f) => f.name === name), navigation: (name) => type.navigation(name) };
+}
+
+function computeText(compute: readonly ComputeColumn[]): string {
+  return compute.map((c) => `${c.expression} as ${c.alias}`).join(',');
+}
+
 /** `$filter`, `$orderby` and `$select` as `a=b&c=d` with encoded values, no leading `?`. */
 export function toQueryString(query: Query, schema: Schema): string {
   const set = schema.set(query.set);
-  const type = set.type;
+  const type = queryType(set.type, query.compute);
   const parts: string[] = [];
+  if (query.compute?.length) parts.push(`$compute=${encodeURIComponent(computeText(query.compute))}`);
   if (query.filter) parts.push(`$filter=${encodeURIComponent(toFilter(query.filter, type, set, schema))}`);
   const orderBy = query.orderBy ?? [];
   for (const k of orderBy) checkSortable(k, type, set, schema);
@@ -204,7 +225,9 @@ export function toApply(
   aggregates: readonly Aggregate[],
   set?: EntitySet,
   schema?: Schema,
+  compute: readonly ComputeColumn[] = [],
 ): string {
+  type = queryType(type, compute);
   for (const g of groupBy) fieldOf(type, g, set);
   const aliases = new Set(["count", ...groupBy]);
   for (const a of aggregates) {
@@ -226,7 +249,8 @@ export function toApply(
   }
   const values = ["$count as count", ...aggregates.map((a) => `${a.field} with ${a.method} as ${a.as}`)].join(",");
   const step = groupBy.length ? `groupby((${groupBy.join(",")}),aggregate(${values}))` : `aggregate(${values})`;
-  return filter ? `filter(${render(filter, type, set, false, { ...TOP, schema })})/${step}` : step;
+  const filtered = filter ? `filter(${render(filter, type, set, false, { ...TOP, schema })})/${step}` : step;
+  return compute.length ? `compute(${computeText(compute)})/${filtered}` : filtered;
 }
 
 /** Queries built afresh are equal when they say the same thing. */

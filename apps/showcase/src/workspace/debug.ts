@@ -57,7 +57,7 @@ export function debugPanel(setup: AppSetup, toaster: () => Toaster | null) {
       headers: { "content-type": "application/json", accept: "application/json" },
       body: JSON.stringify(body),
     });
-    if (res.status >= 300) toaster()?.show(`The simulated change failed (${res.status}).`);
+    if (res.status >= 300) toaster()?.show(`The simulated change failed (${res.status}).`, { variant: "error" });
   };
   const actions: [string, () => Promise<void> | void][] = [
     [

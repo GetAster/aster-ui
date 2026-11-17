@@ -80,4 +80,6 @@ Inspect the executable source as well as the presentation.
 
 Start with [the working grid](getting-started.md),
 [the shared collection example](../examples/grid.html) or
-[Webmail with sign in](../examples/mail.html).
+[Webmail with sign in](../examples/mail.html). To see several screens stay in step over one store,
+with a server-computed tree total and a record edited with the rows it owns, try the
+[finance workspace](../examples/finance.html).

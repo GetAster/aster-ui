@@ -23,10 +23,12 @@ export { Workspace, type WorkspaceEntry, type WorkspaceSnapshot } from "./window
 export { Dashboard } from "./dashboard/dashboard.ts";
 export type { DashboardValue, DashboardConfig, DashboardSize, DashboardWidget, DashboardSnapshot } from "./dashboard/layout.ts";
 export type { DashboardMount, DashboardSession, DashboardWidgetType } from "./dashboard/widget.ts";
-export { Toaster, announce, type ToastAction } from "./toast/toast.ts";
+export { Toaster, announce, type ToastAction, type ToastBlock, type ToastChangeDetail, type ToastDismissReason, type ToastHold, type ToastHoldSource, type ToastInline, type ToastOptions, type ToastPatch, type ToastPromiseMessages, type ToastPromiseOptions, type ToastVariant, type ToasterChrome, type ToasterFeature, type ToasterPolicy } from "./toast/toast.ts";
 export { Menu, type MenuItem } from "./menu/menu.ts";
 export { morph, setScheme } from "./motion.ts";
-export { absoluteTime, compactMoney, relativeTime } from "./format.ts";
+export { absoluteTime, formatFigure, relativeTime, type FigureContext, type NumberFormatStyle, type ValueFormat, type ValueFormatter } from "./format.ts";
+export { Meter, type MeterChrome, type MeterLabels, type MeterState, type MeterThreshold } from "./meter/meter.ts";
+export { Slider, type SliderChrome, type SliderFilter, type SliderTicks } from "./slider/slider.ts";
 export { BoundField, type ControlContext, type LabelPosition, type ValidateOn } from "./field/bound-field.ts";
 export { CompositeField, type CompositeFieldContext } from "./field/composite-field.ts";
 export { NumberField, type NumericType, type NumericValue } from "./field/number-field.ts";
@@ -50,9 +52,9 @@ export { Section, type SectionChrome } from "./section/section.ts";
 export { Form, type FormChrome, type FormFeature, type FormField, type FormItem, type FormPolicy, type FormSection, type FormSubmitDetail, type FormValue } from "./form/form.ts";
 export { controlFor, type FormControl, type FormControlContext, type FormControlName, type FormControlRender } from "./form/controls.ts";
 export { Split, type SplitChrome, type SplitLabels } from "./split/split.ts";
-export { ListEditor, type ListCellRenderer, type ListColumn, type ListEditing, type ListEditorChrome, type ListResponsive } from "./list-edit/list-edit.ts";
-export { Grid, type CellRenderer, type CellFormatter, type GridChrome, type GridCsvOptions, type GridFeature, type GridScrollAlign, type GridSummary, type GridToolbar, type Expansion, type ExpansionEditor, type GridTree, type Lookup, type RowControl, type RowState } from "./grid/grid.ts";
-export { GRID_LABEL_DEFAULTS, type CellClass, type CellClassRule, type CellStyleContext, type ClassNames, type ColumnAlign, type ColumnFormat, type ColumnPresentation, type ColumnValueMap, type GridLabel, type GridLabels, type GridPresentation, type Hilite, type MappedValue, type NumberFormatStyle, type PresentationTone, type RowClass, type RowClassRule, type RowStyleContext, type StyleDecoration, type ValueMapValue, type ValueMatch, type ValueMatchOperator } from "./grid/appearance.ts";
+export { ListEditor, type ListColumn, type ListEditing, type ListEditorChrome, type ListResponsive } from "./list-edit/list-edit.ts";
+export { Grid, type GridChrome, type GridCsvOptions, type GridFeature, type GridScrollAlign, type GridSummary, type GridToolbar, type Expansion, type ExpansionEditor, type GridTree, type Lookup, type RowControl, type RowState } from "./grid/grid.ts";
+export { GRID_LABEL_DEFAULTS, type CellClass, type CellClassRule, type CellStyleContext, type ClassNames, type ColumnAlign, type ColumnFormat, type ColumnPresentation, type ColumnValueMap, type GridLabel, type GridLabels, type GridPresentation, type Hilite, type MappedValue, type PresentationTone, type RowClass, type RowClassRule, type RowStyleContext, type StyleDecoration, type ValueMapValue, type ValueMatch, type ValueMatchOperator } from "./grid/appearance.ts";
 export { RowHeights } from "./grid/rows.ts";
 export { TreeNavigator } from "./tree/navigator.ts";
 export { Carousel, type Slide } from "./carousel/carousel.ts";
@@ -66,3 +68,13 @@ export type { Capability, CapabilityValue, FieldPolicy, GridPolicy } from "./gri
 export { COMPONENT_VARS, COMPONENT_VAR_NAMES, DENSITIES, DENSITY, DENSITY_NAMES, TOKENS, TOKEN_NAMES } from "./styles/contract.ts";
 
 export { CompositeSessions, type CompositeSessionsOptions, type CompositeKeyedSession } from "./composition/sessions.ts";
+
+export { presentField, fieldText, resolveFieldPresentation, validateFieldPresentation, validateFieldPresentations } from "./field/presentation.ts";
+export type { FieldPresentation, FieldPresentations, FieldPresentationContext, FieldFormat, FieldValueMap } from "./field/presentation.ts";
+
+export { FieldSelection } from "./field-selection/field-selection.ts";
+export { FieldSelectionModel, type FieldSelectionSource, type FieldSelectionOption, type FieldSelectionFilter, type FieldSelectionPolicy, type FieldSelectionChange, type SelectedField, type FieldSelectionRow } from "./field-selection/model.ts";
+export { validateFieldSelectionChrome, validateFieldSelectionSource, validateFieldSelectionValue, validateFieldSelectionFilter, validateFieldSelectionDepth, validateFieldSelectionFields, validateFieldSelectionPolicy } from "./field-selection/config.ts";
+
+export { gridHeaderControls, gridSortMenu, type GridHeaderControlsOptions, type GridSortMenuLabels, type GridSortMenuOptions } from "./grid/header.ts";
+export { policyPermits } from "./grid/policy.ts";

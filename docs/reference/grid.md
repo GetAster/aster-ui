@@ -303,7 +303,7 @@ what a cell shows:
 - `lookups` shows a foreign key by a field of the related record (a person's
   name instead of `personId`), and makes the column's editor, filter and group
   labels use that name too.
-- `renderers` replaces the content of a column's cells with the page's own
+- `fieldPresentation.fields[name].display` replaces the content of a column's cells with the page's own
   template.
 
 With `editable`, Enter, F2 or a double-click edits a row in place. The row gets
@@ -320,7 +320,7 @@ context menu of a row.
 ### Presentation and appearance
 
 `presentation` is the grid's one declarative home for per-column presentation
-and for row and cell styling. The JS-only `renderers` and `formatters` hooks
+and for row and cell styling. The JS-only `fieldPresentation` callbacks
 remain the escape hatch for content that needs code; presentation covers the
 plain-data cases so they travel through YAML composition unchanged.
 
@@ -770,7 +770,7 @@ grid.toolbar = { expandAll: false };
 
 A host [[type:View]] placed at the end of the toolbar, after the built-in
 controls, such as an `aster-command-bar` built from the grid's `view`,
-`selected` and `activeKey`. It follows the existing `empty` and `renderers`
+`selected` and `activeKey`. It follows the existing `empty` and `fieldPresentation`
 hook pattern; function values are JS-only, so the YAML catalog does not carry
 it. Default: nothing.
 
@@ -880,20 +880,6 @@ user account.
 The stored view is restored only when the page has set `view` before the grid
 connects; with no `view`, `persist` reads and writes nothing.
 
-## attr:Grid.renderers
-
-A record from a column's field name to a [[type:CellRenderer]]. A renderer
-replaces the default formatting of that column's cells. It doesn't apply to a
-row being edited (the cell is a control then), to a value the server hides
-(which shows as "Hidden"), to group labels, or to the filter row. Reactive.
-Default `{}`.
-
-```ts
-grid.renderers = {
-  hours: (entity) => html`<span class="hours">${Number(entity.hours).toFixed(1)} h</span>`,
-  status: (entity) => html`<span class="aster-status" data-status=${String(entity.status)}>${entity.status}</span>`,
-};
-```
 
 ## attr:Grid.lookups
 
@@ -1235,7 +1221,7 @@ unchanged.
 What the page allows, by capability and field. Entries are a boolean, a list
 of field names, or a predicate. The capability entries are `sortable`,
 `filterable`, `groupable`, `resizable`, `movable`, `hideable`, `freezable`
-and `editable`; `selectable` is a plain boolean because selection has no field
+`summarizable` and `editable`; `selectable` is a plain boolean because selection has no field
 dimension. A `fields` entry narrows the global entry for one field and can
 never widen it.
 
@@ -1255,10 +1241,21 @@ const policy: GridPolicy = {
 grid.policy = policy;
 ```
 
+`summarizable` is shared with navigator summary authoring. A global permission
+can be narrowed with `fields[name].summarizable`; use `fields.$count` to control
+row counting separately. For example:
+
+```ts
+grid.policy = { summarizable: true, fields: { secret: { summarizable: false } } };
+```
+
+This policy does not add summary authoring to the ordinary Grid or remove its
+configured `summaries`.
+
 ## object:FieldPolicy
 
 Overrides for one field's capabilities: `sortable`, `filterable`, `groupable`,
-`resizable`, `movable`, `hideable`, `freezable` and `editable`, each with the
+`resizable`, `movable`, `hideable`, `freezable`, `summarizable` and `editable`, each with the
 same forms as the global entry. Absent leaves the global answer unchanged.
 
 ```ts
@@ -1699,17 +1696,6 @@ Escape and a change another person made that the edit rebased. The `detail` is
 notification of the draft, not a record write. The save result is
 [[event:Grid.edit-save]] and [[event:Grid.edit-error]].
 
-## type:CellRenderer
-
-Used as the values of [[attr:Grid.renderers]]. The function receives the row's
-record and key text and returns a lit-html template. It is called while the
-grid renders, so signals it reads re-render the grid. Keep it cheap: it runs
-for every rendered cell of its column.
-
-```ts
-const due: CellRenderer = (entity) =>
-  entity.due ? html`<time datetime=${String(entity.due)}>${formatDate(String(entity.due))}</time>` : nothing;
-```
 
 ## object:Expansion
 
@@ -1990,6 +1976,45 @@ const base = defaultView(type);
 const view: GridView = { ...base, columns: base.columns.filter((c) => c.field !== "notes"), sort: [{ field: "name" }] };
 ```
 
+## staticMethod:gridHeaderControls
+
+Returns the inner controls used by Grid column headers, so another metadata-driven
+view can share the title button, sort mark, menu chevron and resize handle.
+The host supplies the columnheader wrapper, `aria-sort`, keyboard handling,
+policy checks and layout. Import it from `@getaster/elements`.
+
+`gridHeaderControls(options)` accepts:
+
+| Option | Meaning |
+| --- | --- |
+| `title`, `hint` | Visible title and the title button's tooltip. |
+| `refusal` | Optional screen-reader text explaining an unavailable sort. The host's handler must enforce the refusal. |
+| `sort` | Optional `{ descending, index, total }`; `index` is the one-based priority among effective sort keys. Multiple keys show the priority. |
+| `tabIndex` | Both buttons' tab index; defaults to `-1` for the Grid's cell navigation. Other hosts can use `0`. |
+| `onSort` | Optional title-button click handler, receiving the original MouseEvent, including `shiftKey`. |
+| `onPointerDown` | Optional title-button pointer handler for column movement. |
+| `menu` | Optional `{ label, open(event) }`; the handler can anchor a Menu to `event.currentTarget`. |
+| `resize` | Optional `{ start(event), reset() }` for pointer drag and double-click reset. Omit to hide the handle. |
+
+The returned template preserves the `aster-grid-sort`, `aster-grid-sort-mark`,
+`aster-grid-header-menu` and `aster-grid-resize` hooks. It performs no sorting,
+layout measurement or event cancellation itself. Configuration remains ordinary
+JavaScript options and callbacks; this helper is not a composition element.
+
+## staticMethod:gridSortMenu
+
+`gridSortMenu(view, field, { multi, labels, change })` returns one Menu group with
+Ascending, Descending and Not sorted radio actions. When `multi` is true and
+another field is sorted, it also offers Add to sort. The first two actions
+replace the sort; Add appends an ascending key, and Not sorted removes only
+this field. Other view state remains unchanged. The helper uses the same pure
+view transformations as Grid.
+
+`change(nextView)` applies the selected action. The host checks sort policy before
+offering this group and adds any surrounding separators or custom items. Optional
+`labels` overrides `sort`, `ascending`, `descending`, `notSorted` and `addToSort`;
+the defaults are English. Ordinary Grid supplies its localized strings.
+
 ## staticMethod:sortBy
 
 What pressing a header does, as a pure function.
@@ -2162,20 +2187,7 @@ to handle opening in the application and suppress the Grid's default expansion
 or inline editing. F2 retains its editing/selection-control behaviour. Interactive
 controls inside cells do not trigger row opening. Selection remains independent.
 
-## attr:Grid.formatters
 
-Text-only display functions by field. A CellFormatter receives the raw typed
-value, row entity and field metadata. A renderer takes precedence; otherwise a
-formatter takes precedence over built-in lookup/date/value formatting. Returned
-text is escaped. Formatting never changes query criteria, server order or CSV
-values. Register formatter functions in code and reference them through the
-`formatters` property in YAML composition.
-
-## type:CellFormatter
-
-`(value: Value | undefined, entity: Entity, field: Field | undefined) => string`.
-Use for date labels, units and other text presentations. Use CellRenderer when
-cell content requires markup. Neither function is a client sorting callback.
 
 ## attr:Grid.presentation
 
@@ -2272,21 +2284,22 @@ other column defaults to `"start"`.
 ## type:ColumnFormat
 
 A date format (`{ kind: "date", style?: "medium" | "short" | "iso" }`) or a
-number format (`{ kind: "number", style?, currency?, minimumFractionDigits?,
-maximumFractionDigits? }`). Number styles are `"decimal"` (default),
-`"integer"`, `"percent"` and `"currency"`; `"currency"` requires an ISO 4217
-code such as `"GBP"`. A format applies only to a matching field type and is
-otherwise ignored. Number text comes from the platform's `Intl.NumberFormat`
-in `en-GB`. Configuration it cannot format — a malformed currency code,
-fraction digits outside the platform's supported range, a minimum above the
-maximum, or a nonzero minimum with the `integer` style and no explicit
-maximum — is rejected when the presentation is set, naming the offending
-entry.
+number format: `{ kind: "number" }` with any key of [[object:ValueFormat]]
+(`style`, `currency`, `minimumFractionDigits`, `maximumFractionDigits`,
+`compact`, `unit`, `locale`, `smallValues`). The text comes from [[staticMethod:formatFigure]],
+so the field fills what the format leaves out: a Decimal's scale gives its
+places and a currency annotation on the field names the currency (`"GBP"` when
+neither does). A format applies only to a matching field type and is otherwise
+ignored. Configuration the platform cannot format, such as a malformed currency
+code, a minimum above the maximum, or a nonzero minimum with the `integer`
+style and no explicit maximum, is rejected when the presentation is set,
+naming the offending entry. A negative number starts with a minus sign (−),
+not a hyphen.
 
 ## type:NumberFormatStyle
 
 `"decimal"`, `"integer"`, `"percent"` or `"currency"`; how
-[[type:ColumnFormat]] writes a numeric value.
+[[object:ValueFormat]] writes a numeric value.
 
 ## type:ColumnValueMap
 
@@ -2388,3 +2401,30 @@ One overridable grid string: a key of [[constant:GRID_LABEL_DEFAULTS]].
 
 The optional label bag: a partial record from [[type:GridLabel]] to a string.
 An unknown key or a non-string value is refused.
+
+## attr:Grid.fieldPresentation
+
+Shared content display configuration, as [[object:FieldPresentations]].
+Grid-specific geometry and row/cell decorations remain in [[attr:Grid.presentation]].
+
+## object:FieldPresentations
+
+`fields` maps field names to [[object:FieldPresentation]]. `types` maps
+`AsterData.Type` annotation values to the same descriptor. Each member inherits
+from local occurrence, host field, host type, recognized metadata, then primitive
+defaults. Unknown metadata keeps primitive rendering.
+
+## object:FieldPresentation
+
+`display(context)` returns markup or text; `formatter(context)` returns text.
+They precede `valueMap` (raw text keys to labels), `format` (date or number),
+and primitive display. `treatment` accepts `email` or `text`; email produces a
+mailto link for a recognizable address and text for malformed or empty values.
+Callbacks are registered under `fieldPresentation` in composition catalogs.
+Invalid explicit configuration throws a TypeError naming its member path.
+
+## object:FieldPresentationContext
+
+`field`, `name`, `value`, `key` and `entity` describe one displayed value. The
+raw value retains its type. `entity` is a frozen projection excluding hidden
+and unloaded fields. Those fields also never invoke a display callback.

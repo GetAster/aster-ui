@@ -1,11 +1,11 @@
 /**
- * Form-wide static edit defaults. A field's own defaults in
- * [[object:FormField]] win over these, and a page rule outranks both.
+ * Restrictions on this form's controls. They combine with field restrictions
+ * and shared model state; no host can relax another restriction.
  */
 export interface FormPolicy {
-  /** Every field starts read-only unless its FormField or a page rule says otherwise. */
+  /** Restricts every field in this host to read-only. */
   readonly readOnly?: boolean;
-  /** Every field starts disabled unless its FormField or a page rule says otherwise. */
+  /** Disables every field in this host. */
   readonly disabled?: boolean;
 }
 

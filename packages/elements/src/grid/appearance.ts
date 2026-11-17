@@ -1,7 +1,6 @@
 import type { Entity, Field, KeyText, Value } from "@getaster/data";
-import { formatValue } from "../field/values.ts";
-import { formatDate, type DateFormat } from "../date/dates.ts";
-import { absoluteTime } from "../format.ts";
+import { type DateFormat } from "../date/dates.ts";
+import { validateValueFormat, type ValueFormat } from "../format.ts";
 
 /** One class or several. A string may name space-separated classes. */
 export type ClassNames = string | readonly string[];
@@ -29,9 +28,6 @@ export type ValueMatch = {
   readonly value?: Value | readonly Value[];
 };
 
-/** How a number is written: plain decimal (default), integer, percent or currency. */
-export type NumberFormatStyle = "decimal" | "integer" | "percent" | "currency";
-
 /**
  * A declarative display format for a date or number column. It only applies
  * to a matching field type; other values keep the grid's default text.
@@ -43,18 +39,10 @@ export type ColumnFormat =
       /** `"medium"` (default), `"short"` or `"iso"`, as [[type:DateFormat]]. */
       readonly style?: DateFormat;
     }
-  | {
+  | ({
       /** A numeric field (integers, decimal, single and double). */
       readonly kind: "number";
-      /** The display style; `"decimal"` (default). */
-      readonly style?: NumberFormatStyle;
-      /** ISO 4217 code for `"currency"`; defaults to `"GBP"`. */
-      readonly currency?: string;
-      /** Minimum fraction digits. */
-      readonly minimumFractionDigits?: number;
-      /** Maximum fraction digits; `"integer"` defaults it to `0`. */
-      readonly maximumFractionDigits?: number;
-    };
+    } & ValueFormat);
 
 /** A value-map entry: display text alone, or text with a tone and classes. */
 export type ValueMapValue = string | {
@@ -354,7 +342,6 @@ export type GridLabel = keyof typeof GRID_LABEL_DEFAULTS;
  */
 export type GridLabels = { readonly [K in GridLabel]?: string };
 
-const NUMBER_FORMATS = new Map<string, Intl.NumberFormat>();
 
 function plainObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value));
@@ -368,9 +355,7 @@ function isValue(value: unknown): value is Value {
 const TONES: readonly string[] = ["neutral", "positive", "caution", "negative"];
 const ALIGNS: readonly string[] = ["start", "center", "end"];
 const MATCH_OPS: readonly string[] = ["eq", "ne", "lt", "lte", "gt", "gte", "in", "between", "contains", "empty", "notEmpty"];
-const NUMBER_STYLES: readonly string[] = ["decimal", "integer", "percent", "currency"];
 const DATE_STYLES: readonly string[] = ["medium", "short", "iso"];
-const NUMERIC = new Set(["Edm.Byte", "Edm.SByte", "Edm.Int16", "Edm.Int32", "Edm.Int64", "Edm.Decimal", "Edm.Single", "Edm.Double"]);
 
 function fail(path: string, message: string): never {
   throw new TypeError(`${path} ${message}`);
@@ -470,42 +455,7 @@ function validateFormat(value: unknown, path: string): void {
     if (value.style !== undefined && (typeof value.style !== "string" || !DATE_STYLES.includes(value.style))) fail(`${path}.style`, `must be one of ${DATE_STYLES.join(", ")}`);
     return;
   }
-  onlyKeys(value, path, ["kind", "style", "currency", "minimumFractionDigits", "maximumFractionDigits"]);
-  if (value.style !== undefined && (typeof value.style !== "string" || !NUMBER_STYLES.includes(value.style))) fail(`${path}.style`, `must be one of ${NUMBER_STYLES.join(", ")}`);
-  if (value.currency !== undefined && (typeof value.currency !== "string" || !value.currency)) fail(`${path}.currency`, "must be a currency code");
-  if (value.style === "currency" && typeof value.currency !== "string") fail(`${path}.currency`, 'is required when style is "currency"');
-  for (const key of ["minimumFractionDigits", "maximumFractionDigits"] as const) {
-    const digits = value[key];
-    if (digits !== undefined && (typeof digits !== "number" || !Number.isSafeInteger(digits) || digits < 0)) fail(`${path}.${key}`, "must be a nonnegative integer");
-  }
-  const minDigits = value.minimumFractionDigits;
-  const maxDigits = value.maximumFractionDigits;
-  if (minDigits != null && maxDigits != null && minDigits > maxDigits) {
-    fail(`${path}.minimumFractionDigits`, "cannot exceed maximumFractionDigits");
-  }
-  // The integer style defaults its maximum to zero; a minimum above that is impossible.
-  if ((value.style ?? "decimal") === "integer" && typeof minDigits === "number" && minDigits > (typeof maxDigits === "number" ? maxDigits : 0)) {
-    fail(`${path}.minimumFractionDigits`, "cannot exceed maximumFractionDigits for the integer style");
-  }
-  // Reject options the renderer's Intl.NumberFormat cannot construct, naming the offending entry.
-  if (value.style === "currency") {
-    try {
-      new Intl.NumberFormat("en-GB", { style: "currency", currency: value.currency as string });
-    } catch {
-      fail(`${path}.currency`, "must be a well-formed ISO 4217 currency code");
-    }
-  }
-  for (const key of ["minimumFractionDigits", "maximumFractionDigits"] as const) {
-    const digits = value[key];
-    if (typeof digits !== "number") continue;
-    const probe: Intl.NumberFormatOptions = {};
-    probe[key] = digits;
-    try {
-      new Intl.NumberFormat("en-GB", probe);
-    } catch {
-      fail(`${path}.${key}`, "is outside the range this platform supports");
-    }
-  }
+  validateValueFormat(value, path, ["kind"]);
 }
 
 function validateColumn(value: unknown, path: string, allowFunctions: boolean): void {
@@ -810,133 +760,4 @@ export function mappedValue(column: ColumnPresentation | undefined, value: Value
  * applies. A date or number format overrides the matching type's default;
  * everything else is [[staticMethod:formatValue]]'s text.
  */
-export function cellText(field: Field | undefined, value: Value | undefined, format?: ColumnFormat): string {
-  if (value === null || value === undefined) return "";
-  if (format?.kind === "date" && field?.type === "Edm.Date" && typeof value === "string") return formatDate(value, format.style);
-  if (format?.kind === "number" && NUMERIC.has(field?.type ?? "") && (typeof value === "number" || (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))))) {
-    // Int64 and Decimal text formats exactly; a double would drop digits.
-    if ((field?.type === "Edm.Int64" || field?.type === "Edm.Decimal") && typeof value === "string") return exactNumberText(value, format);
-    return numberText(Number(value), format);
-  }
-  if (field?.type === "Edm.Boolean") return value ? "Yes" : "";
-  if (field?.type === "Edm.Date" && typeof value === "string") return formatDate(value);
-  if (field?.type === "Edm.DateTimeOffset" && typeof value === "string") return absoluteTime(value);
-  return formatValue(field, value);
-}
-
-function numberText(value: number, format: Extract<ColumnFormat, { kind: "number" }>): string {
-  const key = JSON.stringify(format);
-  let writer = NUMBER_FORMATS.get(key);
-  if (!writer) {
-    const style = format.style ?? "decimal";
-    const options: Intl.NumberFormatOptions = {};
-    if (style === "percent") options.style = "percent";
-    else if (style === "currency") {
-      options.style = "currency";
-      options.currency = format.currency ?? "GBP";
-    } else if (style === "integer") options.maximumFractionDigits = 0;
-    if (format.minimumFractionDigits !== undefined) options.minimumFractionDigits = format.minimumFractionDigits;
-    if (format.maximumFractionDigits !== undefined) options.maximumFractionDigits = format.maximumFractionDigits;
-    writer = new Intl.NumberFormat("en-GB", options);
-    NUMBER_FORMATS.set(key, writer);
-  }
-  return writer.format(value);
-}
-
-const EXACT_GROUPER = new Intl.NumberFormat("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-const EXACT_MINUS = new Intl.NumberFormat("en-GB").formatToParts(-1).find((p) => p.type === "minusSign")?.value ?? "-";
-const EXACT_POINT = new Intl.NumberFormat("en-GB").formatToParts(1.1).find((p) => p.type === "decimal")?.value ?? ".";
-const EXACT_LAYOUTS = new Map<string, readonly Intl.NumberFormatPart[]>();
-
-/** The fraction bounds Intl resolves for the same options the renderer builds. */
-function exactFractionBounds(format: Extract<ColumnFormat, { kind: "number" }>): { min: number; max: number } {
-  const style = format.style ?? "decimal";
-  const options: Intl.NumberFormatOptions = {};
-  if (style === "percent") options.style = "percent";
-  else if (style === "currency") { options.style = "currency"; options.currency = format.currency ?? "GBP"; }
-  else if (style === "integer") options.maximumFractionDigits = 0;
-  if (format.minimumFractionDigits !== undefined) options.minimumFractionDigits = format.minimumFractionDigits;
-  if (format.maximumFractionDigits !== undefined) options.maximumFractionDigits = format.maximumFractionDigits;
-  const resolved = new Intl.NumberFormat("en-GB", options).resolvedOptions();
-  return { min: resolved.minimumFractionDigits ?? 0, max: resolved.maximumFractionDigits ?? 0 };
-}
-
-/** Rounds magnitude digits half away from zero, as Intl does, without a double in between. */
-function roundMagnitude(integer: string, fraction: string, max: number): { integer: string; fraction: string } {
-  if (fraction.length > max) {
-    const kept = fraction.slice(0, max);
-    const carried = fraction[max]! >= "5" ? incrementDigits(integer + kept) : integer + kept;
-    if (carried.length > integer.length + kept.length) {
-      // A carry that grows the digits moves the point left: the new leading
-      // digit belongs to the integer and every kept fraction digit became zero.
-      return { integer: carried.slice(0, carried.length - max), fraction: "0".repeat(max) };
-    }
-    // Otherwise the point sits after the original integer part.
-    return { integer: carried.slice(0, integer.length), fraction: carried.slice(integer.length) };
-  }
-  return { integer, fraction };
-}
-
-function incrementDigits(digits: string): string {
-  const out = digits.split("");
-  for (let i = out.length - 1; i >= 0; i--) {
-    if (out[i] !== "9") { out[i] = String(Number(out[i]) + 1); return out.join(""); }
-    out[i] = "0";
-  }
-  return `1${out.join("")}`;
-}
-
-/** Percent style scales by 100, like Intl's percent does. */
-function scalePercent(body: string): string {
-  const [integer, fraction = ""] = body.split(".");
-  const shifted = fraction.padEnd(2, "0");
-  const whole = `${integer}${shifted.slice(0, 2)}`.replace(/^0+(?=\d)/, "");
-  const rest = shifted.slice(2);
-  return rest ? `${whole}.${rest}` : whole;
-}
-
-/** Formats plain decimal text exactly: Int64 and Decimal strings keep every digit. */
-function exactNumberText(value: string, format: Extract<ColumnFormat, { kind: "number" }>): string {
-  const text = value.trim();
-  const negative = text.startsWith("-");
-  const body = text.replace(/^[+-]/, "");
-  // Exponent or odd text keeps the double path's behaviour.
-  if (!/^\d+(\.\d*)?$|^\.\d+$/.test(body)) return numberText(Number(text), format);
-  const { min, max } = exactFractionBounds(format);
-  const scaled = format.style === "percent" ? scalePercent(body) : body;
-  const parts = scaled.split(".");
-  // A leading "." is the same magnitude as a leading "0.".
-  const integerRaw = parts[0] || "0";
-  const fractionRaw = parts[1] ?? "";
-  const rounded = roundMagnitude(integerRaw, fractionRaw, max);
-  const integer = rounded.integer || "0";
-  let fraction = rounded.fraction.padEnd(min, "0");
-  while (fraction.length > min && fraction.endsWith("0")) fraction = fraction.slice(0, -1);
-  const grouped = EXACT_GROUPER.format(BigInt(integer));
-  const layout = makeExactLayout(format, min, max);
-  let out = "";
-  for (const part of layout) {
-    if (part.type === "integer") {
-      out += grouped;
-      if (fraction && !layout.some((p) => p.type === "fraction")) out += EXACT_POINT + fraction;
-      continue;
-    }
-    if (part.type === "fraction") { out += fraction; continue; }
-    out += part.value;
-  }
-  return negative ? EXACT_MINUS + out : out;
-}
-
-/** The skeleton Intl builds for a format; exact digits replace its number parts. */
-function makeExactLayout(format: Extract<ColumnFormat, { kind: "number" }>, min: number, max: number): readonly Intl.NumberFormatPart[] {
-  const key = JSON.stringify(format);
-  const cached = EXACT_LAYOUTS.get(key);
-  if (cached) return cached;
-  const style = format.style ?? "decimal";
-  const options: Intl.NumberFormatOptions = { minimumFractionDigits: min, maximumFractionDigits: max };
-  if (style === "percent") options.style = "percent";
-  else if (style === "currency") { options.style = "currency"; options.currency = format.currency ?? "GBP"; }
-  const parts = new Intl.NumberFormat("en-GB", options).formatToParts(0);
-  EXACT_LAYOUTS.set(key, parts);
-  return parts;
-}
+export { fieldText as cellText } from "../field/presentation.ts";

@@ -1,0 +1,67 @@
+{
+  "Orders": [
+    {
+      "Tenant": "A",
+      "ID": 1,
+      "Title": "Consulting"
+    },
+    {
+      "Tenant": "B",
+      "ID": 1,
+      "Title": "Support"
+    }
+  ],
+  "Lines": [
+    {
+      "ID": 1,
+      "Tenant": "A",
+      "OrderID": 1,
+      "Quantity": "2.00",
+      "UnitPrice": "12.50"
+    },
+    {
+      "ID": 2,
+      "Tenant": "A",
+      "OrderID": 1,
+      "Quantity": "3.00",
+      "UnitPrice": "12.50"
+    },
+    {
+      "ID": 3,
+      "Tenant": "A",
+      "OrderID": 1,
+      "Quantity": "4.00",
+      "UnitPrice": "25.00"
+    },
+    {
+      "ID": 4,
+      "Tenant": "B",
+      "OrderID": 1,
+      "Quantity": "1.00",
+      "UnitPrice": "7.00"
+    },
+    {
+      "ID": 5,
+      "Tenant": "A",
+      "OrderID": 1,
+      "Quantity": "1.00",
+      "UnitPrice": null
+    }
+  ],
+  "TimeEntries": [
+    {
+      "ID": 1,
+      "Tenant": "A",
+      "OrderID": 1,
+      "Started": "2026-11-16T00:00:00Z",
+      "Ended": "2026-11-16T02:30:00Z"
+    },
+    {
+      "ID": 2,
+      "Tenant": "B",
+      "OrderID": 1,
+      "Started": "2026-11-16T00:00:00Z",
+      "Ended": "2026-11-16T01:00:00Z"
+    }
+  ]
+}

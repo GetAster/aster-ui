@@ -185,6 +185,41 @@ are stored with only those fields known ([[attr:StoredRecord.known]]). A
 collection can't place a changed record whose known fields lack one that its
 filter or sort reads, so it refetches.
 
+## attr:Query.compute
+
+Optional readonly [[object:ComputeColumn]] descriptors for server-calculated
+columns. Collections and summaries send these as OData expressions; nested
+navigator occurrences accept the same descriptors. Alias filtering, sorting,
+counting and totals run before paging, on the server. A permission or expression
+error remains an error; there is no fallback over loaded rows.
+
+## object:ComputeColumn
+
+`{ alias: string, expression: string, type: EdmType, title?: string }`. `alias` is a unique
+identifier that cannot shadow a declared field or navigation. `expression` is
+one OData expression without its trailing `as alias`. `type` declares the client
+type for criteria and presentation; the server independently infers the actual
+type. Conflicting response annotations fail the page. Optional `title` supplies
+a readable label for headers, field pickers and filter editors; it stays in
+client metadata and is not sent to the service. For example:
+
+```ts
+{ alias: "LineTotal", expression: "Quantity mul UnitPrice", type: "Edm.Decimal" }
+```
+
+Aliases are local to a query and cannot be written through an edit model. Two
+collections may use the same name for different expressions. Expressions are
+sent unchanged to the server; they are never evaluated as JavaScript.
+
+## staticMethod:queryType
+
+`queryType(type, compute?)` returns the declared entity type plus read-only
+computed fields. It validates alias names, duplicates, shadowing, nonempty
+expressions and supported primitive types. The shared schema is unchanged.
+`Collection.type` and `NavigatorModel.occurrence(id).type` expose this scoped
+metadata automatically. Read results through collection `items` or `recordAt`,
+since computed values are excluded from the canonical store.
+
 ## object:SortKey
 
 One term of `$orderby`.
@@ -588,3 +623,17 @@ Thrown by [[staticMethod:parseTemplate]]. `name` is `"TemplateError"`. The
 message is `<problem> at <n> in <source as JSON>`, where `<n>` is the zero-based
 index into the source where it stopped, so the text can be shown beside the
 template for the author to fix.
+
+## staticMethod:resolvePath
+
+Resolve a field path through single-valued navigation properties using the supplied
+schema. Returns the terminal metadata field. Throws `CriteriaError` for a missing
+schema, unknown navigation or field, a collection-valued step, or a binary terminal
+field. This helper performs metadata validation; it does not fetch related records.
+
+## staticMethod:relatedOf
+
+Create a navigation-type resolver for relative criteria inside `any`, `all` and
+`via`. The callback resolves from its optional `from` type, otherwise from the type
+passed to `relatedOf`, and returns `undefined` for an unknown navigation. It uses
+the supplied schema to look up the target entity set without fetching data.

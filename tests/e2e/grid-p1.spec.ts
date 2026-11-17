@@ -142,9 +142,10 @@ test("hideable policy refuses hiding with a reason; a saved hidden column is sho
   await expect(menuItem(page, "Hide Hours")).toHaveAttribute("title", "Hiding Hours isn’t allowed on this page.");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Columns" }).click();
-  const hours = page.getByRole("checkbox", { name: "Hours", exact: true });
-  await expect(hours).toBeDisabled();
-  await expect(page.locator('.aster-grid-panel li label[title="Hiding Hours isn’t allowed on this page."]')).toHaveCount(1);
+  const hours = page.getByRole("treeitem", { name: "Hours", exact: true });
+  await expect(hours).toHaveAttribute("aria-disabled", "true");
+  await expect(hours.locator('input[type="checkbox"]')).toBeDisabled();
+  await expect(hours).toHaveAccessibleDescription("Hiding Hours isn’t allowed on this page.");
   await page.keyboard.press("Escape");
 
   // A view that hid Note before the refusal keeps it stored; Note is shown now.

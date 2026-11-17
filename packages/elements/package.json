@@ -6,7 +6,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./yaml": "./src/yaml.ts",
-    "./styles/*": "./src/styles/*"
+    "./styles/*": "./src/styles/*",
+    "./grid-state": "./src/grid-state.ts",
+    "./format": "./src/format.ts"
   },
   "dependencies": {
     "@getaster/data": "workspace:*",

@@ -14,7 +14,8 @@ src/
   examples/            Independent, runnable component examples
     composition/       Device workspace: definition, model, registry, lazy views
     mail/              Mail workspace: definition, model, fixtures and styles
-    foundations/       Fields, layouts, folder picker and contextual navigation
+    finance/           Invoices, chart of accounts and journal over one dataset
+    foundations/       Fields, layouts, folder picker, contextual navigation and toasts
     collections/       Table and tiles over the same collection
     charts/            Third-party integration and optional vendor entry
   shared/navigation/   Appearance controls and navigation for standalone examples

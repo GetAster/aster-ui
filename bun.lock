@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "aster-ui",
@@ -54,6 +55,8 @@
       "version": "0.0.0",
       "bin": {
         "aster-theme-check": "./tools/aster-theme-check.ts",
+        "aster-lint": "./tools/aster-lint.ts",
+        "aster-skill": "./tools/aster-skill.ts",
       },
       "dependencies": {
         "@getaster/data": "workspace:*",
@@ -84,6 +87,7 @@
     "@axe-core/playwright": ["@axe-core/playwright@4.13.0", "", { "dependencies": { "axe-core": "~4.13.0" }, "peerDependencies": { "playwright-core": ">= 1.0.0" } }, "sha512-6YLx+kxXu5GJceG4ozFg+33a2EMTdjYwWGloJ3sb9Kta5pp+ZNS53uxGVog5JetIY8s++P5UrtX+cri+u0VAVg=="],
 
     "@getaster/data": ["@getaster/data@workspace:packages/data"],
+
 
     "@getaster/docs": ["@getaster/docs@workspace:packages/docs"],
 

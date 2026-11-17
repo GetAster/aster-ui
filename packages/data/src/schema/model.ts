@@ -91,6 +91,8 @@ export interface Field {
 
 export interface Navigation {
   readonly name: string;
+  /** Readable relationship label from Core.Description. */
+  readonly title?: string;
   /** The entity set the navigation leads to. */
   readonly target: string;
   readonly collection: boolean;
@@ -104,6 +106,34 @@ export interface Navigation {
   readonly owned: boolean;
 }
 
+/** What a record-collection rule says of the working state. `deferred`: the client can't judge it, the server will. */
+export type RuleOutcome = "pass" | "fail" | "deferred";
+
+/** The working state a rule is judged over: the record's fields, and each loaded owned collection's rows by navigation name. */
+export interface RuleState {
+  readonly record: Entity;
+  readonly rows: Readonly<Record<string, readonly Entity[]>>;
+}
+
+/**
+ * An entity-level `Validation.Constraint`: a condition over the record and
+ * its owned rows, published in `$metadata` and enforced by the server.
+ */
+export interface RecordRule {
+  /** The annotation's qualifier, which the server reports as the failure's `code`. */
+  readonly id: string;
+  /** `FailureMessage`. */
+  readonly message: string;
+  /** Every part of the condition is one the client judges. */
+  readonly evaluable: boolean;
+  /** The navigations the condition reads. */
+  readonly reads: readonly string[];
+  /** The owned navigation the condition reads when it reads exactly one and nothing else; where a failure attaches. */
+  readonly list: string | undefined;
+  /** Judges the state. A part the client can't judge never decides the result unless it must: then `deferred`. */
+  evaluate(state: RuleState): RuleOutcome;
+}
+
 export interface EntityType {
   readonly name: string;
   readonly qualifiedName: string;
@@ -112,6 +142,8 @@ export interface EntityType {
   /** In declaration order. */
   readonly fields: readonly Field[];
   readonly navigations: readonly Navigation[];
+  /** `Validation.Constraint#id` on the type: rules over the record and its owned rows. */
+  readonly rules: readonly RecordRule[];
   /** `Core.Description` on the type. */
   readonly title?: string;
   /** `AsterData.PluralTitle`. */

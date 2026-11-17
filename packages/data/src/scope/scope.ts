@@ -563,6 +563,7 @@ export class PageScope {
       key: [],
       fields: [...fields.values()],
       navigations: [],
+      rules: [],
       annotations: {},
       field: (name) => fields.get(name),
       navigation: (name) => (lists.has(name) ? { name, target: name, collection: true, keys: [], owned: false } : undefined),

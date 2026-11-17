@@ -57,6 +57,12 @@ them. `ListEditor` and `RuleEditor` never call `save()`: put the list in a
 - Every action button names its row, by the value of its first column or "new
   row": "Remove Write the brief". A row that is new or marked for removal
   starts its first cell with a hidden "New: " or "To be removed: ".
+- A rule over the record and its rows that the list takes part in
+  ([[attr:ListEdit.errors]]) is shown under the rows, referenced by the list's
+  `aria-describedby`, and said once through the editor's polite live region
+  each time it changes; it follows the edit and clears when the condition
+  holds. [[method:ListEditor.focusFirst]] is where the form's summary sends
+  focus.
 - With a reason in `readOnlyReason`, the whole editor is text, the reason is
   shown above it, and nothing can be added, removed, reverted or moved; see
   [[attr:ListEditor.readOnlyReason]].
@@ -465,7 +471,10 @@ state, leaves its place empty. With more than one line there is no header row.
 
 When the editor is as narrow as [[attr:ListEditor.responsive]] says (520 px
 of its own width by default), every cell takes a line of its own, in layout
-order, between the handle and the actions; an empty cell takes none.
+order, between the handle and the actions; an empty cell takes none. Each
+stacked cell names its column with a caption, since the header row is hidden:
+beside a figure that reads as text, above a control (where it is for the eye only,
+the control already carrying its column as its label).
 Default `undefined`: one line, [[attr:ListEditor.columns]]. Setting it to an
 empty list, or a list with an empty line, throws. Reactive.
 
@@ -503,28 +512,15 @@ declare const editor: ListEditor;
 `boolean | { readonly below: number }`: see [[attr:ListEditor.responsive]].
 `true` is the same as `{ below: 520 }`.
 
-## attr:ListEditor.renderers
 
-`Readonly<Record<string, ListCellRenderer>>`. Renderers by field name, used
-wherever a cell shows its value as text: a row that reads, a row marked for
-removal, and a field the row can't change while it is being edited. An
-editable field being edited is always its control. Default `{}`. Reactive.
-JavaScript only.
+## method:ListEditor.focusFirst
 
-```ts
-import { html, nothing } from "lit-html";
+No parameters. Returns nothing.
 
-editor.renderers = {
-  name: (values) => html`<strong>${String(values.name ?? "")}</strong>`,
-  required: (values) => (values.required ? html`<span class="flag">Required</span>` : nothing),
-};
-declare const editor: ListEditor;
-```
-
-## type:ListCellRenderer
-
-`(values: Entity, id: string) => View`: the row's current values and its
-[[attr:ListRow.id]]. Signals read while it runs keep the cell up to date.
+Focuses the first editable control of the first row; with none, the first row
+that can take focus; with none, the add button. Nothing happens when the
+editor has nothing to focus. The form's summary calls it when a failure that
+belongs to this list is chosen.
 
 ## method:ListEditor.edit
 
@@ -588,13 +584,15 @@ editor too. Reactive.
 
 One column of a [[class:ListEditor]]. Each cell is the control
 [[staticMethod:controlFor]] picks for `field` from the row's metadata: a picker
-when `options` is set, a checkbox for a Boolean, a select for a field with allowed
-values, the date field for an `Edm.Date`, otherwise a text field.
+when `options` is set (a tree picker for a [[class:TreeChoices]], or for a
+foreign key into a tree), a checkbox for a Boolean, a select for a field with
+allowed values, the date field for an `Edm.Date`, otherwise a text field.
 
 ```ts
 const columns: ListColumn[] = [
   { field: "title" },
   { field: "assigneeId", width: "14rem", options: people, display: (row) => names.get(String(row.edit.values.value.assigneeId)) ?? "" },
+  { field: "budget", width: "8rem", format: { style: "currency", currency: "GBP" } },
 ];
 declare const names: ReadonlyMap<string, string>;
 ```
@@ -613,12 +611,59 @@ give. Every row shares the list's tracks, so a row's content, or an action
 appearing on it (Revert once a row is moved or changed), doesn't resize its
 columns.
 
+## attr:ListColumn.align
+
+`"start"`, `"center"` or `"end"` ([[type:ColumnAlign]]): where the column's header,
+its text and its input put their text. Default: `"end"` for a numeric field the
+user types, as the grid does, and `"start"` for every other, including a numeric
+key chosen with `options`, a field with allowed values, and a `control` other than
+`"number"`. The column's figures use tabular digits when aligned to the end.
+
+## attr:ListColumn.format
+
+A [[object:ValueFormat]] for a numeric field: how the value reads in the cell where it
+is text, and in the input while it is not focused (focused, the input shows what was
+typed). The text comes from [[staticMethod:formatFigure]], as the grid's column
+`format` does, so the field's metadata fills what the format leaves out: a
+Decimal's scale is its places and a currency annotation names the currency.
+Ignored for a field that is not a number, and by a cell drawn with `display` or
+[[attr:ListEditor.fieldPresentation]]. In a YAML composition catalog it is plain data and is
+checked when the columns are set.
+
+```ts
+const columns: ListColumn[] = [
+  { field: "quantity", format: { maximumFractionDigits: 2 } },
+  { field: "rate", format: { style: "currency", currency: "GBP" } },
+  { field: "discount", align: "center", format: { style: "percent" } },
+];
+```
+
 ## attr:ListColumn.options
 
 Makes a foreign-key field a picker over these records: a [[class:Collection]] for
 a short list that loads whole, or a [[class:PickerOptions]] for search, columns
 and "Create …". Share one `PickerOptions` between all rows of a column. Without
 it the field gets whatever control its type calls for. See [[group:fields]].
+
+A [[class:TreeChoices]] makes the cell an `aster-tree-picker` over a hierarchy,
+such as a chart of accounts: the popup shows the tree, its `choosable` limits
+what can be chosen (only leaf accounts) while the groups stay open to browse,
+its `display` is what the closed cell shows ("1110 Bank account" from a
+computed label), and `searchFields` are what typing searches. The keyboard and
+every state come from the tree picker: a changed cell is marked pending, an
+invalid one says why, a disabled one can't be focused, and a field the row
+can't change reads as text. The path to the chosen node sits under the picker
+in a form; in a list cell it is not drawn, to keep the row's height, and the
+input still describes it. A row that reads shows the chosen node's text, unless
+[[attr:ListColumn.display]] or a renderer says otherwise.
+
+```ts
+const accounts = new TreeChoices(ctx, {
+  set: "Accounts", parentField: "parentId", orderBy: [{ field: "code" }],
+  display: "label", searchFields: ["code", "name"], choosable: (a) => a.postable === true,
+});
+const columns: ListColumn[] = [{ field: "accountId", width: "minmax(11rem, 2fr)", options: accounts }];
+```
 
 ## attr:ListColumn.control
 
@@ -637,7 +682,9 @@ A function from the [[object:ListRow]] to the text to show where the cell is tex
 rather than a control: a read-only editor, a row marked for removal, or a field
 the row can't change. It is not used for editable cells. Default: the value
 formatted by the field's type (a key shows as the key). Use it to show the name
-that an `options` picker would show.
+that an `options` picker would show, or to leave a zero blank where the list reads
+as text. A column whose `options` is a
+[[class:TreeChoices]] needs none: a row that reads shows the chosen node's text.
 
 ## attr:ListColumn.span
 
@@ -877,3 +924,12 @@ the ones that couldn't be removed. It isn't fired for a press on a chip that
 can't be removed, and not when contributions change from elsewhere. It bubbles
 and can be cancelled (cancelling has no effect on the removal, which has already
 happened). Read [[attr:SharedFilters.contributions]] for the current state.
+
+## attr:ListEditor.fieldPresentation
+
+Shared field display configuration, as [[object:FieldPresentations]], used in
+read displays. Editing keeps the configured native control.
+
+## attr:ListColumn.presentation
+
+A local [[object:FieldPresentation]] whose supplied members override the host.

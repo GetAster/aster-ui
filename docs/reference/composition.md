@@ -276,9 +276,10 @@ connects them to model actions and owns listener cleanup.
 
 Dashboard widget-type registration, Menu positioning (its items and opening
 point are method arguments), Dialog/Window opening, Workspace coordination and
-Toaster announcements retain their explicit lifecycle methods. They are not
-writable configuration properties; a Menu's chrome switches, like Window's and
-Dialog's, are plain-data properties the adapter carries. Use a registered
+the Toaster's `show`, `update`, `promise` and `dismiss` retain their explicit
+lifecycle methods. They are not writable configuration properties; a Menu's
+chrome switches, like Window's and Dialog's, and the Toaster's `policy`,
+`features`, `chrome` and durations, are plain-data properties the adapter carries. Use a registered
 factory and its Lifetime for setup/cleanup of such services. Register app-local components
 with `compositeElement(Constructor)` to derive their contract automatically.
 

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { examples } from "../../apps/showcase/src/app/catalogue.ts";
 
 test.use({ viewport: { width: 393, height: 851 }, hasTouch: true });
 
@@ -24,7 +25,7 @@ test("mail folders remain on one horizontal row on narrow phones", async ({ page
 test("touch scroll reaches the gallery footer and mobile examples have a return route", async ({ page, browserName }, info) => {
   test.skip(browserName !== "chromium", "Uses CDP touch gestures");
   await page.goto("/?memory#showcase");
-  await expect(page.locator(".showcase-open")).toHaveCount(10);
+  await expect(page.locator(".showcase-open")).toHaveCount(examples.length);
   const main = page.locator('main[data-page="showcase"]');
   await expect(main).toBeVisible();
   // Commit the first painted frame before sending a compositor touch gesture.
@@ -47,7 +48,7 @@ test("touch scroll reaches the gallery footer and mobile examples have a return 
   const back = page.getByRole("link", { name: "← Component showcase", exact: true });
   await expect(back).toBeInViewport();
   await page.screenshot({ path: info.outputPath("mail-mobile.png") });
-  await page.goBack();
+  await page.goBack({ waitUntil: "commit" });
   await expect(categories).toBeVisible();
   await categories.getByRole("link", { name: "Fields & layouts", exact: true }).tap();
   await expect(page.getByRole("heading", { name: "Fields and layouts", exact: true })).toBeInViewport();

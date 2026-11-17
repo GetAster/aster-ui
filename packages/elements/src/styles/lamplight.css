@@ -69,7 +69,10 @@
     --aster-toast-bg: var(--aster-text);
     --aster-toast-text: var(--aster-surface);
     --aster-toast-action: oklch(85% .1 168);
-    --aster-toast-mark: oklch(80% .12 168);
+    --aster-toast-mark: oklch(78% .1 245);
+    --aster-toast-success: oklch(80% .13 160);
+    --aster-toast-warning: oklch(83% .13 85);
+    --aster-toast-error: oklch(76% .13 28);
 
     --aster-lamp: oklch(99.5% .03 88);
     --aster-glow: 1;
@@ -111,6 +114,10 @@
     --aster-well: 0 0 0 .5px oklch(0% 0 0 / .6), inset 1px 1px 2px oklch(from var(--aster-shadow) l c h / .4);
     --aster-scrim: oklch(0% 0 0 / .45);
     --aster-toast-action: oklch(42% .1 168);
+    --aster-toast-mark: oklch(45% .13 250);
+    --aster-toast-success: oklch(42% .1 160);
+    --aster-toast-warning: oklch(46% .1 70);
+    --aster-toast-error: oklch(46% .16 28);
     --aster-texture-blend: overlay;
     --aster-texture-opacity: .07;
     --aster-glow: .16;

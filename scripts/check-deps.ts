@@ -10,9 +10,10 @@ const ALLOWED: Record<string, readonly string[]> = {
   mock: ["data"],
   elements: ["data"],
   "elements-preview": ["data", "elements"],
+  "data-navigator": ["data", "elements"],
   react: ["data", "elements"],
   "app:docs": ["docs"],
-  "app:showcase": ["data", "elements", "elements-preview", "mock"],
+  "app:showcase": ["data", "elements", "elements-preview", "data-navigator", "mock"],
 };
 
 const IMPORT = /(?:import|export)\s[^'"]*?from\s*["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)/g;
@@ -46,6 +47,12 @@ for (const { pkg, src } of units) {
     const edges: string[] = [];
     for (const m of readFileSync(file, "utf8").matchAll(IMPORT)) {
       const spec = m[1] ?? m[2]!;
+      if (relative(ROOT, file).startsWith("packages/data-navigator/src/model/")) {
+        const withinModel = spec.startsWith(".") && relative(join(ROOT, "packages/data-navigator/src/model"), resolve(dirname(file), spec)).split("/")[0] !== "..";
+        if (!withinModel && spec !== "@getaster/data" && spec !== "@preact/signals-core") {
+          problems.push(`${relative(ROOT, file)}: the navigator model may import only its own modules, data and signals (${spec})`);
+        }
+      }
       const target = spec.startsWith("@getaster/")
         ? spec.slice("@getaster/".length).split("/")[0]!
         : spec.startsWith(".")

@@ -18,6 +18,7 @@ export const navigationGroups: readonly NavigationGroup[] = [
     { href: "../examples/tile-grid.html", label: "TileGrid examples" },
     { href: "../examples/composition.html", label: "JS & YAML workspace" },
     { href: "../examples/mail.html", label: "Mail & session recovery" },
+    { href: "../examples/finance.html", label: "Finance workspace" },
     { href: "../examples/tabs.html", label: "Tabs workspace" },
     { href: "../examples/windows.html", label: "Windows workspace" },
     { href: "../examples/dashboard.html", label: "Live dashboard" },

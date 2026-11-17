@@ -12,6 +12,8 @@ export default defineConfig({
     timezoneId: "UTC",
     locale: "en-GB",
     viewport: { width: 1280, height: 820 },
+    // Load-dependent failures rarely recur on demand; keep the evidence.
+    trace: "retain-on-failure",
   },
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.002 } },
   projects: [

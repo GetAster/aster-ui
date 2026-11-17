@@ -13,6 +13,8 @@ export interface FieldPolicy {
   sortable?: Capability;
   /** Whether this field may be filtered, when the global entry permits it. */
   filterable?: Capability;
+  /** Whether this field may be summarized, when the global entry permits it. */
+  summarizable?: Capability;
   /** Whether this field may be grouped on, when the global entry permits it. */
   groupable?: Capability;
   /** Whether this field's column may be resized, when the global entry permits it. */
@@ -38,6 +40,8 @@ export interface GridPolicy {
   sortable?: Capability;
   /** Global filter capability, default on. */
   filterable?: Capability;
+  /** Global summary capability, default on. Row counts use the field identifier `$count`. */
+  summarizable?: Capability;
   /** Global grouping capability, default on. */
   groupable?: Capability;
   /** Global column-resize capability, default on. */

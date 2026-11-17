@@ -3,12 +3,12 @@ export type * from "./schema/model.ts";
 export { Lifetime } from "./composition/lifetime.ts";
 export { Command, command, type CommandOptions } from "./composition/command.ts";
 export { parseCsdl, SchemaError } from "./schema/csdl.ts";
-export type { Criteria, Query, RelativeDate, SortKey } from "./criteria/ast.ts";
+export type { ComputeColumn, Criteria, Query, RelationshipAddress, RelativeDate, SortKey } from "./criteria/ast.ts";
 export { FilterDraft, filterOperators, describeCriteria, type FilterNode, type FilterGroup, type FilterCondition, type FilterRelated, type FilterProblem, type FilterResult, type FilterChange } from "./criteria/filter-draft.ts";
-export { hasRelative, isRelative, resolveRelative } from "./criteria/relative.ts";
+export { hasRelative, isRelative, resolveRelative, relatedOf } from "./criteria/relative.ts";
 export { criteriaRule, type CriteriaValidator, type OwnCriteria, type OwnTest } from "./validate/criteria-rule.ts";
 export { parseTemplate, TemplateError, type Template } from "./template/template.ts";
-export { toApply, toFilter, toOrderBy, toQueryString, formatLiteral, CriteriaError, type Aggregate } from "./criteria/compile.ts";
+export { queryType, resolvePath, toApply, toFilter, toOrderBy, toQueryString, formatLiteral, CriteriaError, type Aggregate } from "./criteria/compile.ts";
 export { matches, compareValues, sortComparator, type Related } from "./criteria/evaluate.ts";
 export type { Method, ODataRequest, ODataResponse, Transport } from "./transport.ts";
 export { fetchTransport } from "./transport.ts";
@@ -21,7 +21,7 @@ export { Collection, type CollectionOptions, type CollectionStatus } from "./col
 export { aggregate, countBy, countWhere, subtractExact, sum, sumValues } from "./collection/aggregate.ts";
 export { apply, creatable, diff, invert, merge, writable, type ChangeSet, type FieldChange, type OwnedChanges } from "./changes/changeset.ts";
 export { validateEntity, validateField, type FieldErrors } from "./validate/validate.ts";
-export { EditModel, type Conflict, type EditDraft, type EditFieldPolicy, type EditOptions, type EditPolicy, type FieldRules, type Rule } from "./edit/edit-model.ts";
+export { EditModel, type Conflict, type EditDraft, type EditFieldPolicy, type EditOptions, type EditPolicy, type FieldRules, type RecordError, type Rule } from "./edit/edit-model.ts";
 export { DataContext, type Saved } from "./context.ts";
 export { Selection, selectionOptionsError, type SelectionOptions } from "./selection/selection.ts";
 export {
@@ -57,7 +57,7 @@ export {
   type SkippedContribution,
 } from "./scope/filters.ts";
 export { ListEdit, type ListDraft, type ListEditOptions, type ListRow, type ListSaveResult } from "./edit/list-edit.ts";
-export { RecordEdit, type RecordDraft, type RecordEditOptions, type RecordProblems, type RecordSave, type RecordSnapshot } from "./edit/record-edit.ts";
+export { RecordEdit, type RecordDraft, type RecordEditOptions, type RecordProblems, type RuleResult, type RecordSave, type RecordSnapshot } from "./edit/record-edit.ts";
 export { Groups, type GroupRow } from "./collection/groups.ts";
 export { Grouping, type GroupingRow, type GroupingHeader, type GroupingRecord, type GroupingOptions } from "./collection/grouping.ts";
 export { Tree, type TreeOptions, type TreeRow, type FilterMode } from "./tree/tree.ts";

@@ -1,0 +1,47 @@
+@layer aster.elements {
+  aster-field-selection { display: block; min-width: 0; }
+  .aster-field-selection { display: grid; gap: var(--aster-gap); color: var(--aster-text); }
+  .aster-field-selection h3, .aster-field-selection h4, .aster-field-selection p { margin: 0; }
+  .aster-field-selection h3, .aster-field-selection h4 { font: inherit; font-weight: var(--aster-weight-strong); }
+  .aster-field-selection-tools { display: flex; flex-wrap: wrap; gap: var(--aster-gap); }
+  .aster-field-selection-tools label { display: grid; gap: var(--aster-row-y); flex: 1 1 10rem; min-width: 0; }
+  .aster-field-selection-filter { display: grid; gap: var(--aster-row-y); flex: 1 1 10rem; min-inline-size: 0; }
+  .aster-field-selection input[type="search"] {
+    min-width: 0; width: 100%; min-height: var(--aster-ctl); padding: 0 var(--aster-pad);
+    border: 1px solid var(--aster-rule); border-radius: var(--aster-r-ctl); background: var(--aster-sunk); box-shadow: var(--aster-well);
+  }
+  .aster-field-selection-hint, .aster-field-selection small { color: var(--aster-text-2); font-size: .9em; }
+  .aster-field-selection-selected, .aster-field-selection-available { margin: var(--aster-row-y) 0 0; padding: 0; list-style: none; }
+  .aster-field-selection li { min-width: 0; padding-block: var(--aster-row-y); border-bottom: 1px solid var(--aster-rule); }
+  .aster-field-selection-selected li { display: flex; align-items: center; flex-wrap: wrap; gap: var(--aster-pad); }
+  .aster-field-selection-name { flex: 1 1 10rem; overflow-wrap: anywhere; }
+  .aster-field-selection small { display: block; flex-basis: 100%; }
+  .aster-field-selection-actions { display: flex; gap: var(--aster-row-y); flex-wrap: wrap; }
+  .aster-field-selection button { min-height: var(--aster-ctl); padding-inline: var(--aster-pad); border-radius: var(--aster-r-ctl); }
+  .aster-field-selection button:hover:not(:disabled) { background: var(--aster-rule-2); }
+  .aster-field-selection button:active:not(:disabled) { background: var(--aster-accent-soft); }
+  .aster-field-selection button:disabled { color: var(--aster-text-3); }
+  .aster-field-selection-available li { cursor: pointer; padding-inline-start: calc(var(--aster-field-depth, 0) * var(--aster-pad)); }
+  .aster-field-selection-available label { display: flex; align-items: center; gap: var(--aster-pad); min-height: var(--aster-ctl); overflow-wrap: anywhere; }
+  .aster-field-selection-available label:has(:checked) { color: var(--aster-accent); }
+  .aster-field-selection-available label:has(:disabled) { color: var(--aster-text-3); }
+  .aster-field-selection-available:focus { outline: none; }
+  .aster-field-selection-available:focus-visible [data-active] { outline: 2px solid var(--aster-accent); outline-offset: -2px; }
+  .aster-field-selection-available li:hover:not([aria-disabled="true"]) { background: var(--aster-rule-2); }
+  .aster-field-selection-available li[aria-disabled="true"] { color: var(--aster-text-3); cursor: default; }
+  .aster-field-selection-branch { display: flex; align-items: center; gap: var(--aster-pad); min-height: var(--aster-ctl); width: 100%; overflow-wrap: anywhere; }
+  .aster-field-selection-branch .aster-field-selection-name { flex: 1; }
+  .aster-field-selection-branch svg { flex: none; width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.5; }
+  [aria-expanded="true"] > .aster-field-selection-branch svg { transform: rotate(90deg); }
+  .aster-field-selection-count { font-size: .9em; white-space: nowrap; }
+  .aster-field-selection-available label { cursor: inherit; width: 100%; }
+
+  .aster-field-selection-branch .aster-field-selection-hint { margin-inline-start: var(--aster-pad); }
+  @media (forced-colors: active) {
+    .aster-field-selection-available:focus-visible [data-active] { outline-color: Highlight; }
+    .aster-field-selection-available li[aria-disabled="true"] { color: GrayText; }
+    .aster-field-selection input[type="search"], .aster-field-selection li { border-color: CanvasText; }
+    .aster-field-selection button:disabled, .aster-field-selection-available label:has(:disabled) { color: GrayText; }
+    .aster-field-selection-available label:has(:checked) { color: CanvasText; }
+  }
+}

@@ -1,8 +1,8 @@
 {
   "license": "Apache-2.0",
-  "sha256": "59e71c28418c00925afc3d896fc5bfdf7a3bdc17ab49b311135a06f8237fe027",
-  "bytes": 5179274,
-  "compiler": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "sha256": "b1a86f14e524b1aa167bef1089afad8f5eae0bae2568dae3edb7ba2aeb222013",
+  "bytes": 5311704,
+  "compiler": "rustc 1.100.0 (0ef1bc386 2026-11-09)",
   "format": "wasm32-wasip1",
   "dependencies": [
     {
@@ -769,5 +769,5 @@
       ]
     }
   ],
-  "rustNotices": "licenses/78c163fcec50e64b-COPYRIGHT-library.html"
+  "rustNotices": "licenses/626556344c12679d-COPYRIGHT-library.html"
 }

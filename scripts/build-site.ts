@@ -14,7 +14,8 @@ import { buildBrowserLibrary } from "./site/library.ts";
 const ROOT = resolve(import.meta.dir, "..");
 const OUT = join(ROOT, "dist-local");
 const WASM = join(ROOT, "packages/mock/wasm/odata_mock.wasm");
-for (const name of ["data", "elements", "elements-preview", "mock"]) {
+for (const name of ["data", "elements", "elements-preview", "data-navigator", "mock"]) {
+  if (!existsSync(join(ROOT, "packages", name, "src/index.ts"))) continue;
   const entry = Bun.resolveSync(`@getaster/${name}`, join(ROOT, "scripts/lib"));
   if (entry !== join(ROOT, "packages", name, "src/index.ts")) throw new Error(`@getaster/${name} resolves outside this checkout; reinstall its workspaces`);
 }

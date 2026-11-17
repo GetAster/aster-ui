@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { compileCompositeYaml } from "../../../scripts/composite-yaml.ts";
 import { standaloneExamples } from "../src/app/catalogue.ts";
@@ -13,11 +13,14 @@ export async function buildShowcaseExamples(root: string, out: string, productio
     "@getaster/data": "../lib/aster-ui.js",
     "@getaster/elements": "../lib/aster-ui.js",
     "@getaster/elements-preview": "../lib/aster-ui-preview.js",
+    "@getaster/data-navigator/model": "../lib/aster-data-navigator.js",
+    "@getaster/data-navigator": "../lib/aster-data-navigator.js",
     "@getaster/mock": "../lib/aster-ui-mock.js",
     "lit-html": "../lib/aster-ui.js",
     "@preact/signals-core": "../lib/aster-ui.js",
   };
   for (const file of Object.keys(exampleAssets)) {
+    if (!existsSync(exampleSource(root, file))) continue;
     const source = readFileSync(exampleSource(root, file), "utf8");
     let output = source.replaceAll("../../shared/navigation/", "./").replaceAll("../../app/catalogue.ts", "./example-navigation.js");
     if (file.endsWith(".html")) output = output.replace("<head>", `<head><script type="importmap">${JSON.stringify({ imports })}</script>`);

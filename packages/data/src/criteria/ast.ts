@@ -1,4 +1,5 @@
-import type { Value } from "../schema/model.ts";
+import type { KeyValues } from "../store/keys.ts";
+import type { EdmType, Value } from "../schema/model.ts";
 
 /**
  * A date relative to when a query runs: today, or now, taken to the start
@@ -61,9 +62,27 @@ export interface SortKey {
   readonly descending?: boolean;
 }
 
+/** An immediate relationship of a record identified by its complete key. */
+export interface RelationshipAddress {
+  readonly set: string;
+  readonly key: KeyValues;
+  readonly navigation: string;
+}
+
+/** A request-local scalar; type is the client's declaration, checked against response annotations. */
+export interface ComputeColumn {
+  readonly alias: string;
+  /** Client-side label for query-local field metadata; never sent to the service. */
+  readonly title?: string;
+  readonly expression: string;
+  readonly type: EdmType;
+}
+
 /** The query a collection is a window over. */
 export interface Query {
   readonly set: string;
+  readonly relationship?: RelationshipAddress;
+  readonly compute?: readonly ComputeColumn[];
   readonly filter?: Criteria;
   /** The key properties are appended as tie-breakers, as the server does. */
   readonly orderBy?: readonly SortKey[];

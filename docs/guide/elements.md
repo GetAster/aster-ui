@@ -306,6 +306,13 @@ when removed. `trail(entity)` gives the ancestors' names, fetched as needed,
 for showing a node elsewhere: the demo's dependency viewer and remove dialog
 use it.
 
+A list editor column takes a `TreeChoices` as its `options`, and a form field
+or `controlFor` call does too; a form also gives a tree picker to a foreign
+key into a tree by itself (`TreeChoices.of(ctx, set)`, from the set's
+self-referencing navigation). In a list cell the path under the input is not
+drawn, to keep the row one line high; the input still describes it. A tree
+picker is disabled and read-only like the other pickers.
+
 ### `aster-date` (`date/date-field.ts`, `date/calendar.ts`, `date/dates.ts`)
 
 **Binds to:** a model and an `Edm.Date` field. `controlFor` picks it for any
@@ -349,7 +356,9 @@ Fields laid out from metadata. The app gives only the arrangement: sections
 with a title, a column count and items, each a field name, `{ field, span,
 options }` or a read-only `{ title, value }` such as the derived "Left"
 (`:12–34`). Each field's control comes from `controlFor` (`form/controls.ts:18`):
-a field with `options` is a picker, a Boolean a checkbox, a field with
+a field with `options` is a picker (a tree picker when `options` is a `TreeChoices`), a foreign key into a
+tree (a set whose type points to itself through a parent field) a tree picker without any `options`,
+a Boolean a checkbox, a field with
 allowed values a select, a Date the date field, anything else a text field. Label, type, required
 marker and state come from the model. Each section is an `aster-section`
 whose collapsed summary counts its pending fields, "2 changes" (`:94`). A
@@ -670,7 +679,7 @@ navigation doesn't sort.
 it. With `expansion`, a double-click and Enter expand the row instead, and F2
 still edits it in place. The row gets an
 `EditModel`, and each cell becomes the control `controlFor` chooses: text
-field, check, select, date, or a picker for a lookup. Computed fields stay as
+field, check, select, date, or a picker for a lookup (a tree picker for a foreign key into a tree). Computed fields stay as
 text. Focus goes to the clicked cell, or the first editable one. Only one row
 is edited at a time: starting another saves the first, and stays if that
 fails (`:1607`). Enter saves and returns focus to the row; Shift+Enter is a
@@ -980,13 +989,15 @@ stand in, and a swipe is the `pointercancel` a browser sends when it scrolls.
   `ctx.update`, reverting with an error if the save fails.
 - **`aster-dialog`**: a native modal `<dialog>`; `showView` morphs one panel
   between views with a view transition.
-- **`aster-toaster`** and **`announce`**: one toast at a time with an optional
-  action; a polite live region for background results.
+- **`aster-toaster`** and **`announce`**: a small stack of toasts with variants
+  (errors are assertive and stay until dismissed), update in place by id, a
+  progress bar, a promise helper and pause while a modal dialog is open;
+  `announce` is a polite live region for background results.
 - **`aster-choice`**: a select-only combobox not bound to a model: `options`, a
   `value`, a `label`, and a `change` event with the chosen value. The grid's
   filter row uses it; `aster-select` is the same control over a field's allowed
   values.
-- **`format.ts`**: `relativeTime` with `absoluteTime` on hover, `compactMoney`.
+- **`format.ts`**: `relativeTime` with `absoluteTime` on hover, and `formatFigure`, the one formatter for numbers, currency and percentages.
 
 ## How the demo uses them
 

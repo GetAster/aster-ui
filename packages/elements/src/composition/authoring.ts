@@ -155,7 +155,10 @@ export class CompositeAuthoring<S extends RegistryCatalog> {
         }
         if (Array.isArray(v)) v.forEach((item, i) => value(item, schemaProperty(nestedSchema(expected?.schema ?? {}, "0")), `${path}.${i}`, property, available));
         else for (const [key, item] of Object.entries(v as object)) value(item, schemaProperty(nestedSchema(expected?.schema ?? {}, key)), `${path}.${key}`, property, available);
-      } else if (expected && !expected.validate(v)) fail(path, `Expected ${expected.description ?? "a valid value"}`);
+      } else if (expected) {
+        try { if (!expected.validate(v)) fail(path, `Expected ${expected.description ?? "a valid value"}`); }
+        catch (error) { fail(path, error instanceof Error ? error.message : String(error)); }
+      }
     };
     const props = (given: Readonly<Record<string, unknown>>, contract: CompositeContract, path: string, available = refs): void => {
       for (const [key, v] of Object.entries(given)) {

@@ -4,7 +4,7 @@
 // code; longer text, examples and see-also links come from docs/reference/*.md,
 // merged in by `merge.ts`.
 import ts from "typescript";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dir, "../..");
@@ -57,13 +57,15 @@ export interface Entry {
 const PACKAGES = [
   { name: "data", entries: ["packages/data/src/index.ts"] },
   { name: "elements", entries: ["packages/elements/src/index.ts", "packages/elements/src/yaml.ts"] },
+  { name: "data-navigator", entries: ["packages/data-navigator/src/index.ts"] },
   { name: "mock", entries: ["packages/mock/src/index.ts"] },
-];
+].filter(pkg => pkg.entries.every(entry => existsSync(join(ROOT, entry))));
 
 /** Members every element has from HTMLElement or the base lifecycle; not part of an element's own API. */
 const LIFECYCLE = new Set(["connectedCallback", "disconnectedCallback", "attributeChangedCallback", "adoptedCallback", "render", "updated", "control", "row", "describe", "write", "constructor"]);
 
 function files(dir: string): string[] {
+  if (!existsSync(dir)) return [];
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return files(path);
@@ -74,7 +76,7 @@ function files(dir: string): string[] {
 /** `define("aster-x", X)` calls: class name to tag. */
 function tags(): Map<string, string> {
   const out = new Map<string, string>();
-  for (const f of files(join(ROOT, "packages/elements/src"))) {
+  for (const f of ["elements", "data-navigator"].flatMap(name => files(join(ROOT, `packages/${name}/src`)))) {
     for (const m of readFileSync(f, "utf8").matchAll(/define\(\s*"([a-z][\w-]*)"\s*,\s*(\w+)\s*\)/g)) out.set(m[2]!, m[1]!);
   }
   return out;

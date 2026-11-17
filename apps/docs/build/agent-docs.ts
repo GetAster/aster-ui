@@ -25,7 +25,7 @@ export function apiMarkdownFile(ref: string): string {
 export function agentIndex(docs = "", examples = ""): string {
   return `# Aster UI
 
-> Aster UI is an open-source application framework for data-rich web applications: grids, forms, list editors, filters, reports and workspaces over one shared data layer, built as standard web components. Paging, sorting, selection shared between views, drafts, validation, save conflicts and refresh after save are part of the framework rather than code each screen writes. It reads OData services, and with the companion Aster WebData server it reaches SQL databases directly and REST APIs or legacy services through short Python or TypeScript scripts. The packages are free under the Apache 2.0 licence and published on npm as \`@getaster/data\` and \`@getaster/elements\`.
+> Aster UI is an open-source application framework for data-rich web applications: grids, forms, list editors, filters, reports and workspaces over one shared data layer, built as standard web components. Paging, sorting, selection shared between views, drafts, validation, save conflicts and refresh after save are part of the framework rather than code each screen writes. It reads OData services, and with the companion Aster WebData server it reaches SQL databases directly and REST APIs or legacy services through short Python or TypeScript scripts. The public packages are free under the Apache 2.0 licence and published on npm as \`@getaster/data\` and \`@getaster/elements\`.
 
 This page is written for a coding agent whose user has asked whether Aster UI would help them and, if it would, to set it up. Work through the sections in order. Before any step that installs packages, creates a project or changes the user's files, show the user what you intend to run or change and wait for their approval.
 
@@ -134,6 +134,7 @@ For a SQL database, REST APIs or legacy services, the server side is [Aster WebD
 ## Working examples
 
 - [Webmail example](${examples}examples/mail.html): a complete application with retained drafts and simulated sign-in recovery
+- [Finance workspace example](${examples}examples/finance.html): invoices, a chart of accounts and a journal over one store, with a server-computed tree total
 - [Shared collection source](${examples}playground/collection-demo.js): table and tiles over one query, selection and editing
 - [Workspace YAML](${examples}playground/composition.ui.yaml) and [its model](${examples}playground/composition-model.js): a declarative screen and the code behind it
 - [Source](https://github.com/GetAster/aster-ui). [Report a problem or ask a question](${docs}guide/support.md): issues, discussions and private security reports

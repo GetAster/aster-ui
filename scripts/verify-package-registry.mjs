@@ -1,3 +1,4 @@
+import { PUBLIC_PACKAGES } from "./package-policy.mjs";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -5,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { setTimeout } from "node:timers/promises";
 
 const directory = resolve(dirname(fileURLToPath(import.meta.url)), "../dist-release");
-const pending = ["data", "elements", "elements-preview", "mock"].map(name => {
+const pending = PUBLIC_PACKAGES.map(name => {
   const manifest = JSON.parse(readFileSync(join(directory, name, "package.json"), "utf8"));
   const file = join(directory, `getaster-${name}-${manifest.version}.tgz`);
   return { name: manifest.name, version: manifest.version, integrity: `sha512-${createHash("sha512").update(readFileSync(file)).digest("base64")}`, tag: manifest.version.includes("-") ? "next" : "latest" };

@@ -333,7 +333,10 @@ test.describe("the view", () => {
     await menu(page, "projectId", "Freeze up to Project");
     await expect(page.locator('.aster-grid-header[data-field="projectId"]')).toHaveAttribute("data-frozen", "");
     await page.getByRole("button", { name: "Columns" }).click();
-    await page.getByRole("checkbox", { name: "Billable" }).check();
+    const billable = page.getByRole("treeitem", { name: "Billable", exact: true });
+    await expect(billable).toHaveAttribute("aria-checked", "false");
+    await billable.click();
+    await expect(billable).toHaveAttribute("aria-checked", "true");
     await expect(page.locator('.aster-grid-header[data-field="billable"]')).toHaveCount(1);
     await page.keyboard.press("Escape");
   });

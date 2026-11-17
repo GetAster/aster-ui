@@ -8,11 +8,11 @@
 body { height: auto; min-height: 100dvh; padding: 24px; }
 main { max-width: 1000px; margin: auto; }
 .appearance, .samples { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
-#controls { display: grid; gap: 24px; padding: 16px; }
+#controls, #measures { display: grid; gap: 24px; padding: 16px; }
 section { display: grid; gap: 12px; }
 h2 { margin: 0; font-size: 1.2rem; }
 .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-@media (max-width: 480px) { body { padding: 12px; } #controls { padding: 8px; } }
+@media (max-width: 480px) { body { padding: 12px; } #controls, #measures { padding: 8px; } }
 </style></head><body><main>
 <h1>Control states</h1>
 <p>Compare native inputs and shared Aster controls. Tab through the examples to inspect keyboard focus.</p>
@@ -37,4 +37,13 @@ h2 { margin: 0; font-size: 1.2rem; }
 <section aria-labelledby="button-heading"><h2 id="button-heading">Buttons</h2><div class="samples" id="buttons"></div></section>
 <section aria-labelledby="disclosure-heading"><h2 id="disclosure-heading">Disclosures</h2><div id="disclosures"></div></section>
 </div>
+<div id="measures" aria-label="Meters and sliders">
+<section aria-labelledby="meter-heading"><h2 id="meter-heading">Meters</h2><div class="fields" id="meters"></div></section>
+<section aria-labelledby="slider-heading"><h2 id="slider-heading">Sliders</h2><div class="fields" id="sliders"></div></section>
+</div>
+<section id="field-selection-states" aria-labelledby="field-selection-heading">
+<h2 id="field-selection-heading">Field selection states</h2>
+<div id="field-selection"></div>
+<output id="field-selection-status" aria-live="polite">Selected fields: Identifier, Project name, Budget</output>
+</section>
 </main><script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./control-states.js"></script></body></html>

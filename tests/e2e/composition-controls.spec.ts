@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { examples } from "../../apps/showcase/src/app/catalogue.ts";
 
 test("built-in contracts cover public setters and reject invalid props before mounting", async ({ page }) => {
   await page.goto("/playground/composition.html");
@@ -22,7 +23,7 @@ test("built-in contracts cover public setters and reject invalid props before mo
       validPolicy: diagnostics("Grid", { policy: { sortable: false, filterable: ["name"], groupable: ["name"], resizable: false, movable: true, hideable: ["name"], freezable: true, fields: { name: { editable: false, groupable: false, resizable: true, movable: false, hideable: true, freezable: false } } } }),
     };
   });
-  expect(result.count).toBe(38);
+  expect(result.count).toBe(42);
   expect(result.missing).toEqual([]);
   for (const diagnostics of result.valid) expect(diagnostics).toEqual([]);
   expect(result.validPolicy).toEqual([]);
@@ -49,6 +50,25 @@ test("Grid chrome and toolbar validator accepts the YAML data forms and rejects 
   expect(result.valid).toEqual([]);
   expect(result.forcedFilterRow).toEqual([]);
   for (const diagnostics of [result.badFilterRow, result.badChrome, result.badHeaderMenu, result.badToolbar, result.badExtra, result.badSugar]) expect(diagnostics).toHaveLength(1);
+});
+
+test("Toaster validator accepts the YAML data forms and rejects the rest", async ({ page }) => {
+  await page.goto("/playground/composition.html");
+  const result = await page.evaluate(async () => {
+    const lib = await import("/lib/aster-ui.js" as string);
+    const authoring = lib.defineCompositeRegistry({ models: { empty: lib.defineCompositeModel({ inputs: {}, exports: {}, create: () => ({ values: {} }) }) }, components: lib.asterComponents });
+    const diagnostics = (props: object) => authoring.diagnostics({ version: 1, name: "Toasts", model: { type: "empty" }, children: { toasts: { type: "Toaster", props } }, layout: { child: "toasts" } });
+    return {
+      valid: diagnostics({ maxVisible: 2, duration: 4000, actionDuration: 8000, policy: { autoDismiss: true, dismissOnEscape: false }, features: [{ kind: "stack", max: 2 }, { kind: "hold", while: ["focus"] }], chrome: { position: { block: "start", inline: "end" }, icon: false, dismissButton: true }, progressPolicy: { delayMs: 100 } }),
+      badKind: diagnostics({ features: [{ kind: "sticky" }] }),
+      badPosition: diagnostics({ chrome: { position: { block: "top" } } }),
+      badPolicy: diagnostics({ policy: { autoDismis: true } }),
+      badMax: diagnostics({ maxVisible: 0 }),
+      badDuration: diagnostics({ duration: -5 }),
+    };
+  });
+  expect(result.valid).toEqual([]);
+  for (const diagnostics of [result.badKind, result.badPosition, result.badPolicy, result.badMax, result.badDuration]) expect(diagnostics).toHaveLength(1);
 });
 
 test("Sidebar supports controlled navigation, permission changes, groups and native links", async ({ page }) => {
@@ -239,7 +259,7 @@ test("composed showcase loads only the requested preview and releases it on navi
   await page.goto("/?memory#showcase");
   const nav = page.getByRole("navigation", { name: "Showcase categories" });
   await expect(nav).toBeVisible();
-  await expect(page.locator(".showcase-open")).toHaveCount(10);
+  await expect(page.locator(".showcase-open")).toHaveCount(examples.length);
   const initialModules = modules.length;
   await expect(page.locator(".showcase-live-preview")).toHaveCount(0);
   await nav.getByRole("link", { name: "Advanced filtering", exact: true }).click();
@@ -266,7 +286,7 @@ test("composed showcase loads only the requested preview and releases it on navi
   await expect(preview.getByRole("heading", { name: "Tabs", exact: true })).toBeVisible();
   await nav.getByRole("link", { name: "All examples", exact: true }).click();
   await expect(page.locator(".showcase-live-preview")).toHaveCount(0);
-  await expect(page.locator(".showcase-open")).toHaveCount(10);
+  await expect(page.locator(".showcase-open")).toHaveCount(examples.length);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);

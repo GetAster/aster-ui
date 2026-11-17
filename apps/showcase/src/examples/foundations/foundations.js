@@ -1,5 +1,5 @@
 import "@getaster/elements";
-import { DataContext, EditModel } from "@getaster/data";
+import { DataContext, EditModel, SharedFilters } from "@getaster/data";
 import { html, render } from "lit-html";
 import { effect } from "@preact/signals-core";
 import "@getaster/elements-preview";
@@ -89,7 +89,7 @@ byId("reorder").onclick = () => rail.slides = [...rail.slides].reverse();
 byId("rtl").onchange = e => { rail.dir = e.target.checked ? "rtl" : "ltr"; rail.show(0); };
 byId("view-all").onclick = () => { const all = byId("all-cards"); all.hidden = !all.hidden; byId("view-all").textContent = all.hidden ? "View all" : "Hide list"; render(html`<ul>${rail.slides.map(s => html`<li>${s.label}</li>`)}</ul>`, all); };
 
-let model, ctx, collection;
+let model, ctx, collection, filters, betweenCollection;
 try {
   const json = async name => { const response = await fetch(`../lib/demo/${name}.json`); if (!response.ok) throw new Error(`Could not load ${name}`); return response.json(); };
   const mock = await createMockService({ metadata: await json("metadata"), data: await json("data"), wasm: new URL("../lib/odata_mock.wasm", import.meta.url) });
@@ -101,9 +101,21 @@ try {
   render(html`<aster-field .model=${model} .field=${"name"} .labelled=${true}></aster-field>
     <aster-composite-field id="budget-group" .model=${model} .fields=${["budget", "spent"]} .label=${"Project finances"} .help=${"Amounts in GBP. Both values belong to the same project edit."}
       .content=${html`<aster-number-field .model=${model} .field=${"budget"} .labelled=${true} .prefixText=${"£"} .stepButtons=${true}></aster-number-field><aster-number-field .model=${model} .field=${"spent"} .labelled=${true} .prefixText=${"£"} .stepButtons=${true}></aster-number-field>`}></aster-composite-field>`, byId("group"));
+  render(html`<aster-slider .model=${model} .field=${"budget"} .labelled=${true} .label=${"Project budget"} .min=${0} .max=${500000} .step=${5000}
+      .format=${{ style: "currency", compact: true }} .chrome=${{ input: true }}></aster-slider>
+    <aster-meter .model=${model} .field=${"spent"} .maxField=${"budget"} .label=${"Spent"} .optimum=${0} .low=${"60%"} .high=${"90%"}
+      .format=${{ style: "currency" }} .chrome=${{ value: "ratio" }}></aster-meter>`, byId("limits"));
+  filters = new SharedFilters(ctx.schema);
+  betweenCollection = ctx.collection(filters.query({ set: "Projects", sort: [{ field: "id" }] }), { pageSize: 500 });
+  await betweenCollection.ensure(0, 1);
+  effect(() => { byId("between-count").textContent = `${betweenCollection.count.value ?? "…"} projects`; });
+  byId("between-chips").filters = filters;
+  render(html`<aster-slider .labelled=${true} .label=${"Budget range"} .range=${true} .values=${[0, 500000]} .min=${0} .max=${500000} .step=${10000} .minGap=${10000}
+    .ticks=${100000} .format=${{ style: "currency", compact: true }} .chrome=${{ tickLabels: true }}
+    .filter=${{ filters, by: "budget", field: "budget", set: "Projects", label: "Budget" }}></aster-slider>`, byId("between"));
   effect(() => { byId("group-output").textContent = model.dirty.value ? "Unsaved changes in this project" : "Project matches its saved values"; });
   byId("lock-group").onchange = e => byId("budget-group").disabled = e.target.checked;
   byId("validate").onclick = () => { const valid = model.validate(); byId("group-output").textContent = valid ? "Project values are valid" : "Review the highlighted fields"; if (!valid) byId("budget-group").focus(); };
 } catch (error) { byId("group").textContent = error.message; byId("group").setAttribute("role", "alert"); }
 window.foundationsDemo = { exact, quantity, split, inspector, accordion, hierarchy, rail, get model() { return model; }, get lazyCalls() { return lazyCalls; } };
-addEventListener("pagehide", () => { model?.dispose(); if (collection) ctx.release(collection); });
+addEventListener("pagehide", () => { model?.dispose(); if (collection) ctx.release(collection); if (betweenCollection) ctx.release(betweenCollection); });

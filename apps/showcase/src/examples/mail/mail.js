@@ -132,9 +132,9 @@ try {
         } },
     },
     renderers: {
-      "mail-date": defineCompositeRenderer(["formatters"], receivedText),
-      "mail-sender": defineCompositeRenderer(["renderers"], record => html`<span class=${record.unread ? "mail-sender mail-unread" : "mail-sender"}>${record.unread ? html`<span class="mail-unread-dot" aria-hidden="true"></span><span class="aster-sr-only">Unread </span>` : ""}${record.sender}</span>`),
-      "mail-subject": defineCompositeRenderer(["renderers"], record => html`<div class="mail-subject"><span class=${record.unread ? "mail-unread" : ""}>${record.subject}</span><small>${record.body.split("\n").filter(line => line.trim())[1] ?? ""}</small></div>`),
+      "mail-date": defineCompositeRenderer(["fieldPresentation"], ({ value }) => receivedText(value)),
+      "mail-sender": defineCompositeRenderer(["fieldPresentation"], ({ entity: record }) => html`<span class=${record.unread ? "mail-sender mail-unread" : "mail-sender"}>${record.unread ? html`<span class="mail-unread-dot" aria-hidden="true"></span><span class="aster-sr-only">Unread </span>` : ""}${record.sender}</span>`),
+      "mail-subject": defineCompositeRenderer(["fieldPresentation"], ({ entity: record }) => html`<div class="mail-subject"><span class=${record.unread ? "mail-unread" : ""}>${record.subject}</span><small>${record.body.split("\n").filter(line => line.trim())[1] ?? ""}</small></div>`),
       "mail-panel": defineCompositeRenderer(["renderPanel"], item => item.value === "welcome"
         ? html`<aster-mail-panel .session=${{ id: "welcome", kind: "preview", record: instance.model.selection.selected }}></aster-mail-panel>`
         : html`${instance.model.panels.get(item.value)?.value.value?.element ?? ""}`) } });

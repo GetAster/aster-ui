@@ -11,11 +11,11 @@ has changed. A form doesn't save; the model does, with
 [[method:EditModel.save]].
 
 The configuration follows the three layers used across Aster UI: **policy
-says may** ([[object:FormPolicy]] and each [[object:FormField]]'s static
-defaults), **features say how** ([[type:FormFeature]]), and **chrome says
-shown** ([[object:FormChrome]]). Scalars are sugar for those objects. Static
-read-only, disabled and required values are defaults, not a second rule
-system: [[method:EditModel.applyRules]] outranks them, and the metadata's
+says may** ([[object:FormPolicy]] and each [[object:FormField]]'s host
+restrictions), **features say how** ([[type:FormFeature]]), and **chrome says
+shown** ([[object:FormChrome]]). Scalars are sugar for those objects. Host
+read-only and disabled restrictions narrow this form only. Shared rules,
+requiredness and session defaults belong to [[class:EditModel]]. Metadata
 computed, immutable and non-nullable rules still apply. See
 [Configuring a form](#configuring-a-form).
 
@@ -37,7 +37,8 @@ The pieces are:
 
 | The field | Control |
 |---|---|
-| Has `options` given for it (a foreign key) | `aster-picker`, [[class:Picker]] |
+| Has `options` given for it (a foreign key) | `aster-picker`, [[class:Picker]]; `aster-tree-picker`, [[class:TreePicker]], when `options` is a [[class:TreeChoices]] |
+| Is a foreign key into a tree (see below), with no `options` | `aster-tree-picker`, [[class:TreePicker]] |
 | Is `Edm.Boolean` | `aster-check`, [[class:Check]] |
 | Has allowed values (`Validation.AllowedValues`) | `aster-select`, [[class:Select]] |
 | Is `Edm.Date` | `aster-date`, [[class:DateField]] |
@@ -48,10 +49,20 @@ A [[object:FormField]] may replace that choice with [[attr:FormField.control]]:
 a named editor (`"text"`, `"number"`, `"date"`, `"check"`, `"select"` or
 `"picker"`) or a JavaScript renderer for a custom control.
 
+A set is a tree when its type has a single-valued navigation to its own set,
+constrained by one field (`Account.parent`, key `parentId`): that field is the
+parent field. A field that is a foreign key into such a set, with no `options`,
+gets a tree picker over it, showing the type's title field with every node
+choosable. To restrict the choices (only leaf accounts), name another field
+or search more than the name, give the field a [[class:TreeChoices]] as
+`options`; explicit `options` always win. `control: "text"` (or any other
+named editor) opts a field out. A tree's own parent field never gets the
+automatic picker, because its choices must leave out the record and what is
+under it; pass a `TreeChoices` whose `choosable` says so.
+
 Every one of them extends [[class:BoundField]], so each draws its own label,
 "Optional" marker, hint, error, changed-value marking with Revert, and
-"Hidden" box (see [[group:fields]]). `controlFor` never gives a tree picker;
-place an `aster-tree-picker` yourself.
+"Hidden" box (see [[group:fields]]).
 
 ### What the form shows for you
 
@@ -80,7 +91,7 @@ Three layers, one owner per value:
 
 | Layer | Owns | Where |
 |---|---|---|
-| **Policy says may** | Static read-only and disabled defaults for the whole form, and each field's own read-only, disabled and required defaults | [[attr:Form.policy]], [[object:FormField]] |
+| **Policy says may** | Read-only and disabled restrictions for this form and its fields | [[attr:Form.policy]], [[object:FormField]] |
 | **Features say how** | When fields revalidate, and whether Enter saves | [[attr:Form.features]] |
 | **Chrome says shown** | Default columns, title orientation, inline errors, the error summary and focus on the first invalid field | [[attr:Form.chrome]] |
 
@@ -107,7 +118,7 @@ form.policy = { readOnly: true };
 form.chrome = { columns: 3, errorSummary: true, autoFocus: true };
 form.features = [{ kind: "validation", on: "exit" }, { kind: "save" }];
 form.sections = [
-  { title: "Basics", items: ["name", "state", { field: "behindDays", hint: "Only when status is behind", required: true }] },
+  { title: "Basics", items: ["name", "state", { field: "behindDays", hint: "Only when status is behind" }] },
 ];
 ```
 
@@ -132,16 +143,14 @@ details:
           - state
           - field: behindDays
             hint: Only when status is behind
-            required: true
 ```
 
-Static defaults yield to page rules. A field a rule makes editable again is
-editable even when `form.readOnly` is true; a rule that names `required`
-decides in place of the field's static value. A computed or immutable field
-stays read-only whatever the policy says — the metadata's ceilings are not a
-default. The form passes its policy to [[method:EditModel.applyPolicy]]; a
-model can be shared with other views, but only one form should own its
-policy.
+Form restrictions combine with the model's state: read-only is true if either
+the model or this host requires it; enabled is true only when both permit it.
+A field override of false cannot relax a form-wide restriction or a shared
+model rule. Connecting, replacing or removing a Form never changes model
+policy. Requiredness remains shared through metadata,
+[[method:EditModel.applyPolicy]] or [[method:EditModel.applyRules]].
 
 #### Validation display
 
@@ -157,6 +166,19 @@ policy.
   field, opening a collapsed section first. It also shows
   [[attr:EditModel.formError]]. Element-level validation (a date outside its
   bounds, for example) stays under its field and is not in the summary.
+- **Rules over the record.** A failing rule over the record and its owned rows
+  ([[attr:EditModel.recordErrors]]) is listed in the summary even when
+  `errorSummary` is `false`: it has no field to sit under. A rule that
+  attaches to an owned list is a button that moves focus to that list's first
+  editable control, or to its add button when it has no rows. When a save
+  fails on a rule alone, focus goes to the summary when `autoFocus` is on,
+  as it does for a field, unless it is in a control being edited, so a live
+  change never takes focus from a cell. With `autoFocus` off focus stays
+  where it is and the summary, a `role="alert"` region, announces the
+  failure. The summary shows these failures even when `errorSummary` is
+  `false`, because a rule over the whole record has no field to sit under. After the
+  first showing a failure follows the edit and disappears when the condition
+  holds; it doesn't announce again while it stays.
 - **First invalid.** `autoFocus` moves focus to the first invalid field when
   validation first finds errors. It doesn't move focus again until the errors
   clear, so typing doesn't lose its place. [[method:Form.focusFirst]] is the
@@ -221,16 +243,16 @@ render(
   width, to put a field in a specific column, or to nest sections.
 - A field's label, hint and placeholder can be overridden per screen, but its
   type, allowed values and rules still come from the metadata and the model.
-  The static read-only, disabled and required flags are defaults, not rules.
+  Host read-only and disabled flags only narrow this form; requiredness belongs to the model.
 - A custom `control` renderer is JavaScript only: the composition validator
   accepts the named editors and rejects a function. A renderer gets the field's
   context and a `write`; it is responsible for its own inner control's
   accessibility.
 - A [[object:FormValue]] is text only, and is drawn read-only in a text field. It
   has no state, error or changed marking.
-- Fields that need a control the form doesn't pick, such as a tree picker or a
-  switch, are placed with their own elements outside the form, or in a section
-  built by hand.
+- Fields that need a control the form doesn't pick, such as a switch or a
+  tree picker over a tree's own parent field, are placed with their own
+  elements outside the form, or in a section built by hand.
 - The error summary lists the edit model's field errors. Validation a control
   does itself (a date's bounds, a number's step) stays under that control.
 
@@ -243,8 +265,8 @@ to react to (`dirty`, `valid`, errors) is on the [[class:EditModel]]. The only
 event is [[event:Form.form-submit]], from the `saveOnEnter` sugar.
 
 The form re-renders as the model's state, pending flags, errors and each
-[[object:FormValue]]'s signal change. It applies its [[attr:Form.policy]] to
-the model as static defaults, and withdraws them when it disconnects.
+[[object:FormValue]]'s signal change. Its [[attr:Form.policy]] only restricts its own bound controls and guarded
+writes. It never assigns or clears the borrowed model's policy.
 
 Each [[object:FormSection]] becomes an `aster-section`: a heading (at
 `headingLevel`) with a button that collapses it, whose body is a grid of its
@@ -303,12 +325,13 @@ Default `2`. Pass it to [[attr:Section.level]]. Reactive.
 
 ## attr:Form.policy
 
-Static edit defaults for the whole form, as [[object:FormPolicy]]. Default
-`{}`. The form passes them to [[method:EditModel.applyPolicy]]: they are
-defaults, so a page rule that names an effect wins, a field's own
-[[object:FormField]] default wins over the form-wide one, and the metadata's
-computed, immutable and non-nullable rules still apply. Read-only fields
-refuse writes; disabled fields do too, and leave the tab order.
+Host edit restrictions for the whole form, as [[object:FormPolicy]]. Default
+`{}`. Read-only and disabled restrictions combine with model state and each
+field's local restrictions. They cannot make a shared read-only field editable
+or enable a field disabled by the model. Restricted controls refuse writes;
+disabled controls leave the tab order. Another Form over the same EditModel
+keeps its own restrictions. Removing either host preserves shared rules and
+session policy.
 
 ```ts
 form.policy = { readOnly: true };
@@ -458,8 +481,8 @@ form.addEventListener("form-submit", (event) => {
 
 ## object:FormPolicy
 
-Static defaults for the whole form. Each is a default that page rules may
-override; a field's own [[object:FormField]] flag overrides the form-wide one.
+Host restrictions for the whole form. Each restriction combines with shared
+model state and field restrictions. False never relaxes another restriction.
 
 ```ts
 const policy: FormPolicy = { readOnly: true, disabled: false };
@@ -503,7 +526,7 @@ The [[class:EditModel]] that would save.
 ## object:FormField
 
 A field of the model with a width, options, presentation overrides or static
-state defaults. A plain field name in [[attr:FormSection.items]] is the same
+host restrictions. A plain field name in [[attr:FormSection.items]] is the same
 as `{ field: name }`.
 
 ```ts
@@ -513,7 +536,6 @@ const lead: FormField = {
   options: people,
   title: "Project lead",
   hint: "The person who answers for delivery",
-  required: true,
 };
 ```
 
@@ -532,10 +554,13 @@ every span is 1.
 
 Makes a foreign-key field a picker: a [[class:Collection]] for a short list that
 loads whole, or a [[class:PickerOptions]] for search, columns and "Create …"
-(see [[group:fields]]). A field with `options` is always a picker, even if its
-type is Boolean or it has allowed values. Without `options`, a foreign key is
-drawn as a plain text field of its raw key, so a foreign key almost always needs
-this.
+(see [[group:fields]]). A [[class:TreeChoices]] makes it a tree picker instead,
+for choosing one node of a hierarchy, with the choices narrowed by its
+`choosable`. A field with `options` is always a picker, even if its
+type is Boolean or it has allowed values. Without `options`, a foreign key into
+a tree set gets a tree picker anyway (see "Which control a field gets"); any
+other is drawn as a plain text field of its raw key, so such a foreign key
+almost always needs this.
 
 ## attr:FormField.title
 
@@ -566,9 +591,8 @@ const item: FormField = { field: "name", placeholder: "Brand refresh" };
 
 ## attr:FormField.readOnly
 
-A static read-only default for this field. Page rules override it; computed
-and immutable fields stay read-only whatever it says. Default: the form's
-[[attr:Form.policy]].
+Restricts this field to read-only in this host. False cannot relax shared
+model state or [[attr:Form.policy]]. Default false.
 
 ```ts
 const item: FormField = { field: "budget", readOnly: true };
@@ -576,23 +600,13 @@ const item: FormField = { field: "budget", readOnly: true };
 
 ## attr:FormField.disabled
 
-A static disabled default for this field. A page rule that names `enabled`
-overrides it. Default: the form's [[attr:Form.policy]].
+Disables this field in this host. False cannot enable a field disabled by
+the model or [[attr:Form.policy]]. Default false.
 
 ```ts
 const item: FormField = { field: "budget", disabled: true };
 ```
 
-## attr:FormField.required
-
-A static required default for this field. A page rule that names `required`
-overrides it, and a non-nullable field is required anyway. Default `false`.
-A required field is checked by [[method:EditModel.validate]] and by
-[[method:EditModel.validateField]] when the form validates on change or exit.
-
-```ts
-const item: FormField = { field: "behindDays", required: true };
-```
 
 ## attr:FormField.control
 
@@ -600,8 +614,9 @@ A typed editor override. A name picks one of the form's controls regardless of
 the field's metadata; a function renders a custom editor and is JavaScript
 only — the composition validator rejects it.
 
-The names are `"text"`, `"multiline"`, `"number"`, `"date"`, `"check"`,
-`"select"` and `"picker"`. `"multiline"` is a text field that edits in a
+The names are `"text"`, `"multiline"`, `"number"`, `"slider"`, `"date"`, `"check"`,
+`"select"` and `"picker"`. `"slider"` is [[class:Slider]], with the range and step
+from the field's metadata. `"multiline"` is a text field that edits in a
 textarea growing with the text, for unrestricted text whose metadata gives no
 length (see [[attr:Field.multiline]]). The control still reads and writes the field's value using the
 field's metadata type. A picker without `options` shows an empty list.
@@ -613,11 +628,11 @@ model refuses writes to a read-only or disabled field. The frame, label, hint
 and error remain the form's.
 
 ```ts
-const rating: FormField = {
+const hue: FormField = {
   field: "hue",
-  control: (c) => html`<input id=${c.id} type="range" min="0" max="359"
-    aria-invalid=${c.invalid ? "true" : nothing} aria-describedby=${c.describedBy ?? nothing}
-    .value=${String(c.value ?? 0)} @input=${(e) => c.write(Number(e.target.value))}>`,
+  control: (c) => html`<aster-slider .label=${c.label} .value=${c.value} .min=${0} .max=${359} .step=${1}
+    @value-change=${(e: CustomEvent) => c.write(e.detail.value)}
+    .ticks=${[0, 90, 180, 270, 359]} .chrome=${{ input: true }}></aster-slider>`,
 };
 ```
 
@@ -715,7 +730,7 @@ The label shown above the value. Required.
 
 A signal of the text to show, for example from `computed`. The form reads it
 while rendering, so the figure updates as the signal changes. A signal of a
-string, not a number: format it yourself, such as with `compactMoney`.
+string, not a number: format it yourself, such as with `formatFigure`.
 
 ## attr:FormValue.span
 
@@ -748,10 +763,12 @@ fields yourself in the way the form does, in a table cell or a card.
 - `opts.showErrors`: whether to draw the error under the control. Default
   `true`, passed to [[attr:BoundField.showErrors]].
 
-Returns a `TemplateResult` for one of `aster-picker`, `aster-check`,
-`aster-select`, `aster-date`, `aster-number-field`, `aster-field`, or — for a
-renderer override — `aster-custom-field` (see the order in the topic above).
-It never returns a tree picker. Nothing is rendered until the template is. The
+Returns a `TemplateResult` for one of `aster-picker`, `aster-tree-picker`,
+`aster-check`, `aster-select`, `aster-date`, `aster-number-field`,
+`aster-field`, or — for a renderer override — `aster-custom-field` (see the
+order in the topic above). The tree picker comes from a [[class:TreeChoices]]
+in `opts.options`, or from the foreign key's target being a tree. Nothing is
+rendered until the template is. The
 control isn't tracked or cached: call it again on each render, as the form does.
 Importing it registers those elements.
 
@@ -762,3 +779,39 @@ import { controlFor } from "@getaster/elements";
 const cell = (edit: EditModel, field: string) =>
   html`<td>${controlFor(edit, field, { labelled: false })}</td>`;
 ```
+
+## attr:Form.fieldPresentation
+
+Shared field and semantic-type display configuration, as [[object:FieldPresentations]].
+Applies to read-only fields inside the existing bound label/error frame.
+
+## attr:FormField.presentation
+
+A local [[object:FieldPresentation]] whose supplied members override the host.
+
+## Shared edit policy migration
+
+Form previously assigned its static defaults to the borrowed EditModel and
+cleared them on disconnect. A second host could overwrite those defaults or
+remove requiredness. Form now owns only restrictions on its own controls.
+
+Move session-wide defaults and requiredness to the edit session:
+
+```ts
+edit.applyPolicy({ fields: { behindDays: { required: true } } });
+form.model = edit;
+form.policy = { readOnly: true }; // only this host
+```
+
+`FormField.required` is rejected with its configuration path and a migration
+message. Set requiredness through metadata, model policy or model rules. Page
+rules continue to control shared validation and cannot relax a host restriction.
+A field's `readOnly: false` or `disabled: false` no longer relaxes a form-wide
+restriction. Configure restrictions on individual fields when only some fields
+should be locked.
+
+Custom controls receive the narrowed `context.state`; their `write` callback
+checks current model state and host restrictions before every write. A custom
+control should reflect these flags in its own interaction and accessibility.
+The callback has no async lifetime or cleanup contract yet; retain it only for
+the current field rendering.

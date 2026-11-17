@@ -73,8 +73,10 @@ test("embedded charts update and survive hide, show and remount", async ({ page 
   await expect(frame.locator("#platforms svg")).toBeVisible();
 });
 
-test("all embedded examples expose source, guide and valid API links", async ({ page, request }) => {
-  for (const [id, file] of [["composition", "composition"], ["tabs", "tabs"], ["windows", "windows"], ["dashboard", "dashboard"], ["charts", "components"]]) {
+// One test per example: each visits every reference page it links, which under
+// full-suite load does not fit five examples into one test's time.
+for (const [id, file] of [["composition", "composition"], ["tabs", "tabs"], ["windows", "windows"], ["dashboard", "dashboard"], ["charts", "components"]]) {
+  test(`embedded ${id} exposes source, guide and valid API links`, async ({ page, request }) => {
     await page.goto(`/examples/${id}.html`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await page.locator(".example-source summary").click();
@@ -88,8 +90,8 @@ test("all embedded examples expose source, guide and valid API links", async ({ 
       await page.goto(link);
       await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Not found");
     }
-  }
-});
+  });
+}
 
 for (const [id, ready] of [["composition", "#workspace .aster-grid-row[data-index]"], ["tabs", "#devices [role=tab]"], ["windows", "#open-notes"], ["dashboard", '[data-widget="summary-1"] output'], ["charts", "#platforms svg"]] as const) {
   test(`embedded ${id} themes, mobile geometry and accessibility remain coherent`, async ({ page }) => {

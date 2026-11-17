@@ -21,6 +21,26 @@ export interface TreeChoicesSpec {
  * so open folders are its own; the records are the store's.
  */
 export class TreeChoices {
+  static readonly #byContext = new WeakMap<DataContext, Map<string, TreeChoices | null>>();
+
+  /**
+   * The default choices for a foreign key into `set`, when metadata makes `set` a tree: a single-valued navigation
+   * from its type to its own set, constrained by one field, which is the parent field. `undefined` otherwise.
+   * One per context and set, so every picker of a form shares it.
+   */
+  static of(ctx: DataContext, set: string): TreeChoices | undefined {
+    let sets = TreeChoices.#byContext.get(ctx);
+    if (!sets) TreeChoices.#byContext.set(ctx, (sets = new Map()));
+    let choices = sets.get(set);
+    if (choices === undefined) {
+      const type = ctx.schema.set(set).type;
+      const parent = type.navigations.find((n) => !n.collection && n.target === set && n.keys.length === 1 && n.keys[0]![1] === type.key[0]);
+      choices = parent && type.key.length === 1 ? new TreeChoices(ctx, { set, parentField: parent.keys[0]![0] }) : null;
+      sets.set(set, choices);
+    }
+    return choices ?? undefined;
+  }
+
   readonly ctx: DataContext;
   readonly spec: TreeChoicesSpec;
   readonly type: EntityType;

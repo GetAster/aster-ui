@@ -1,13 +1,14 @@
 import { chooseAppearance } from "./appearance.ts";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { examples as catalogueExamples } from "../../apps/showcase/src/app/catalogue.ts";
 
 test("the published build exposes working examples and keeps internal docs out", async ({ page, request }) => {
   await page.goto("/?memory#showcase");
   await expect(page.getByRole("heading", { name: "Component showcase", exact: true })).toBeVisible();
   await expect(page.locator(".sidebar").getByRole("link", { name: "Showcase", exact: true })).toHaveAttribute("aria-current", "page");
   const targets = await page.locator(".showcase-open").evaluateAll(links => links.map(link => (link as HTMLAnchorElement).href));
-  expect(targets).toHaveLength(10);
+  expect(targets).toHaveLength(catalogueExamples.length);
   for (const target of targets) {
     const response = await request.get(target);
     expect(response.status()).toBe(200);
@@ -34,6 +35,7 @@ test("all examples preserve appearance and return to the gallery", async ({ page
     ["Compose a dashboard", "Dashboard composition"],
     ["Explore DataView", "DataView"],
     ["Explore tabs", "Tabs"],
+    ["Explore toasts", "Toasts"],
   ] as const;
   await page.goto("/?memory&identity=harbour&scheme=dark#showcase");
   for (const [action, heading] of examples) {
@@ -99,7 +101,7 @@ test("the gallery is keyboard accessible, responsive and themed", async ({ page 
   for (const identity of ["lamplight", "harbour"]) {
     for (const scheme of ["light", "dark"]) {
       await page.goto(`/?memory&identity=${identity}&scheme=${scheme}#showcase`);
-      await expect(page.locator(".showcase-open")).toHaveCount(10);
+      await expect(page.locator(".showcase-open")).toHaveCount(catalogueExamples.length);
       await page.getByRole("link", { name: "Build an expression", exact: true }).focus();
       await expect(page.getByRole("link", { name: "Build an expression", exact: true })).toBeFocused();
       const violations = (await new AxeBuilder({ page }).analyze()).violations.filter(v => v.impact === "serious" || v.impact === "critical");

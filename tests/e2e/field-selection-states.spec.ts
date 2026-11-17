@@ -1,0 +1,55 @@
+import { test, expect, pageUrl } from "./cdp.ts";
+
+for (const theme of ["lamplight", "harbour"]) for (const scheme of ["light", "dark"]) {
+  test(`${theme} ${scheme} field selection states on desktop`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "none" });
+    await page.goto(pageUrl(`/playground/control-states.html?theme=${theme}&scheme=${scheme}`));
+    const states = page.locator("#field-selection-states");
+    await expect(states).toHaveAttribute("data-ready", "true");
+    await expect(page.locator("#controls")).toHaveAttribute("data-ready", "true");
+    await page.evaluate(() => document.fonts.ready);
+    const identifier = states.locator('[role="treeitem"][data-path="id"] input');
+    const name = states.locator('[role="treeitem"][data-path="name"] input');
+    const notes = states.locator('[role="treeitem"][data-path="notes"] input');
+    const confidential = states.locator('[role="treeitem"][data-path="confidential"] input');
+    await expect(identifier).toBeChecked();
+    await expect(identifier).toBeDisabled();
+    await expect(identifier.locator("..").locator("..")).toHaveAccessibleDescription("The identifier must remain visible");
+    await expect(states.getByRole("button", { name: "Remove Identifier", exact: true })).toBeDisabled();
+    await expect(states.getByRole("button", { name: "Move Identifier down", exact: true })).toBeDisabled();
+    await expect(states.getByRole("button", { name: "Move Budget up", exact: true })).toBeDisabled();
+    await expect(states.getByRole("button", { name: "Move Budget up", exact: true })).toHaveAccessibleDescription("The budget order is managed by the application");
+    await expect(confidential).not.toBeChecked();
+    await expect(confidential).toBeDisabled();
+    await expect(confidential.locator("..").locator("..")).toHaveAccessibleDescription("Confidential fields are unavailable in this view");
+    await expect(name).toBeChecked();
+    await expect(notes).not.toBeChecked();
+    const tree = states.getByRole("tree");
+    await tree.focus();
+    await tree.press("ArrowDown");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Shift+Tab");
+    await expect(tree).toBeFocused();
+    await expect(states.locator('[role="treeitem"][data-path="name"]')).toHaveCSS("outline-style", "solid");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (test.info().project.name === "shared-chrome") await expect(states).toHaveScreenshot(`field-selection-${theme}-${scheme}-desktop.png`, { animations: "disabled", caret: "hide", maxDiffPixels: 20, maxDiffPixelRatio: 0 });
+    const show = states.getByRole("combobox", { name: "Show", exact: true });
+    await show.focus(); await page.keyboard.press("Enter");
+    await expect(states.getByRole("option", { name: "Related fields", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(show).toBeFocused();
+    await tree.focus();
+    await tree.press("ArrowDown");
+    await tree.press("ArrowDown");
+    await page.keyboard.press("Space");
+    await expect(notes).toBeChecked();
+    await expect(page.locator("#field-selection-status")).toHaveText("Selected fields: Identifier, Project name, Budget, Notes");
+    await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+    await expect(states.locator('[role="treeitem"][data-path="notes"]')).toHaveCSS("outline-style", "solid");
+    await page.keyboard.press("Space");
+    await expect(notes).not.toBeChecked();
+    await expect(identifier).toBeChecked();
+    await expect(confidential).toBeDisabled();
+  });
+}

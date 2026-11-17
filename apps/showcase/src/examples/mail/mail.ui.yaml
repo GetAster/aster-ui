@@ -43,11 +43,14 @@ children:
       collection: { ref: model.collection }
       selection: { ref: model.selection }
       editable: false
-      formatters:
-        date: { renderer: mail-date }
-      renderers:
-        sender: { renderer: mail-sender }
-        subject: { renderer: mail-subject }
+      fieldPresentation:
+        fields:
+          date:
+            formatter: { renderer: mail-date }
+          sender:
+            display: { renderer: mail-sender }
+          subject:
+            display: { renderer: mail-subject }
       view:
         columns:
           - { field: sender, width: 150 }

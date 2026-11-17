@@ -48,6 +48,10 @@ function preview(kind: typeof examples[number]["id"]): View {
       return html`<div class="showcase-preview showcase-report" aria-hidden="true"><div><strong>Project finances</strong><span>£42,000.59</span></div><div><span>Notes</span><strong>Draft retained</strong></div><footer><span>Related fields</span><strong>Revert group</strong></footer></div>`;
     case "mail":
       return html`<div class="showcase-preview showcase-report" aria-hidden="true"><div><strong>Inbox</strong><span>16 unread</span></div><div><span>New message</span><strong>Draft retained</strong></div><footer><span>Session expired</span><strong>Sign in and continue</strong></footer></div>`;
+    case "toasts":
+      return html`<div class="showcase-preview showcase-report" aria-hidden="true"><div><strong>Exporting…</strong><span>40%</span></div><div><span>Could not reach the server</span><strong>×</strong></div></div>`;
+    case "finance":
+      return html`<div class="showcase-preview showcase-report" aria-hidden="true"><div><strong>INV-1042</strong><span>£6,990.60</span></div><div><span>Receivables</span><strong>£6,990.60</strong></div><footer>Posted as JE-0009</footer></div>`;
     case "tabs":
       return html`<div class="showcase-preview showcase-report" aria-hidden="true"><div><strong>Overview</strong><span>Device 1 ×</span><span>Device 2 ×</span></div><div><span>Workspace notes</span><strong>Draft retained</strong></div><footer><span>Lazy panels</span><strong>Your open devices</strong></footer></div>`;
     case "dataview":

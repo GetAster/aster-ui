@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals-core";
 import { DataContext, type Entity } from "@getaster/data";
-import { AsterElement, define, type BreadcrumbItem, type CellRenderer, type Expansion, type ExpansionEditor, type Grid, type GridView, type RowControl, type RowState, type SectionChrome, type View } from "@getaster/elements";
+import { AsterElement, define, type BreadcrumbItem, type FieldPresentation, type Expansion, type ExpansionEditor, type Grid, type GridView, type RowControl, type RowState, type SectionChrome, type View } from "@getaster/elements";
 import { createMockService } from "@getaster/mock";
 import { html, nothing, svg } from "lit-html";
 import { ref } from "lit-html/directives/ref.js";
@@ -1043,17 +1043,17 @@ export class HelpdeskPage extends AsterElement {
     return out.length ? html`<span class="hdm-glyphs">${out}</span>` : nothing;
   }
 
-  readonly #fieldRenderers: Readonly<Record<string, CellRenderer>> = {
-    dataType: (entity) => {
+  readonly #fieldRenderers: Readonly<Record<string, NonNullable<FieldPresentation["display"]>>> = {
+    dataType: ({ entity }) => {
       const refId = String(entity.refId ?? "");
       return refId ? refChip(refId, (n) => this.#openType(n)) : val(String(entity.dataType));
     },
-    source: (entity) => {
+    source: ({ entity }) => {
       const s = String(entity.source ?? "");
       return s ? quiet(s) : nothing;
     },
-    flags: (entity) => this.#jsonChips(entity.flags),
-    rule: (entity) => {
+    flags: ({ entity }) => this.#jsonChips(entity.flags),
+    rule: ({ entity }) => {
       const lang = String(entity.language ?? "");
       if (lang) return quiet(`computed · ${lang}`);
       let parsed: { when?: Criterion; default?: Value } | undefined;
@@ -1230,7 +1230,7 @@ export class HelpdeskPage extends AsterElement {
               : html`<aster-grid class="hdm-fields-grid" ${ref(this.#onFieldsGrid)} .ctx=${this.#ctx.value} .set=${"Fields"}
                   .view=${HDM_FIELDS_VIEW} .label=${`Fields of ${this.#type.value}`} .editable=${false}
                   .empty=${"No fields."} .base=${{ op: "eq", field: "typeId", value: this.#type.value }}
-                  .renderers=${this.#fieldRenderers} .rowControls=${this.#fieldControls}
+                  .fieldPresentation=${{ fields: Object.fromEntries(Object.entries(this.#fieldRenderers).map(([name, renderer]) => [name, { display: renderer }])) }} .rowControls=${this.#fieldControls}
                   .expansion=${this.#fieldsExpansion}></aster-grid>`}
             ${t.transitions !== undefined && t.transitions.length ? html`<h3>State machine</h3>${this.#transitionsView(t)}` : nothing}
           </section>`}

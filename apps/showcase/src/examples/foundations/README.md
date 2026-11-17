@@ -9,6 +9,13 @@ site's import map. YAML, where present, is compiled to JSON during the build.
 
 The workflow checks are in `tests/e2e/foundations.spec.ts`.
 
+## Toasts
+
+`toasts.html` and `toasts.js` are the toaster's example, in the gallery as
+"Toasts": variants, a loading toast with progress, `promise`, the stack and pause
+while a modal dialog is open. Its checks are in `tests/e2e/toaster.spec.ts`; the
+public filenames are declared in `apps/showcase/build/assets.ts`.
+
 ## Shared control states
 
 Open `/playground/control-states.html` (also linked from Fields and layouts) to

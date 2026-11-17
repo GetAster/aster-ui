@@ -14,7 +14,7 @@ import {
   each,
   announce,
   AsterElement,
-  compactMoney,
+  formatFigure,
   define,
   provideScope,
   relativeTime,
@@ -36,6 +36,7 @@ import { isPage, isState, ME, type Page, type Route, type State } from "./model.
 import type { AppSetup } from "./setup.ts";
 import { Share } from "./share.ts";
 
+const POUNDS = { style: "currency", compact: true } as const;
 const PAGE_TITLES: Record<Page, string> = { home: "Home", projects: "Projects", project: "Project", people: "People", tasks: "Tasks", model: "Information model", helpdesk: "Helpdesk model", time: "Time", reports: "Reports", showcase: "Component showcase" };
 const TAB_TITLES: Record<State, string> = { active: "Active", paused: "Paused", archived: "Archived" };
 
@@ -318,8 +319,8 @@ export class AsterDemo extends AsterElement {
       )}
       ${figure(
         "Budget left",
-        left === undefined ? "–" : compactMoney(Number(left)),
-        budget === undefined ? nothing : delta(`of ${compactMoney(Number(budget))}`),
+        left === undefined ? "–" : formatFigure(Number(left), POUNDS),
+        budget === undefined ? nothing : delta(`of ${formatFigure(Number(budget), POUNDS)}`),
       )}
     </dl>`;
   }
@@ -700,7 +701,7 @@ function status(ctx: DataContext, p: Entity): View {
   return html`<span class="aster-status" data-tone=${tone ?? nothing}>${label}</span>`;
 }
 
-const fmt = (n: number | undefined) => (n === undefined ? "–" : new Intl.NumberFormat("en-GB").format(n));
+const fmt = (n: number | undefined) => (n === undefined ? "–" : formatFigure(n, undefined));
 const firstName = (name: unknown) => String(name ?? "").split(" ")[0] ?? "";
 const weekday = (date: string) =>
   new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "UTC" }).format(Date.parse(`${date}T12:00:00Z`));

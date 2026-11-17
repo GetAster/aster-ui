@@ -30,6 +30,7 @@
     --aster-window-body-padding-block: var(--aster-pad);
     --aster-window-body-padding-inline: var(--aster-window-inset);
     --aster-dialog-max-width: 100%;
+    --aster-scrollbar-clearance: 16px;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -105,11 +106,15 @@
   [role="row"][aria-expanded] > [role="gridcell"] { cursor: pointer; }
   [data-ring-owner]:has([aria-haspopup="listbox"]), [aria-haspopup="listbox"] { cursor: pointer; }
   [data-ring-owner]:has([aria-haspopup="listbox"][aria-readonly="true"]) { cursor: default; }
+  .aster-slider-rail { cursor: pointer; }
+  [role="slider"] { cursor: grab; }
+  [role="slider"][data-active] { cursor: grabbing; }
+  [role="slider"][aria-readonly="true"] { cursor: default; }
   :disabled, [aria-disabled="true"] { cursor: not-allowed; }
   [aria-busy="true"] { cursor: progress; }
 
   /* Controls are for clicking; content is for reading and copying. */
-  button, [role="tab"], [role="switch"], [role="menuitem"], [role="option"], label { user-select: none; -webkit-user-select: none; }
+  button, [role="tab"], [role="switch"], [role="slider"], [role="menuitem"], [role="option"], label { user-select: none; -webkit-user-select: none; }
   input, textarea, [data-copyable] { user-select: text; -webkit-user-select: text; }
 
   .aster-figure-text {

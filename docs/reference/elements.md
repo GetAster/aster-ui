@@ -389,28 +389,103 @@ html`<time datetime=${at} title=${absoluteTime(at, "Europe/London")}>${relativeT
 // title: "Wed 7 Oct 2026, 14:57"
 ```
 
-## staticMethod:compactMoney
+## staticMethod:formatFigure
 
-Rounds to one decimal place in compact notation and writes thousands as `k`
-and millions as `m`. A negative amount starts with a minus sign (−), not a
-hyphen. Formatted for `en-GB`.
+The one formatter for a number, a currency amount or a percentage, driven by a field's
+metadata and a locale. The meter and slider use it for value labels, the grid for a
+column's `format`, and the list editor for a column's cells and input; call it wherever
+else a figure appears, so that figure reads the way the grid's does.
 
-- `amount`: the figure, as a number.
-- `currency`: an ISO 4217 code. Default `"GBP"`.
+- `value`: a number, or exact decimal text such as `"1850.50"` (a Decimal or Int64 as
+  the service sends it), which keeps every digit. Text that is not a number comes back
+  as it is.
+- `format`: an [[object:ValueFormat]], or a function from the value and range to text
+  (JavaScript only).
+- `context`: a [[object:FigureContext]], naming the field the value came from or the
+  range a percent is read against.
 
-Returns text such as `"£41.2k"`, `"£980"` or `"−£1.3m"`. For exact figures in
-a form or grid, show the value as stored instead.
-
-The text comes from the browser's `Intl.NumberFormat`, so engines differ in
-detail. Chromium gives `"£980"` for 980 and `"£2.5bn"` for 2.5 billion;
-JavaScriptCore (as in Bun) has been seen to give `"£980.0"` and `"£2.5B"`.
-Only `K` and `M` are rewritten in lower case.
+Returns text with a real minus sign (−), not a hyphen. A field fills what the format
+leaves out: a Decimal's `scale` is its number of places, an integer type shows none,
+and a `Measures.ISOCurrency` annotation on the field names the currency. Formatting
+uses `en-GB` unless the format names a `locale`.
 
 ```ts
-compactMoney(41_200);          // "£41.2k"
-compactMoney(-1_250_000);      // "−£1.3m"
-compactMoney(41_200, "EUR");   // "€41.2k"
+import { formatFigure } from "@getaster/elements";
+
+formatFigure(6200, { style: "currency" });                          // "£6,200"
+formatFigure(41_200, { style: "currency", compact: true });         // "£41.2k"
+formatFigure("1850.5", { style: "currency" }, { field: price });    // "£1,850.50" (scale 2)
+formatFigure(62, { style: "percent" }, { range: { min: 0, max: 100 } }); // "62%"
+formatFigure(1234.5, { locale: "de-DE" });                          // "1.234,5"
 ```
+
+## object:ValueFormat
+
+How a number reads, as plain data, so a composition catalog can carry it. It is also
+what a grid column's `format` takes (with its `kind: "number"`) and what a list
+editor column's `format` takes.
+
+## attr:ValueFormat.style
+
+`"decimal"` (default), `"integer"`, `"percent"` or `"currency"`. Without a range,
+`percent` writes the value times 100 (`0.25` is "25%"); with a range in the
+[[object:FigureContext]] it is the value's position in that range.
+
+## attr:ValueFormat.currency
+
+For `"currency"`: a three-letter ISO 4217 code. Default: the field's currency
+annotation, else `"GBP"`.
+
+## attr:ValueFormat.minimumFractionDigits
+
+The fewest decimal places shown, 0 to 20.
+
+## attr:ValueFormat.maximumFractionDigits
+
+The most decimal places shown, 0 to 20. Left out, a Decimal field's scale sets it, an
+integer type shows none, and a figure with no field shows up to two (none for a whole
+amount of money).
+
+## attr:ValueFormat.smallValues
+
+Optional `"significant"`. If normal rounding would show a nonzero value as zero,
+show up to two significant digits instead, trimming insignificant trailing zeros.
+For example, with `maximumFractionDigits: 2`, `"0.000031234"` shows as
+"0.000031" while `"2.250081"` still shows as "2.25". Percent formatting scales
+the value before deciding whether it would round to zero. Currency, locale and
+unit formatting still apply. Decimal strings retain exact digits, including
+values requiring more than twenty fractional places; these display in plain notation.
+Compact notation keeps its usual formatting. Leaving this option out preserves
+the configured rounding.
+
+## attr:ValueFormat.compact
+
+Boolean. Short forms such as "£41.2k".
+
+## attr:ValueFormat.unit
+
+Text after the figure, such as "GB".
+
+## attr:ValueFormat.locale
+
+A BCP 47 tag. Default `"en-GB"`.
+
+## object:FigureContext
+
+What a figure is read against.
+
+## attr:FigureContext.field
+
+The field the value came from: its type, scale and currency fill what the format
+leaves out.
+
+## attr:FigureContext.range
+
+`{ min, max }`, for the `"percent"` style: the value's position in the range.
+
+## type:ValueFormatter
+
+A function `(value, range) => string`; JavaScript only.
 
 ## staticMethod:relativeTime
 
@@ -545,6 +620,7 @@ properties.
 | Window | `--aster-window-body-padding-block` | `var(--aster-pad)` | Window body padding above and below the content |
 | Window | `--aster-window-body-padding-inline` | `var(--aster-window-inset)` | Window body padding beside the content; `0` lets content such as a canvas run to the edges |
 | Dialog | `--aster-dialog-max-width` | `100%` | Panel maximum width, also bounded by the viewport |
+| Scrollbar | `--aster-scrollbar-clearance` | `16px` | Space controls at a scroller's inline end keep clear of an overlay scrollbar, which takes pointer events over that strip while it shows after a scroll |
 
 The defaults follow density through the referenced variables. `auto` means
 the component keeps its content-driven size, so an unconfigured component is

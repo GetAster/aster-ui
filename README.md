@@ -98,7 +98,12 @@ The repository does not take pull requests at the moment; open an issue or a dis
 
 ## License
 
-Aster UI is licensed under [Apache-2.0](LICENSE). The optional mock engine is
+Aster UI's public packages are licensed under [Apache-2.0](LICENSE).
+`@getaster/data-navigator` is a separately licensed proprietary extension,
+excluded from this project's public source snapshots and npm releases. Hosted
+demonstrations may include its compiled runtime; demonstration access does not
+grant a license to incorporate it into another application.
+The optional mock engine is
 supplied as an Apache-2.0-licensed WebAssembly binary; its implementation source
 is not included. Bundled third-party components retain their respective licenses;
 see [NOTICE](NOTICE) and the binary's attribution inventory. ECharts is an

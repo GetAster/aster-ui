@@ -1,4 +1,5 @@
 import type { Field, Value } from "@getaster/data";
+import { plainFigure } from "../format.ts";
 
 const INTEGER = new Set(["Edm.Byte", "Edm.SByte", "Edm.Int16", "Edm.Int32"]);
 
@@ -21,21 +22,13 @@ export function parseInput(field: Field | undefined, text: string): Value {
   return t;
 }
 
-/** A value as the text a control shows; a Decimal shows its scale's places ("7.50"). */
+/** A value as the text a control shows: unformatted, a Decimal showing its scale's places ("7.50"). */
 export function formatValue(field: Field | undefined, value: Value | undefined): string {
   if (value === null || value === undefined) return "";
   const allowed = field?.allowedValues?.find((a) => a.value === value);
   if (allowed?.label) return allowed.label;
-  if (field?.type === "Edm.Decimal" && field.scale !== undefined) return padScale(String(value), field.scale);
+  if (field?.type === "Edm.Decimal") return plainFigure(field, String(value));
   return String(value);
-}
-
-/** Exact decimal text with at least `scale` places; other text is left as it is. */
-function padScale(text: string, scale: number): string {
-  const m = /^(-?\d+)(?:\.(\d*))?$/.exec(text);
-  if (!m || scale === 0) return text;
-  const places = m[2] ?? "";
-  return places.length >= scale ? text : `${m[1]}.${places.padEnd(scale, "0")}`;
 }
 
 /** The input type and mode that suit a field. */

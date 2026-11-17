@@ -14,6 +14,8 @@ export interface ChangeEvent {
 export interface MockServiceOptions {
   metadata: object;
   data: Record<string, unknown[]>;
+  /** Trusted authenticated test identity, captured at creation. Anonymous by default. Never derived from request headers. */
+  principal?: { subject: string; roles?: readonly string[] };
   serviceRoot?: string;
   maxPageSize?: number;
   /** The engine's clock: server-set time stamps (`createdAt`, `updatedAt`) and `now()` in queries. */
@@ -66,12 +68,14 @@ export async function createMockService(options: MockServiceOptions): Promise<Mo
   if (options.countEstimate !== undefined && (!Number.isFinite(options.countEstimate) || options.countEstimate <= 0)) {
     throw new RangeError("countEstimate must be a positive finite factor");
   }
+  const principal = options.principal ? { ...options.principal, roles: [...(options.principal.roles ?? [])] } : undefined;
   const now = options.now ?? (() => new Date().toISOString());
   const engine = await instantiate(await loadWasmBytes(options.wasm ?? DEFAULT_WASM), () => Date.parse(now()));
   const { storage } = options;
 
   const init = (from: Dump) =>
     engine.init({
+      principal,
       serviceRoot: options.serviceRoot,
       metadata: options.metadata,
       maxPageSize: options.maxPageSize,

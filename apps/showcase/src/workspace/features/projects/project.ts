@@ -16,7 +16,7 @@ import {
 } from "@getaster/data";
 import {
   AsterElement,
-  compactMoney,
+  formatFigure,
   define,
   PickerOptions,
   provideScope,
@@ -31,6 +31,7 @@ import type { AppSetup } from "../../setup.ts";
 
 type Tab = "details" | "tasks";
 
+const POUNDS = { style: "currency", compact: true } as const;
 const BEHIND: Condition = { op: "eq", field: "project.values.health", value: "behind" };
 const ARCHIVED: Condition = { op: "eq", field: "project.record.state", value: "archived" };
 const LOCKED = { when: ARCHIVED, reason: "Archived projects can't be edited. Set State to Active to restore it." };
@@ -206,7 +207,7 @@ export class ProjectPage extends AsterElement {
           if (v.spent === null || v.spent === undefined || v.budget === null || v.budget === undefined) return {};
           try {
             const over = subtractExact(v.budget, v.spent).startsWith("-");
-            return over ? { spent: `Spent can’t be more than the budget (${compactMoney(Number(v.budget))}).` } : {};
+            return over ? { spent: `Spent can’t be more than the budget (${formatFigure(Number(v.budget), POUNDS)}).` } : {};
           } catch {
             return {};
           }
@@ -243,7 +244,7 @@ export class ProjectPage extends AsterElement {
     const left = computed(() => {
       const v = edit.values.value;
       try {
-        return v.budget === null || v.spent === null ? "" : compactMoney(Number(subtractExact(v.budget!, v.spent!)));
+        return v.budget === null || v.spent === null ? "" : formatFigure(Number(subtractExact(v.budget!, v.spent!)), POUNDS);
       } catch {
         return "";
       }
@@ -319,7 +320,7 @@ export class ProjectPage extends AsterElement {
       const result = await tasks.save();
       if (result.failed.length) {
         this.#tab.value = "tasks";
-        this.#toaster()?.show(`${result.failed.length} ${result.failed.length === 1 ? "task" : "tasks"} couldn’t be saved. The rest are saved.`);
+        this.#toaster()?.show(`${result.failed.length} ${result.failed.length === 1 ? "task" : "tasks"} couldn’t be saved. The rest are saved.`, { variant: "warning" });
         return false;
       }
       this.querySelector<HTMLElement & { confirm(): void }>("aster-button.save")?.confirm();

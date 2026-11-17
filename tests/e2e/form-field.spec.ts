@@ -1,7 +1,8 @@
 // Form and field configuration: the three layers, static defaults yielding to
 // page rules, validation display and the date, switch, choice, select and
 // button surfaces.
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test, pageUrl } from "./cdp.ts";
 import { NOW } from "./fixtures.ts";
 
 const form = (page: Page) => page.locator("#e2e-form");
@@ -67,7 +68,7 @@ const FIXTURE = {
 
 /** A page that loads the library once and a small service with every field type. */
 async function dataPage(page: Page): Promise<void> {
-  await page.goto("/playground/composition.html");
+  await page.goto(pageUrl("/playground/composition.html"));
   await page.evaluate(async (fixture) => {
     const lib = await import("/lib/aster-ui.js" as string);
     const mockLib = await import("/lib/aster-ui-mock.js" as string);
@@ -76,7 +77,7 @@ async function dataPage(page: Page): Promise<void> {
   }, FIXTURE);
 }
 
-test("form policy is a static default, and page rules override it", async ({ page }) => {
+test("session defaults yield to model rules while Form restrictions only narrow the host", async ({ page }) => {
   await dataPage(page);
   await page.evaluate(async () => {
     const lib = await import("/lib/aster-ui.js" as string);
@@ -84,6 +85,7 @@ test("form policy is a static default, and page rules override it", async ({ pag
     const records = ctx.collection({ set: "FormRecords", orderBy: [{ field: "id" }] }, { pageSize: 5 });
     await records.ensure(0, 5);
     const edit = new lib.EditModel(ctx, "FormRecords", records.keys.value[0]);
+    edit.applyPolicy({ readOnly: true, disabled: true, fields: { behindDays: { required: true } } });
     const scope = new lib.PageScope();
     const on = lib.signal(true);
     scope.publish("page", lib.valuesPublication({ on }));
@@ -94,8 +96,7 @@ test("form policy is a static default, and page rules override it", async ({ pag
     const element = document.createElement("aster-form") as HTMLElement & Record<string, any>;
     element.id = "e2e-form";
     element.model = edit;
-    element.policy = { readOnly: true, disabled: true };
-    element.sections = [{ title: "Basics", items: ["name", "budget", { field: "behindDays", required: true }] }];
+    element.sections = [{ title: "Basics", items: ["name", "budget", "behindDays"] }];
     document.body.append(element);
     (globalThis as unknown as { e2e: unknown }).e2e = { edit, on };
   });
@@ -103,14 +104,17 @@ test("form policy is a static default, and page rules override it", async ({ pag
   const name = form(page).locator('[data-field="name"] input');
   const budget = form(page).locator('[data-field="budget"] input');
   const behind = form(page).locator('[data-field="behindDays"] input');
-  // The page rule names read-only for name and enabled for budget.
+  // Session defaults yield to model rules; host restrictions still narrow those results.
   await expect(name).not.toHaveAttribute("readonly", "");
   await expect(budget).not.toBeDisabled();
   await expect(budget).toHaveAttribute("readonly", "");
   await expect(behind).toHaveAttribute("aria-required", "true");
   await expect(form(page).locator('[data-field="behindDays"] .aster-optional')).toHaveCount(0);
 
-  await page.evaluate(() => ((globalThis as unknown as { e2e: { on: { value: boolean } } }).e2e.on.value = false));
+  await page.evaluate(() => { (document.querySelector("#e2e-form") as any).policy = { readOnly: true, disabled: true }; });
+  await expect(name).toHaveAttribute("readonly", "");
+  await expect(budget).toBeDisabled();
+  await page.evaluate(() => { (document.querySelector("#e2e-form") as any).policy = {}; (globalThis as any).e2e.on.value = false; });
   await expect(name).toHaveAttribute("readonly", "");
   await expect(budget).toBeDisabled();
   await expect(form(page).locator('[data-field="name"] .aster-hint')).toContainText("A page rule unlocked this.");
@@ -522,7 +526,7 @@ test("columns, label orientation and Enter-to-save with a cancelable form-submit
 });
 
 test("the composition validator accepts the data forms and rejects functions and bad values", async ({ page }) => {
-  await page.goto("/playground/composition.html");
+  await page.goto(pageUrl("/playground/composition.html"));
   const result = await page.evaluate(async () => {
     const lib = await import("/lib/aster-ui.js" as string);
     const authoring = lib.defineCompositeRegistry({
@@ -540,7 +544,7 @@ test("the composition validator accepts the data forms and rejects functions and
           features: [{ kind: "validation", on: "exit" }, { kind: "save" }],
           columns: 3, titleOrientation: "start", showInlineErrors: false, errorSummary: true, autoFocus: true,
           readOnly: true, disabled: false, validateOn: "change", saveOnEnter: true,
-          sections: [{ title: "Basics", items: [{ field: "name", title: "Name", hint: "Help", placeholder: "A name", readOnly: true, disabled: false, required: true, control: "select" }] }],
+          sections: [{ title: "Basics", items: [{ field: "name", title: "Name", hint: "Help", placeholder: "A name", readOnly: true, disabled: false, control: "select" }] }],
         }),
         diagnostics("DateField", { min: "2026-01-01", max: "2026-12-31", format: "iso", placeholder: "Pick a date", dismissOnSelect: false }),
         diagnostics("Switch", { disabled: true, readOnly: false, onLabel: "On", offLabel: "Off" }),
@@ -549,6 +553,7 @@ test("the composition validator accepts the data forms and rejects functions and
         diagnostics("Button", { tone: "danger", size: "sm", disabled: true }),
       ],
       invalid: [
+        diagnostics("Form", { sections: [{ title: "Bad", items: [{ field: "name", required: true }] }] }),
         diagnostics("Form", { sections: [{ title: "Bad", items: [{ field: "name", control: () => null }] }] }),
         diagnostics("Form", { sections: [{ title: "Bad", items: [{ field: "name", control: "canvas" }] }] }),
         diagnostics("Form", { validateOn: "blur" }),

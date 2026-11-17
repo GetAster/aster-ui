@@ -4,7 +4,7 @@ import { defineCompositeModel } from "../src/composition/contracts.ts";
 import type { FieldPolicy, GridPolicy } from "../src/grid/policy.ts";
 
 const authoring = defineCompositeRegistry({
-  renderers: { date: defineCompositeRenderer(["formatters"], (value: unknown) => String(value)) },
+  renderers: { date: defineCompositeRenderer(["fieldPresentation"], (value: unknown) => String(value)) },
   models: { empty: defineCompositeModel({ inputs: {}, exports: {}, create: () => ({ values: {} }) }) },
   components: { Form: asterComponents.Form, Grid: asterComponents.Grid, Tabs: asterComponents.Tabs, Sidebar: asterComponents.Sidebar, ProgressStatus: asterComponents.ProgressStatus },
 });
@@ -15,7 +15,7 @@ authoring.define({ ...base, children: { view: { type: "Grid", props: { selectabl
 authoring.define({ ...base, children: { view: { type: "ProgressStatus", props: { busy: true, progressPolicy: { delayMs: 300 }, completeText: "Updated" } } } });
 authoring.define({ ...base, children: { view: { type: "Grid", props: { progressPolicy: { minVisibleMs: 500 } } } } });
 authoring.define({ ...base, children: { view: { type: "Grid", props: { view: { columns: [{ field: "date", sortField: "receivedAt" }], sort: [], filters: {}, frozen: 0 } } } } });
-authoring.define({ ...base, children: { view: { type: "Grid", props: { formatters: { date: { renderer: "date" } } } } } });
+authoring.define({ ...base, children: { view: { type: "Grid", props: { fieldPresentation: { fields: { date: { formatter: { renderer: "date" } } } } } } } });
 authoring.define({ ...base, children: { view: { type: "Grid", props: { chrome: { toolbar: false, header: false, filterRow: "auto", headerMenu: false, pagingBar: false } as const, toolbar: { count: false, sort: false, filters: false, advanced: false, columns: false, views: false }, showHeader: false, showToolbar: false, showFilterRow: false, showHeaderMenu: false, showPagingBar: false } } } });
 // @ts-expect-error The filter row is automatic, forced open or removed.
 authoring.define({ ...base, children: { view: { type: "Grid", props: { chrome: { filterRow: "sometimes" } } } } });
@@ -88,7 +88,7 @@ authoring.define({ ...base, children: { view: { type: "Grid", props: { filterOpe
 // @ts-expect-error Predicates are a JavaScript property value, not composition data.
 authoring.define({ ...base, children: { view: { type: "Grid", props: { sortable: (field: string) => field === "name" } } } });
 // @ts-expect-error Formatters must be functions.
-authoring.define({ ...base, children: { view: { type: "Grid", props: { formatters: { date: "formatted" } } } } });
+authoring.define({ ...base, children: { view: { type: "Grid", props: { fieldPresentation: { fields: { date: { formatter: "formatted" } } } } } } });
 // @ts-expect-error Timing values are numeric milliseconds.
 authoring.define({ ...base, children: { view: { type: "ProgressStatus", props: { progressPolicy: { delayMs: "slow" } } } } });
 // @ts-expect-error Built-in property types are retained through the shared map.

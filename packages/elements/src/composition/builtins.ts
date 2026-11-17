@@ -1,3 +1,7 @@
+import { FieldSelection } from "../field-selection/field-selection.ts";
+import { FieldSelectionModel } from "../field-selection/model.ts";
+import { validateFieldSelectionChrome, validateFieldSelectionSource, validateFieldSelectionValue, validateFieldSelectionFilter, validateFieldSelectionDepth, validateFieldSelectionPolicy } from "../field-selection/config.ts";
+import { validateFieldPresentations, validateFieldPresentation, type FieldPresentations } from "../field/presentation.ts";
 import { Collection, Command, DataContext, EditModel, FilterDraft, ListEdit, Selection, SharedFilters, Tree } from "@getaster/data";
 import { nothing } from "lit-html";
 import { compositeTypes as t, type CompositeType, type CompositeTypes } from "./contracts.ts";
@@ -43,6 +47,13 @@ import { Slicer } from "../slicer/slicer.ts";
 import { ComponentHost } from "../component/component.ts";
 import { Window, type WindowChrome, type WindowPlacement } from "../window/window.ts";
 import { Dialog } from "../dialog/dialog.ts";
+import { Meter } from "../meter/meter.ts";
+import { validateMeterChrome, validateMeterLabels, type MeterChrome, type MeterLabels, type MeterThreshold } from "../meter/config.ts";
+import { Slider, type SliderFilter } from "../slider/slider.ts";
+import { validateSliderChrome, validateSliderTicks, type SliderChrome, type SliderTicks } from "../slider/config.ts";
+import { validateValueFormat, type ValueFormat, type ValueFormatter } from "../format.ts";
+import { Toaster } from "../toast/toast.ts";
+import { validateToasterChrome, validateToasterFeatures, validateToasterPolicy, type ToasterChrome, type ToasterFeature, type ToasterPolicy } from "../toast/config.ts";
 import { Menu } from "../menu/menu.ts";
 import { Dashboard } from "../dashboard/dashboard.ts";
 import { CommandBar } from "../composition/command-bar.ts";
@@ -50,10 +61,14 @@ import { CommandBar } from "../composition/command-bar.ts";
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && [Object.prototype, null].includes(Object.getPrototypeOf(value));
 const fn = (value: unknown): boolean => typeof value === "function";
 const view = (value: unknown): boolean => value === nothing || object(value) && "_$litType$" in value;
-/** A list editor cell: a field, an optional span of tracks and the state it shows in. */
+/** A list editor cell: a field, its alignment and number format, an optional span of tracks and the state it shows in. */
 const listCell = (c: unknown): boolean => object(c) && typeof c.field === "string"
+  && (c.presentation === undefined || presentationValid(c.presentation))
+  && (c.align === undefined || c.align === "start" || c.align === "center" || c.align === "end")
+  && (c.format === undefined || validFormat(c.format))
   && (c.span === undefined || c.span === "all" || (Number.isInteger(c.span) && (c.span as number) > 0))
   && (c.show === undefined || c.show === "always" || c.show === "reading" || c.show === "editing")
+  && (c.options === undefined || c.options instanceof Collection || c.options instanceof PickerOptions || c.options instanceof TreeChoices)
   && (c.control === undefined || ["text", "multiline", "number", "date", "check", "select", "picker"].includes(c.control as string) || fn(c.control));
 const value = (v: unknown): boolean => v === null || ["string", "boolean"].includes(typeof v) || typeof v === "number" && Number.isFinite(v) || Array.isArray(v) && v.every(value);
 const options = t.array(t.object({ value: t.custom("OData value", (v): v is import("@getaster/data").Value => value(v)), label: t.string }));
@@ -79,16 +94,19 @@ const numeric = (v: unknown): v is string | number => {
   if (typeof v !== "string" && typeof v !== "number") return false;
   try { canonicalNumeric(v); return true; } catch { return false; }
 };
-const sourceOptions = (v: unknown) => v === undefined || v instanceof Collection || v instanceof PickerOptions;
+const sourceOptions = (v: unknown) => v === undefined || v instanceof Collection || v instanceof PickerOptions || v instanceof TreeChoices;
 const formControlName = checked<FormControlName>("form control name", (v): v is FormControlName =>
-  v === "text" || v === "multiline" || v === "number" || v === "date" || v === "check" || v === "select" || v === "picker");
+  v === "text" || v === "multiline" || v === "number" || v === "slider" || v === "date" || v === "check" || v === "select" || v === "picker");
+const presentationValid = (value: unknown): boolean => { try { validateFieldPresentation(value); return true; } catch { return false; } };
+const fieldPresentations = t.custom<FieldPresentations>("shared field presentation", (value): value is FieldPresentations => { validateFieldPresentations(value); return true; });
 const formItem = checked<import("../form/form.ts").FormItem>("field name, configured field or derived value", v =>
   typeof v === "string" || (object(v) && optionalNumber(v.span) && (
     (typeof v.field === "string" && sourceOptions(v.options)
+      && (v.presentation === undefined || presentationValid(v.presentation))
       && (v.title === undefined || typeof v.title === "string")
       && (v.hint === undefined || typeof v.hint === "string")
       && (v.placeholder === undefined || typeof v.placeholder === "string")
-      && optionalBoolean(v.readOnly) && optionalBoolean(v.disabled) && optionalBoolean(v.required)
+      && optionalBoolean(v.readOnly) && optionalBoolean(v.disabled) && !("required" in v)
       && (v.control === undefined || formControlName.validate(v.control)))
     || (typeof v.title === "string" && t.signal(t.string).validate(v.value)))));
 const sections = t.array(t.object({ title: t.string, columns: t.optional(t.positiveInteger), open: t.optional(t.boolean), items: t.array(formItem) }));
@@ -195,9 +213,42 @@ const windowPlacement: CompositeType<WindowPlacement> = t.object({
 });
 const initialFocus = checked<Dialog["initialFocus"]>('"first", "dialog", "none" or a focus function', v =>
   v === undefined || v === "first" || v === "dialog" || v === "none" || fn(v));
+const toasterPolicy = t.custom<ToasterPolicy>("toaster policy", (value): value is ToasterPolicy => {
+  try { validateToasterPolicy(value); return true; } catch { return false; }
+}, { type: "object", properties: { autoDismiss: { type: "boolean" }, dismissOnEscape: { type: "boolean" } }, additionalProperties: false });
+const toasterFeatures = t.custom<readonly ToasterFeature[]>("toaster feature list", (value): value is readonly ToasterFeature[] => {
+  try { validateToasterFeatures(value); return true; } catch { return false; }
+}, { type: "array", items: { type: "object" } });
+const toasterChrome = t.custom<ToasterChrome>("toaster chrome", (value): value is ToasterChrome => {
+  try { validateToasterChrome(value); return true; } catch { return false; }
+}, { type: "object" });
+const validFormat = (value: unknown): boolean => {
+  try { validateValueFormat(value); return true; } catch { return false; }
+};
+const valueFormat = t.custom<ValueFormat | ValueFormatter | undefined>("value format object or function", (value): value is ValueFormat | ValueFormatter | undefined => value === undefined || typeof value === "function" || validFormat(value), { type: "object" });
+const meterThreshold = t.custom<MeterThreshold>("number or percentage such as \"80%\"", (value): value is MeterThreshold =>
+  typeof value === "number" && Number.isFinite(value) || typeof value === "string" && /^-?\d+(?:\.\d+)?%$/.test(value), { anyOf: [{ type: "number" }, { type: "string", pattern: "^-?\\d+(\\.\\d+)?%$" }] });
+const meterChrome = t.custom<MeterChrome>("meter chrome", (value): value is MeterChrome => {
+  try { validateMeterChrome(value); return true; } catch { return false; }
+}, { type: "object" });
+const meterLabels = t.custom<MeterLabels>("meter state words", (value): value is MeterLabels => {
+  try { validateMeterLabels(value); return true; } catch { return false; }
+}, { type: "object", additionalProperties: { type: "string" } });
+const sliderChrome = t.custom<SliderChrome>("slider chrome", (value): value is SliderChrome => {
+  try { validateSliderChrome(value); return true; } catch { return false; }
+}, { type: "object" });
+const sliderTicks = t.custom<SliderTicks>("boolean, spacing or list of values", (value): value is SliderTicks => {
+  try { validateSliderTicks(value); return true; } catch { return false; }
+}, { anyOf: [{ type: "boolean" }, { type: "number", exclusiveMinimum: 0 }, { type: "array", items: { type: "number" } }] });
+const sliderValues = t.custom<readonly [number, number]>("[low, high] pair of numbers", (value): value is readonly [number, number] =>
+  Array.isArray(value) && value.length === 2 && value.every((n) => typeof n === "number" && Number.isFinite(n)), { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 });
+const sliderFilter = t.custom<SliderFilter>("slider filter", (value): value is SliderFilter => object(value) && value.filters instanceof SharedFilters
+  && typeof value.by === "string" && value.by !== "" && typeof value.field === "string" && value.field !== ""
+  && (value.set === undefined || typeof value.set === "string") && (value.label === undefined || typeof value.label === "string"), { asterType: "SliderFilter" });
 const progressTiming = t.object({ delayMs: t.optional(milliseconds), minVisibleMs: t.optional(milliseconds) });
 const bound = {
   model: t.optional(t.instance(EditModel)), field: t.string, label: t.string,
+  hostReadOnly: t.boolean, hostDisabled: t.boolean,
   labelled: t.boolean, labelPosition: literals("above", "start"), sharedReasons: t.instance(Map<string, string>),
   hint: t.string, showErrors: t.boolean, validateOn: literals("submit", "change", "exit"),
 };
@@ -236,7 +287,7 @@ export const asterComponents = Object.freeze({
     max: t.optional(t.custom("numeric bound", numeric)),
     step: t.optional(t.custom("positive numeric step", (v): v is string | number => numeric(v) && compareNumeric(v, 0) > 0)),
     stepButtons: t.boolean, prefixText: t.string, suffixText: t.string, placeholder: t.string, readOnly: t.boolean,
-    format: checked<NumberField["format"]>("numeric display formatter", v => v === undefined || fn(v)),
+    format: checked<NumberField["format"]>("value format object or function", v => v === undefined || fn(v) || validFormat(v)),
   }),
   CompositeField: element<CompositeField>()("aster-composite-field", {
     model: t.optional(t.instance(EditModel)), fields: t.array(t.string), label: t.string, help: t.string, error: t.string,
@@ -307,6 +358,7 @@ export const asterComponents = Object.freeze({
     offLabel: t.optional(t.string),
   }),
   Grid: element<Grid>()("aster-grid", {
+    fieldPresentation: fieldPresentations,
     progressPolicy: progressTiming,
     ctx: t.optional(t.instance(DataContext)),
     set: t.string,
@@ -315,8 +367,6 @@ export const asterComponents = Object.freeze({
     label: t.string,
     publish: t.string,
     persist: t.string,
-    renderers: checked<Grid["renderers"]>("Grid.renderers", v => object(v) && Object.values(v).every(fn)),
-    formatters: checked<Grid["formatters"]>("Grid.formatters", v => object(v) && Object.values(v).every(fn)),
     presentation: gridPresentation,
     labels: gridLabels,
     summaries: checked<Grid["summaries"]>("Grid.summaries", v => Array.isArray(v) && v.every(s => object(s) && (s.label === undefined || typeof s.label === "string") && (s.method === "count" || ["sum", "min", "max", "average", "countdistinct"].includes(String(s.method)) && typeof s.field === "string"))),
@@ -390,6 +440,7 @@ export const asterComponents = Object.freeze({
     chrome: t.object({ caret: t.optional(t.boolean) }),
   }),
   Form: element<Form>()("aster-form", {
+    fieldPresentation: fieldPresentations,
     model: t.optional(t.instance(EditModel)),
     sections,
     headingLevel: literals(2,3,4),
@@ -407,6 +458,7 @@ export const asterComponents = Object.freeze({
     saveOnEnter: t.boolean,
   }),
   ListEditor: element<ListEditor>()("aster-list-editor", {
+    fieldPresentation: fieldPresentations,
     list: t.optional(t.instance(ListEdit)),
     columns: checked<ListEditor["columns"]>("ListEditor.columns", v => Array.isArray(v) && v.every(listCell)),
     label: t.string,
@@ -418,7 +470,6 @@ export const asterComponents = Object.freeze({
     chrome: t.object({ add: t.optional(t.boolean), actions: t.optional(t.boolean) }),
     layout: t.optional(checked<NonNullable<ListEditor["layout"]>>("ListEditor.layout", v => Array.isArray(v) && v.length > 0 && v.every(line => Array.isArray(line) && line.length > 0 && line.every(listCell)))),
     responsive: checked<ListEditor["responsive"]>("ListEditor.responsive", v => typeof v === "boolean" || (object(v) && Object.keys(v).length === 1 && typeof v.below === "number" && Number.isFinite(v.below) && v.below >= 0)),
-    renderers: checked<ListEditor["renderers"]>("ListEditor.renderers", v => object(v) && Object.values(v).every(fn)),
     selection: t.optional(t.instance(Selection)),
   }),
   RuleEditor: element<RuleEditor>()("aster-rule-editor", {
@@ -526,6 +577,39 @@ export const asterComponents = Object.freeze({
     showStatusBar: t.boolean,
     folded: t.boolean,
   }),
+  Meter: element<Meter>()("aster-meter", {
+    model: t.optional(t.instance(EditModel)),
+    field: t.string,
+    maxField: t.string,
+    value: checked<Meter["value"]>("number or numeric text", v => v === null || typeof v === "string" || typeof v === "number" && Number.isFinite(v)),
+    min: t.optional(t.number),
+    max: t.optional(t.number),
+    low: t.optional(meterThreshold),
+    high: t.optional(meterThreshold),
+    optimum: t.optional(meterThreshold),
+    label: t.string,
+    format: valueFormat,
+    labels: meterLabels,
+    chrome: meterChrome,
+  }),
+  Slider: element<Slider>()("aster-slider", {
+    ...bound,
+    range: t.boolean,
+    value: checked<Slider["value"]>("number or numeric text", v => v === null || typeof v === "string" || typeof v === "number" && Number.isFinite(v)),
+    values: t.optional(sliderValues),
+    endField: t.string,
+    min: t.optional(t.number),
+    max: t.optional(t.number),
+    step: t.optional(positiveNumber),
+    largeStep: t.optional(positiveNumber),
+    minGap: nonnegativeNumber,
+    ticks: sliderTicks,
+    format: valueFormat,
+    readOnly: t.boolean,
+    disabled: t.boolean,
+    chrome: sliderChrome,
+    filter: t.optional(sliderFilter),
+  }),
   Dialog: element<Dialog>()("aster-dialog", {
     content: checked<Dialog["content"]>("Dialog.content", view),
     labelledBy: t.optional(t.string),
@@ -537,6 +621,15 @@ export const asterComponents = Object.freeze({
     dismissOnEscape: t.boolean,
     dismissOnBackdrop: t.boolean,
     initialFocus,
+  }),
+  Toaster: element<Toaster>()("aster-toaster", {
+    duration: milliseconds,
+    actionDuration: milliseconds,
+    policy: toasterPolicy,
+    features: toasterFeatures,
+    chrome: toasterChrome,
+    maxVisible: t.positiveInteger,
+    progressPolicy: progressTiming,
   }),
   Menu: element<Menu>()("aster-menu", {
     showIcons: t.boolean,
@@ -557,6 +650,16 @@ export const asterComponents = Object.freeze({
   ProgressStatus: element<ProgressStatus>()("aster-progress-status", {
     busy: t.boolean, error: t.optional(t.string), progressPolicy: progressTiming,
     pendingText: t.string, completeText: t.string, reserveSpace: t.boolean,
+  }),
+  FieldSelection: element<FieldSelection>()("aster-field-selection", {
+    model: t.instance(FieldSelectionModel),
+    source: checked<FieldSelection["source"]>("field selection source", v => v === undefined || !!validateFieldSelectionSource(v)),
+    value: checked<FieldSelection["value"]>("selected field paths", v => !!validateFieldSelectionValue(v)),
+    filter: checked<FieldSelection["filter"]>("all, direct or related", v => !!validateFieldSelectionFilter(v)),
+    maxDepth: checked<number>("positive depth", v => !!validateFieldSelectionDepth(v)),
+    chrome: checked<FieldSelection["chrome"]>("field selection chrome", v => !!validateFieldSelectionChrome(v)),
+    policy: checked<FieldSelection["policy"]>("field policy reasons", v => !!validateFieldSelectionPolicy(v)),
+    search: t.string, label: t.string,
   }),
   Sidebar: Object.freeze(compositeElement(Sidebar)),
 });

@@ -1,0 +1,128 @@
+{
+  "$Version": "4.01",
+  "$EntityContainer": "Calculations.Container",
+  "Calculations": {
+    "Order": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "Tenant",
+        "ID"
+      ],
+      "Tenant": {},
+      "ID": {
+        "$Type": "Edm.Int32"
+      },
+      "Title": {},
+      "Lines": {
+        "$Kind": "NavigationProperty",
+        "$Type": "Calculations.Line",
+        "$Collection": true,
+        "$Partner": "Order"
+      },
+      "TimeEntries": {
+        "$Kind": "NavigationProperty",
+        "$Type": "Calculations.TimeEntry",
+        "$Collection": true,
+        "$Partner": "Order"
+      }
+    },
+    "Line": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "ID"
+      ],
+      "ID": {
+        "$Type": "Edm.Int32"
+      },
+      "Tenant": {},
+      "OrderID": {
+        "$Type": "Edm.Int32"
+      },
+      "Order": {
+        "$Kind": "NavigationProperty",
+        "$Type": "Calculations.Order",
+        "$Partner": "Lines",
+        "$ReferentialConstraint": {
+          "Tenant": "Tenant",
+          "OrderID": "ID"
+        }
+      },
+      "Quantity": {
+        "$Type": "Edm.Decimal",
+        "$Scale": 2,
+        "$Precision": 28,
+        "$Nullable": true
+      },
+      "UnitPrice": {
+        "$Type": "Edm.Decimal",
+        "$Scale": 2,
+        "$Precision": 28,
+        "$Nullable": true
+      }
+    },
+    "TimeEntry": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "ID"
+      ],
+      "ID": {
+        "$Type": "Edm.Int32"
+      },
+      "Tenant": {},
+      "OrderID": {
+        "$Type": "Edm.Int32"
+      },
+      "Order": {
+        "$Kind": "NavigationProperty",
+        "$Type": "Calculations.Order",
+        "$Partner": "TimeEntries",
+        "$ReferentialConstraint": {
+          "Tenant": "Tenant",
+          "OrderID": "ID"
+        }
+      },
+      "Started": {
+        "$Type": "Edm.DateTimeOffset",
+        "$Nullable": true
+      },
+      "Ended": {
+        "$Type": "Edm.DateTimeOffset",
+        "$Nullable": true
+      }
+    },
+    "Container": {
+      "$Kind": "EntityContainer",
+      "Orders": {
+        "$Collection": true,
+        "$Type": "Calculations.Order",
+        "$NavigationPropertyBinding": {
+          "Lines": "Lines",
+          "TimeEntries": "TimeEntries"
+        },
+        "@AsterData.RequestCalculations": {
+          "Mode": "readers"
+        }
+      },
+      "Lines": {
+        "$Collection": true,
+        "$Type": "Calculations.Line",
+        "$NavigationPropertyBinding": {
+          "Order": "Orders"
+        },
+        "@AsterData.RequestCalculations": {
+          "Mode": "readers"
+        }
+      },
+      "TimeEntries": {
+        "$Collection": true,
+        "$Type": "Calculations.TimeEntry",
+        "$NavigationPropertyBinding": {
+          "Order": "Orders"
+        },
+        "@AsterData.RequestCalculations": {
+          "Mode": "readers"
+        }
+      }
+    }
+  }
+}

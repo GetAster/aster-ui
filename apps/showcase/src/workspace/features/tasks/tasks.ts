@@ -193,7 +193,7 @@ export class TasksPage extends AsterElement {
     try {
       await grid?.treeModel?.move(key, to);
     } catch (e) {
-      this.#toaster()?.show(e instanceof Error ? e.message : String(e));
+      this.#toaster()?.show(e instanceof Error ? e.message : String(e), { variant: "error" });
       return;
     }
     const where = to === undefined ? "the top level" : String(this.#setup.ctx.store.get("Tasks", to)?.entity.title ?? "its new parent");

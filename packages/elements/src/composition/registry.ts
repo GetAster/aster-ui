@@ -23,7 +23,12 @@ export function checkContract(values: CompositeValues, contract: CompositeContra
   for (const key of Object.keys(values)) if (!Object.hasOwn(contract, key)) throw new CompositeError(`${path}.${key}`, "unknown input/property");
   for (const [key, spec] of Object.entries(contract)) {
     if (!Object.hasOwn(values, key) && spec.optional) continue;
-    if (!spec.validate(values[key])) throw new CompositeError(`${path}.${key}`, spec.description ? `expected ${spec.description}` : "value does not match the registered contract");
+    try {
+      if (!spec.validate(values[key])) throw new CompositeError(`${path}.${key}`, spec.description ? `expected ${spec.description}` : "value does not match the registered contract");
+    } catch (error) {
+      if (error instanceof CompositeError) throw error;
+      throw new CompositeError(`${path}.${key}`, error instanceof Error ? error.message : String(error));
+    }
   }
 }
 

@@ -89,8 +89,12 @@ export class DataContext {
     return new Summary(this.store, this.source, query, aggregates, this.now);
   }
 
-  /** Stops syncing a collection, and following its query. */
+  /** Number of collections this context currently owns for synchronization. */
+  get liveCollections(): number { return this.#collections.size; }
+
+  /** Stops syncing a collection, following its query and pending reads. */
   release(collection: Collection): void {
+    collection.dispose();
     this.#collections.delete(collection);
     this.#following.get(collection)?.();
     this.#following.delete(collection);

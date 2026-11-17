@@ -40,6 +40,8 @@ export interface ControlContext {
  * "Hidden", whatever the control, with the reason as its description.
  */
 export abstract class BoundField extends AsterElement {
+  readonly #hostReadOnly = this.prop(false);
+  readonly #hostDisabled = this.prop(false);
   readonly #model = this.prop<EditModel | undefined>(undefined);
   readonly #field = this.prop("");
   readonly #label = this.prop("");
@@ -50,6 +52,18 @@ export abstract class BoundField extends AsterElement {
   readonly #showErrors = this.prop(true);
   readonly #validateOn = this.prop<ValidateOn>("submit");
   readonly #uid = uid("aster-field");
+
+  /** Host restrictions only narrow this control; shared policy belongs to the edit session. */
+  get hostReadOnly(): boolean { return this.#hostReadOnly.value; }
+  set hostReadOnly(value: boolean) {
+    if (typeof value !== "boolean") throw new TypeError("hostReadOnly must be a boolean");
+    this.#hostReadOnly.value = value;
+  }
+  get hostDisabled(): boolean { return this.#hostDisabled.value; }
+  set hostDisabled(value: boolean) {
+    if (typeof value !== "boolean") throw new TypeError("hostDisabled must be a boolean");
+    this.#hostDisabled.value = value;
+  }
 
   get model(): EditModel | undefined {
     return this.#model.value;
@@ -177,15 +191,34 @@ export abstract class BoundField extends AsterElement {
     const model = this.#model.peek();
     if (!model) return;
     const name = this.#field.peek();
+    if (!this.#writable()) return;
     model.set(name, value);
     if (this.#validateOn.peek() === "change") model.validateField(name);
+  }
+
+  #writable(): boolean {
+    const model = this.#model.peek();
+    const name = this.#field.peek();
+    if (!model || !model.type.field(name) || this.#hostReadOnly.peek() || this.#hostDisabled.peek() || model.hidden.peek().has(name)) return false;
+    const state = model.state(name).peek();
+    return state.visible && state.enabled && !state.readOnly;
   }
 
   protected render(): View {
     const model = this.#model.value;
     const name = this.#field.value;
     const meta = model?.type.field(name);
-    const state = model && meta ? model.state(name).value : DEFAULT_STATE;
+    const sharedState = model && meta ? model.state(name).value : DEFAULT_STATE;
+    const state = {
+      ...sharedState,
+      readOnly: sharedState.readOnly || this.#hostReadOnly.value,
+      enabled: sharedState.enabled && !this.#hostDisabled.value,
+      reasons: {
+        ...sharedState.reasons,
+        ...(this.#hostReadOnly.value ? { readOnly: sharedState.reasons.readOnly ?? "Read-only in this form." } : {}),
+        ...(this.#hostDisabled.value ? { enabled: sharedState.reasons.enabled ?? "Disabled in this form." } : {}),
+      },
+    };
     this.hidden = !state.visible;
     if (!state.visible) return nothing;
     const hidden = model?.hidden.value.has(name) ?? false;
@@ -230,10 +263,10 @@ export abstract class BoundField extends AsterElement {
     const added = replay && (model?.baseline.value[name] ?? null) === null && model?.values.value[name] !== undefined && Object.keys(model.baseline.value).length === 0;
     const pendingText = !replay ? `Changed, not saved yet; was ${was}` : added ? "Added in this change" : `Changed in this change; was ${was}`;
     const revert =
-      pending && !state.readOnly && !model?.isNew.value
+      pending && !state.readOnly && state.enabled && !model?.isNew.value
         ? html`<button type="button" class="aster-revert" title=${`Was ${was}`}
             aria-label=${`Revert ${label} to ${was}`}
-            @click=${() => model?.revert(name)}>Revert</button>`
+            @click=${() => { if (this.#writable()) model?.revert(name); }}>Revert</button>`
         : nothing;
     const beside = this.#labelled.value && this.labelBeside();
     // CSS puts the head in a column before the control.

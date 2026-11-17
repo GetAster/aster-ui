@@ -1,3 +1,6 @@
+import "../field-selection/field-selection.ts";
+import type { FieldSelectionChange } from "../field-selection/model.ts";
+import { presentField, resolveFieldPresentation, validateFieldPresentations, type FieldPresentations, type FieldPresentation } from "../field/presentation.ts";
 import { computed, effect, signal, untracked, type ReadonlySignal } from "@preact/signals-core";
 import {
   isRelative,
@@ -55,6 +58,7 @@ import type { Dialog } from "../dialog/dialog.ts";
 import "../dialog/dialog.ts";
 import type { Option } from "../select/choice.ts";
 import { containsText, parseRange, rangeText, withDate } from "./filters.ts";
+import { gridHeaderControls, gridSortMenu } from "./header.ts";
 import { RowHeights } from "./rows.ts";
 import {
   defaultView,
@@ -115,10 +119,6 @@ import {
 } from "./features.ts";
 export type { GridFeature } from "./features.ts";
 
-/** Renders a cell's content; `entity` is the row's record. */
-export type CellRenderer = (entity: Entity, key: KeyText) => View;
-/** Text presentation of a typed value. Queries and exports retain the underlying value. */
-export type CellFormatter = (value: Value | undefined, entity: Entity, field: Field | undefined) => string;
 /** Where a non-focus scroll puts the requested row or cell. */
 export type GridScrollAlign = "start" | "center" | "end" | "nearest";
 
@@ -315,6 +315,14 @@ const FILTER_ROW = -1;
  * from focus; an owned grid without shared selection chooses the active row.
  */
 export class Grid extends AsterElement {
+  readonly #fieldPresentation = this.prop<FieldPresentations>({});
+  /** Shared display overrides by field and semantic type. */
+  get fieldPresentation(): FieldPresentations { return this.#fieldPresentation.value; }
+  set fieldPresentation(value: FieldPresentations) {
+    validateFieldPresentations(value);
+    this.#fieldPresentation.value = value;
+  }
+
   readonly #filterDraft = signal<FilterDraft | undefined>(undefined);
   readonly #filterBusy = signal(false);
   readonly #filterNote = signal("");
@@ -374,8 +382,6 @@ export class Grid extends AsterElement {
   readonly #label = this.prop("");
   readonly #publish = this.prop("");
   readonly #persist = this.prop("");
-  readonly #renderers = this.prop<Readonly<Record<string, CellRenderer>>>({});
-  readonly #formatters = this.prop<Readonly<Record<string, CellFormatter>>>({});
   readonly #presentation = this.prop<GridPresentation>({});
   readonly #labels = this.prop<GridLabels>({});
   readonly #lookups = this.prop<Readonly<Record<string, Lookup>>>({});
@@ -497,16 +503,6 @@ export class Grid extends AsterElement {
   set persist(v: string) {
     this.#persist.value = v;
   }
-  /** Cell content by field, where the default formatting isn't enough. */
-  get renderers(): Readonly<Record<string, CellRenderer>> {
-    return this.#renderers.value;
-  }
-  set renderers(v: Readonly<Record<string, CellRenderer>>) {
-    this.#renderers.value = v;
-  }
-  /** Text-only display formatting by field; never changes server sorting or filtering. */
-  get formatters(): Readonly<Record<string, CellFormatter>> { return this.#formatters.value; }
-  set formatters(value: Readonly<Record<string, CellFormatter>>) { this.#formatters.value = value; }
   /**
    * Declarative presentation: per-column titles, alignment, value maps and
    * formats, row and cell classes, and hilites. Default `{}`, which keeps
@@ -1934,7 +1930,7 @@ export class Grid extends AsterElement {
                   const content = !entity ? html`<span class="aster-grid-skeleton"></span>`
                     : edit && this.#fieldEditable(c.field) && !fields[col]?.computed && (rowMode || c.field === editing!.field)
                       ? controlFor(edit, c.field, { options: lookups[c.field] ? this.#optionsFor(c.field, lookups[c.field]!) : undefined, labelled: false, sharedReasons: shared })
-                      : stored?.hidden?.has(c.field) ? this.#hiddenValue() : this.#cell(c, fields[col], entity, key!, ctx, mapped);
+                      : stored?.hidden?.has(c.field) ? this.#hiddenValue() : this.#cell(c, fields[col], entity, key!, ctx, mapped, stored?.hidden, stored?.known);
                   return html`<div class=${["aster-grid-cell", ...(cellStyle?.classes ?? [])].join(" ")} role="gridcell" id=${cellId(i, col)} data-col=${col}
                     aria-colindex=${col + (selectColumn ? 2 : 1)} ?data-active=${activeCell.row === i && activeCell.col === col}
                     ?data-selected-cell=${selectionAppearance === "cell" && rowSelected && col === selectedColumn}
@@ -2265,28 +2261,27 @@ export class Grid extends AsterElement {
   }
 
   #columnsPanel(view: GridView): View {
-    const title = (field: string) => this.#title(field);
-    const shown = new Set(this.#visibleColumns(view).map((column) => column.field));
+    const shown = this.#visibleColumns(view).map(column => column.field);
+    const policy = Object.fromEntries(view.columns.map(column => {
+      const hide = this.#hideRefusal(column.field);
+      const move = this.#moveRefusal(column.field);
+      return [column.field, { ...(hide !== undefined ? { hide } : {}), ...(move !== undefined ? { move } : {}) }];
+    }));
     return html`<div class="aster-grid-panel aster-popover" popover="manual" ${openWhen(true)} style=${placeStyle(`${this.#id}-tool-columns`)}
       id=${`${this.#id}-columns`} role="group" aria-label=${this.#text("columns")}
       @keydown=${(e: KeyboardEvent) => this.#panelKey(e)}>
-      <p class="aster-grid-panel-title">${this.#text("columns")}</p>
-      <ul>
-        ${view.columns.map((c, i) => {
-          const visible = shown.has(c.field);
-          const hide = visible ? this.#hideRefusal(c.field) : undefined;
-          const move = this.#moveRefusal(c.field);
-          return html`<li>
-            <label title=${hide ?? nothing}><input type="checkbox" .checked=${visible} ?disabled=${hide !== undefined}
-              @change=${(e: Event) => this.#setView(setHidden(view, c.field, !(e.target as HTMLInputElement).checked))}>
-              ${title(c.field)}</label>
-            <button type="button" aria-label=${this.#text("moveFieldUp", { field: title(c.field) })} ?disabled=${i === 0 || move !== undefined} title=${move ?? nothing}
-              @click=${() => this.#setView(moveColumn(view, c.field, i - 1))}>↑</button>
-            <button type="button" aria-label=${this.#text("moveFieldDown", { field: title(c.field) })} ?disabled=${i === view.columns.length - 1 || move !== undefined} title=${move ?? nothing}
-              @click=${() => this.#setView(moveColumn(view, c.field, i + 1))}>↓</button>
-          </li>`;
-        })}
-      </ul>
+      <aster-field-selection .label=${this.#text("columns")}
+        .source=${{ fields: view.columns.map(column => ({ path: column.field, label: this.#title(column.field) })) }}
+        .value=${shown} .policy=${policy}
+        @value-change=${(event: CustomEvent<FieldSelectionChange>) => {
+          event.stopPropagation();
+          const selected = event.detail.value;
+          let next = view;
+          for (const column of view.columns) next = setHidden(next, column.field, !selected.includes(column.field));
+          const ordered = [...selected, ...view.columns.map(column => column.field).filter(field => !selected.includes(field))];
+          ordered.forEach((field, index) => { next = moveColumn(next, field, index); });
+          this.#setView(next);
+        }}></aster-field-selection>
       <button type="button" class="aster-grid-panel-action" @click=${() => this.#reset()}>${this.#text("resetView")}</button>
     </div>`;
   }
@@ -2367,31 +2362,20 @@ export class Grid extends AsterElement {
     return html`<div class="aster-grid-cell aster-grid-header" role="columnheader" aria-colindex=${i + offset} id=${`${this.#id}-h-${i}`}
       data-col=${i} aria-sort=${ariaSort} ?data-numeric=${numeric} ?data-frozen=${i < frozen} ?data-active=${active} style=${style}
       data-align=${align ?? nothing}
-      data-field=${column.field} data-sortable=${refusal ? "false" : "true"} ?data-movable=${!move} ?data-resizable=${!resize}>
-      <button type="button" class="aster-grid-sort" tabindex="-1" title=${hint}
-        @pointerdown=${(e: PointerEvent) => this.#dragColumn(e, column.field)}
-        @click=${(e: MouseEvent) => this.#sort(column.field, e.shiftKey)}>
-        <span>${title}</span>
-        ${key
-          ? html`<svg class="aster-grid-sort-mark" viewBox="0 0 10 10" aria-hidden="true">
-              <path d=${key.descending ? "M2 3.5 5 6.5l3-3" : "M2 6.5 5 3.5l3 3"}/></svg>
-              ${keys.length > 1 ? html`<small>${sort + 1}</small>` : nothing}`
-          : nothing}
-      </button>
-      ${refusal ? html`<span class="aster-sr-only">${refusal}</span>` : nothing}
-      ${this.showHeaderMenu ? html`<button type="button" class="aster-grid-header-menu" tabindex="-1" aria-label=${this.#text("columnOptions", { field: title })}
-        @click=${(e: MouseEvent) => this.#openMenu(column.field, e.currentTarget as HTMLElement)}>
-        <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8l3-3"/></svg>
-      </button>` : nothing}
-      ${resize ? nothing : html`<span class="aster-grid-resize" aria-hidden="true" @pointerdown=${(e: PointerEvent) => this.#resize(e, column.field)}
-        @dblclick=${() => this.#setView(setWidth(this.#view.peek()!, column.field, undefined))}></span>`}
+      data-field=${column.field} data-sortable=${refusal ? "false" : "true"} ?data-movable=${!move} ?data-resizable=${!resize}
+      @pointerdown=${(e: PointerEvent) => { if (!this.#ownsPress(e)) this.#dragColumn(e, column.field); }}
+      @click=${(e: MouseEvent) => { if (!this.#ownsPress(e)) this.#sort(column.field, e.shiftKey); }}>
+      ${gridHeaderControls({ title, hint, refusal,
+        sort: key ? { descending: key.descending === true, index: sort + 1, total: keys.length } : undefined,
+        menu: this.showHeaderMenu ? { label: this.#text("columnOptions", { field: title }), open: (event) => this.#openMenu(column.field, event.currentTarget as HTMLElement) } : undefined,
+        resize: resize ? undefined : { start: (event) => this.#resize(event, column.field), reset: () => this.#setView(setWidth(this.#view.peek()!, column.field, undefined)) },
+      })}
     </div>`;
   }
 
   #menuItems(field: string): MenuItem[] {
     const view = this.#view.peek()!;
     const title = this.#title(field);
-    const sorted = view.sort.find((s) => s.field === field);
     const visible = this.#visibleColumns(view);
     const frozen = this.#frozenCount(view, visible);
     const at = visible.findIndex((c) => c.field === field);
@@ -2413,16 +2397,10 @@ export class Grid extends AsterElement {
       ...(custom.length ? [{ kind: "separator" as const }] : []),
       ...(this.#sortable(field)
         ? [
-            {
-              kind: "group" as const,
-              label: this.#text("menuSort"),
-              items: [
-                { kind: "radio" as const, label: this.#text("ascending"), checked: !!sorted && !sorted.descending, run: () => set(sortDirection(view, field, false, false)) },
-                { kind: "radio" as const, label: this.#text("descending"), checked: !!sorted?.descending, run: () => set(sortDirection(view, field, true, false)) },
-                { kind: "radio" as const, label: this.#text("notSorted"), checked: !sorted, run: () => set(removeSort(view, field)) },
-                ...(this.#multiSort() && view.sort.length > 0 && !sorted ? [{ label: this.#text("addToSortMenu"), run: () => set(sortDirection(view, field, false, true)) }] : []),
-              ],
-            },
+            gridSortMenu(view, field, { multi: this.#multiSort(), change: set, labels: {
+              sort: this.#text("menuSort"), ascending: this.#text("ascending"), descending: this.#text("descending"),
+              notSorted: this.#text("notSorted"), addToSort: this.#text("addToSortMenu"),
+            } }),
             { kind: "separator" as const },
           ]
         : []),
@@ -2641,12 +2619,12 @@ export class Grid extends AsterElement {
 
   // ── cells ──
 
-  #cell(column: GridColumn, field: Field | undefined, entity: Entity, key: KeyText, ctx: DataContext, mapped?: MappedValue): View | string {
-    const render = this.#renderers.value[column.field];
-    if (render) return render(entity, key);
+  #cell(column: GridColumn, field: Field | undefined, entity: Entity, key: KeyText, ctx: DataContext, mapped?: MappedValue, hidden?: ReadonlySet<string>, known?: ReadonlySet<string>): View | string {
     const value: Value | undefined = entity[column.field];
-    const formatter = this.#formatters.value[column.field];
-    if (formatter) return formatter(value, entity, field);
+    const legacy = this.#presentation.value.columns?.[column.field];
+    const descriptor = resolveFieldPresentation(field, column.field, this.#fieldPresentation.value, { ...(legacy?.format ? { format: legacy.format } : {}), ...(legacy?.valueMap ? { valueMap: legacy.valueMap } : {}) });
+    if (Object.keys(descriptor).length) return presentField({ field, name: column.field, value, entity, key, hidden, known }, descriptor);
+    if (value === undefined) return "";
     if (mapped) return mapped.label;
     const lookup = this.#lookups.value[column.field];
     if (lookup && value !== null && value !== undefined) {
@@ -2860,7 +2838,10 @@ export class Grid extends AsterElement {
       <button type="button" class="aster-grid-pick" tabindex=${this.#selectionInside.value === key ? 0 : -1} aria-pressed=${String(index >= 0)}
         aria-label=${`${selection.multiple && index >= 0 ? "Deselect" : "Select"} ${name}`}
         @click=${() => this.#choose(key, this.#collection!.keys.peek().indexOf(key), false, selection.multiple)}>
-        ${index < 0 ? "○" : selection.ordered ? String(index + 1) : "✓"}</button>
+        ${index < 0
+          ? html`<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="4.5"/></svg>`
+          : selection.ordered ? String(index + 1)
+            : html`<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m3 8 3.5 3.5L13 5"/></svg>`}</button>
       ${selection.ordered && index >= 0 ? html`<span class="aster-sr-only">Selection ${index + 1} of ${chosen.length}.</span>
         <button type="button" tabindex=${this.#selectionInside.value === key ? 0 : -1} class="aster-grid-pick" aria-label=${`Move ${name} earlier in selection`}
           ?disabled=${index === 0} @click=${() => this.#moveSelection(key, -1)}>↑</button>
@@ -3525,6 +3506,11 @@ export class Grid extends AsterElement {
   }
 
   #dragged = false;
+
+  /** The whole header sorts and drags, except where its own controls take the press. */
+  #ownsPress(e: Event): boolean {
+    return !!(e.target as Element).closest(".aster-grid-header-menu, .aster-grid-resize");
+  }
 
   /** Drag a header sideways to move its column; a press without moving sorts. */
   #dragColumn(e: PointerEvent, field: string): void {

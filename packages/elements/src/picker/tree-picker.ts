@@ -71,7 +71,8 @@ export class TreePicker extends BoundField {
 
   protected control(c: ControlContext): View {
     const source = this.#options.value;
-    const open = this.#open.value && !c.state.readOnly;
+    const disabled = !c.state.enabled;
+    const open = this.#open.value && !c.state.readOnly && !disabled;
     const query = this.#query.value;
     const current = source?.record(c.value ?? null)?.value;
     const label = current && source ? source.text(current) : c.value === null || c.value === undefined ? "" : String(c.value);
@@ -130,10 +131,13 @@ export class TreePicker extends BoundField {
           aria-required=${c.state.required ? "true" : nothing}
           aria-invalid=${c.invalid ? "true" : nothing}
           aria-describedby=${describedBy ?? nothing}
-          ?readonly=${c.state.readOnly}
+          ?readonly=${c.state.readOnly} ?disabled=${disabled}
           autocomplete="off" spellcheck="false"
-          @input=${(e: InputEvent) => this.#type((e.target as HTMLInputElement).value)}
+          @input=${(e: InputEvent) => {
+            if (!disabled) this.#type((e.target as HTMLInputElement).value);
+          }}
           @click=${(e: MouseEvent) => {
+            if (disabled || c.state.readOnly) return;
             if (this.#open.peek()) return this.#close();
             this.#show();
             (e.target as HTMLInputElement).select();
@@ -144,7 +148,7 @@ export class TreePicker extends BoundField {
             this.#close();
           }}
           @keydown=${(e: KeyboardEvent) => {
-            if (c.state.readOnly) return;
+            if (c.state.readOnly || disabled) return;
             const isOpen = this.#open.peek();
             switch (e.key) {
               case "ArrowDown":

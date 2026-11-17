@@ -1,12 +1,12 @@
 import { batch, computed, signal, type ReadonlySignal } from "@preact/signals-core";
 import type { Criteria, Query } from "../criteria/ast.ts";
-import { isPath } from "../criteria/compile.ts";
+import { isPath, queryType } from "../criteria/compile.ts";
 import { matches, sortComparator } from "../criteria/evaluate.ts";
 import { hasRelative, relatedOf, resolveRelative } from "../criteria/relative.ts";
 import type { Entity, EntityType, Schema } from "../schema/model.ts";
 import type { ODataSource } from "../odata/source.ts";
 import type { KeyText } from "../store/keys.ts";
-import type { RecordStore, StoreChange, StoredRecord } from "../store/store.ts";
+import { sameEntity, type RecordStore, type StoreChange, type StoredRecord } from "../store/store.ts";
 
 export type CollectionStatus = "idle" | "loading" | "error";
 
@@ -43,7 +43,9 @@ export interface CollectionOptions {
  * it, turn it into a progressive count.
  */
 export class Collection {
-  readonly type: EntityType;
+  #type: EntityType;
+  get type(): EntityType { this.#queryVersion.value; return this.#type; }
+  readonly #results = signal<ReadonlyMap<KeyText, StoredRecord>>(new Map());
   readonly pageSize: number;
   readonly keepPages: number;
   readonly #store: RecordStore;
@@ -63,6 +65,8 @@ export class Collection {
   #slots: (KeyText | undefined)[] = [];
   /** Bumped by every refresh, so responses to older requests are dropped. */
   #generation = 0;
+  #controller = new AbortController();
+  #disposed = false;
   readonly #inflight = new Map<number, Promise<void>>();
   #pending = 0;
   /** The range last shown through `view`; refreshes reload only its pages. */
@@ -98,15 +102,15 @@ export class Collection {
     this.#exact = options.exactCount ?? false;
     this.#store = store;
     this.#source = source;
-    this.type = store.schema.set(query.set).type;
+    const type = queryType(this.#store.schema.set(query.set).type, query.compute);
     this.#query = query;
+    this.#type = type;
     this.#compare = comparatorFor(query, this.type);
     this.#reads = readsOf(query);
     this.#lambda = hasLambda(query.filter);
     this.#related = relatedSets(query.filter, this.type, store.schema);
-    const set = query.set;
     this.items = computed(() =>
-      this.#keys.value.map((k) => (k === undefined ? undefined : store.record(set, k).value?.entity)),
+      this.#keys.value.map((k) => (k === undefined ? undefined : this.#record(k)?.entity)),
     );
   }
 
@@ -115,15 +119,44 @@ export class Collection {
     return this.#query;
   }
 
+  /** Stops requests and prevents late answers from entering the store. */
+  dispose(): void {
+    if (this.#disposed) return;
+    this.#disposed = true;
+    this.#cancel();
+    this.#inflight.clear();
+    this.#status.value = "idle";
+  }
+
+  #cancel(): void {
+    this.#generation++;
+    this.#controller.abort();
+    this.#controller = new AbortController();
+    this.#pending = 0;
+    this.#results.value = new Map();
+  }
+
   /** A loaded position, including its hidden fields. Reads only that record's signal. */
   recordAt(index: number): StoredRecord | undefined {
     const key = this.#keys.value[index];
-    return key === undefined ? undefined : this.#store.record(this.query.set, key).value;
+    return key === undefined ? undefined : this.#record(key);
+  }
+
+  #record(key: KeyText): StoredRecord | undefined {
+    const canonical = this.#store.record(this.query.set, key).value;
+    if (!canonical) return undefined;
+    const local = this.#results.value.get(key);
+    if (!local) return canonical;
+    const hidden = new Set([...canonical.hidden ?? [], ...local.hidden ?? []]);
+    const known = canonical.known ?? this.type.fields.map((field) => field.name);
+    return { ...canonical, entity: { ...canonical.entity, ...local.entity }, ...(canonical.known || hidden.size ? { known: new Set([...known, ...Object.keys(local.entity)].filter((name) => !hidden.has(name))) } : {}), ...(hidden.size ? { hidden } : {}), ...(local.types ? { types: local.types } : {}) };
   }
 
   /** Known membership, or undefined where unloaded/hidden/related fields prevent a local decision. */
   has(key: KeyText): boolean | undefined {
     if (this.#keys.value.includes(key)) return true;
+    if (this.query.compute?.length) return this.complete.value ? false : undefined;
+    if (this.query.relationship && !this.complete.value) return undefined;
     if (this.#count.value === undefined) return undefined;
     if (this.complete.value) return false;
     const stored = this.#store.record(this.query.set, key).value;
@@ -143,16 +176,20 @@ export class Collection {
   setQuery(query: Query): void {
     if (query.set !== this.#query.set) throw new Error(`a collection stays on ${this.#query.set}; got ${query.set}`);
     const wanted = this.#pending > 0 || this.#count.peek() !== undefined;
+    const type = queryType(this.#store.schema.set(query.set).type, query.compute);
     this.#query = query;
+    this.#type = type;
     this.#compare = comparatorFor(query, this.type);
     this.#reads = readsOf(query);
     this.#lambda = hasLambda(query.filter);
     this.#related = relatedSets(query.filter, this.type, this.#store.schema);
-    this.#generation++;
+    this.#cancel();
     this.#inflight.clear();
     this.#slots = [];
     this.#viewed = undefined;
     batch(() => {
+      this.#error.value = undefined;
+      this.#status.value = "idle";
       this.#count.value = undefined;
       this.#counted.value = false;
       this.#estimated.value = false;
@@ -160,11 +197,12 @@ export class Collection {
       this.#publish();
       this.#queryVersion.value++;
     });
-    if (wanted) this.ensure(0, this.pageSize).catch(() => {});
+    if (wanted && !this.#disposed) this.ensure(0, this.pageSize).catch(() => {});
   }
 
   /** Loads every page touching `[start, end)`. */
   async ensure(start: number, end: number): Promise<void> {
+    if (this.#disposed) return;
     const generation = this.#generation;
     if (this.#count.peek() === undefined) await this.#loadPage(0);
     if (generation !== this.#generation) return;
@@ -222,12 +260,13 @@ export class Collection {
     const distance = (p: number) => pinned.has(p) ? 0 : (p < first ? first - p : p > last ? p - last : 0);
     const drop = [...loaded].sort((a, b) => distance(b) - distance(a)).slice(0, loaded.size - this.keepPages);
     let forgotten = false;
+    const local = new Map(this.#results.peek());
     for (const p of drop) {
       if (distance(p) === 0 || this.#inflight.has(p)) continue;
-      for (let i = p * this.pageSize; i < Math.min((p + 1) * this.pageSize, this.#slots.length); i++) this.#slots[i] = undefined;
+      for (let i = p * this.pageSize; i < Math.min((p + 1) * this.pageSize, this.#slots.length); i++) { const key = this.#slots[i]; if (key !== undefined) local.delete(key); this.#slots[i] = undefined; }
       forgotten = true;
     }
-    if (forgotten) this.#publish();
+    if (forgotten) { this.#results.value = local; this.#publish(); }
   }
 
   /**
@@ -237,6 +276,7 @@ export class Collection {
    */
   async loadAll(): Promise<void> {
     for (;;) {
+      if (this.#disposed) return;
       const generation = this.#generation;
       await this.ensure(0, Number.POSITIVE_INFINITY);
       if (generation === this.#generation && this.#counted.peek()) return;
@@ -253,6 +293,7 @@ export class Collection {
   }
 
   async #refreshWindow(additional: readonly number[]): Promise<void> {
+    if (this.#disposed) return;
     const loadedPages = new Set<number>(additional);
     const viewed = this.#viewed;
     if (viewed) {
@@ -263,7 +304,7 @@ export class Collection {
       this.#slots.forEach((k, i) => k !== undefined && loadedPages.add(Math.floor(i / this.pageSize)));
     }
     if (loadedPages.size === 0) loadedPages.add(0);
-    this.#generation++;
+    this.#cancel();
     this.#inflight.clear();
     const generation = this.#generation;
     const runs = await Promise.all(runsOf([...loadedPages]).map(([first, n]) => this.#fetchPages(first, n, generation)));
@@ -295,6 +336,18 @@ export class Collection {
   }
 
   #apply(change: StoreChange): void {
+    if (this.#disposed) return;
+    if (this.query.compute?.length) {
+      if (change.origin.kind === "fetch" && change.origin.collection === this) return;
+      // Query-specific ETags and projection metadata do not change calculation inputs.
+      const changed = change.before !== undefined && change.after !== undefined && !sameEntity(change.before.entity, change.after.entity);
+      if (this.#count.peek() !== undefined && (change.origin.kind !== "fetch" || changed)) this.#goStale();
+      return;
+    }
+    if (this.query.relationship) {
+      if (change.origin.kind !== "fetch" && (change.set === this.query.set || change.set === this.query.relationship.set || this.#related.has(change.set)) && this.#count.peek() !== undefined) this.#goStale();
+      return;
+    }
     if (change.set !== this.query.set) {
       if (this.#related.has(change.set) && change.origin.kind !== "fetch" && this.#count.peek() !== undefined) this.#goStale();
       return;
@@ -373,7 +426,10 @@ export class Collection {
    * refresh leaves the collection stale with `error` set.
    */
   #goStale(): void {
-    this.#stale.value = true;
+    batch(() => {
+      if (this.query.compute?.length) this.#results.value = new Map();
+      this.#stale.value = true;
+    });
     if (this.#refreshing) return;
     // Changes that arrive together share one refresh.
     this.#refreshing = true;
@@ -435,24 +491,54 @@ export class Collection {
         top: pages * this.pageSize,
         count: true,
         exact: this.#exact,
+        signal: this.#controller.signal,
       });
       if (generation !== this.#generation) return undefined;
+      const aliases = this.query.compute ?? [];
+      for (const record of result.records) for (const c of aliases) {
+        const annotated = record.types?.[c.alias];
+        if (annotated && annotated.replace(/^#/, "").replace(/^Edm\./, "") !== c.type.replace(/^Edm\./, "")) throw new Error(`Compute type mismatch for ${c.alias}: declared ${c.type}, received ${annotated}`);
+        if (Object.hasOwn(record.entity, c.alias) && record.entity[c.alias] !== null && ["Edm.Decimal", "Edm.Int64", "Edm.Duration", "Edm.DateTimeOffset"].includes(c.type) && !annotated) throw new Error(`Missing compute type annotation for ${c.alias}`);
+      }
+      const declared = this.#store.schema.set(this.query.set).type;
+      const canonicalName = (name: string) => !!declared.field(name) || !!declared.navigation(name);
+      const canonical = result.records.map(({ types: _types, ...record }) => ({
+        ...record,
+        ...(record.hidden ? { hidden: new Set([...record.hidden].filter(canonicalName)) } : {}),
+        entity: Object.fromEntries(Object.entries(record.entity).filter(([name]) => canonicalName(name))),
+      }));
       const keys = this.#store.putAll(
         this.query.set,
-        result.records,
+        canonical,
         { kind: "fetch", collection: this },
-        this.query.select,
+        this.query.select?.filter((name) => !aliases.some((c) => c.alias === name)),
       );
+      if (aliases.length) {
+        const local = new Map(this.#results.peek());
+        keys.forEach((key, i) => {
+          const record = result.records[i]!;
+          const aliasName = (name: string) => aliases.some((c) => c.alias === name);
+          local.set(key, {
+            entity: Object.fromEntries(Object.entries(record.entity).filter(([name]) => aliasName(name))),
+            ...(record.types ? { types: Object.fromEntries(Object.entries(record.types).filter(([name]) => aliasName(name))) } : {}),
+            ...(record.hidden ? { hidden: new Set([...record.hidden].filter(aliasName)) } : {}),
+          });
+        });
+        this.#results.value = local;
+      }
       this.#error.value = undefined;
       return { first, pages, keys, count: result.count, estimated: result.estimated ?? false };
     } catch (e) {
       if (generation === this.#generation) {
         this.#error.value = e;
       }
-      throw e;
+      if (generation === this.#generation) throw e;
+      return undefined;
     } finally {
-      this.#pending--;
-      this.#status.value = this.#error.peek() ? "error" : this.#pending ? "loading" : "idle";
+      if (generation === this.#generation) {
+        this.#pending--;
+        this.#status.value = this.#error.peek() ? "error" : this.#pending ? "loading" : "idle";
+      }
     }
   }
 

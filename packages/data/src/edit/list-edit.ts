@@ -55,6 +55,8 @@ export interface ListDraft {
   readonly counter: number;
 }
 
+const NO_MESSAGES: readonly string[] = [];
+
 interface Existing {
   readonly key: KeyText;
   readonly entity: Entity;
@@ -86,6 +88,7 @@ export class ListEdit {
   readonly #removing = signal<ReadonlySet<string>>(new Set());
   readonly #removeErrors = signal<ReadonlyMap<string, string>>(new Map());
   readonly #busy = signal(false);
+  readonly #errorSource = signal<ReadonlySignal<readonly string[]> | undefined>(undefined);
   #replay = false;
   #counter = 0;
 
@@ -94,6 +97,8 @@ export class ListEdit {
   readonly dirty: ReadonlySignal<boolean>;
   readonly valid: ReadonlySignal<boolean>;
   readonly busy: ReadonlySignal<boolean> = this.#busy;
+  /** Failures of the list as a whole, such as a rule over its rows, while they are shown. Only a `RecordEdit` sets them. */
+  readonly errors: ReadonlySignal<readonly string[]> = computed(() => this.#errorSource.value?.value ?? NO_MESSAGES);
   /** Rows have a position field: `move` reorders them. */
   get ordered(): boolean {
     return this.#options.positionField !== undefined && !this.#replay;
@@ -140,6 +145,11 @@ export class ListEdit {
       () => this.#new.value.length > 0 || this.#removing.value.size > 0 || this.rows.value.some((r) => r.edit.dirty.value),
     );
     this.valid = computed(() => this.rows.value.every((r) => r.removing || r.edit.valid.value));
+  }
+
+  /** @internal Where a `RecordEdit` publishes the messages of its failing rules that attach to this list. */
+  useErrors(source: ReadonlySignal<readonly string[]>): void {
+    this.#errorSource.value = source;
   }
 
   /**

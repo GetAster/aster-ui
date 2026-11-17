@@ -1,8 +1,10 @@
-import type { Collection, EditFieldPolicy, EditModel, EditPolicy } from "@getaster/data";
+import { resolveFieldPresentation, validateFieldPresentations, type FieldPresentations, type FieldPresentation } from "../field/presentation.ts";
+import type { Collection, EditModel } from "@getaster/data";
 import { effect, type ReadonlySignal } from "@preact/signals-core";
 import { html, nothing } from "lit-html";
 import { styleMap } from "lit-html/directives/style-map.js";
 import type { PickerOptions } from "../picker/options.ts";
+import type { TreeChoices } from "../picker/tree-choices.ts";
 import { AsterElement, define, uid, type View } from "../base/element.ts";
 import "../field/field.ts";
 import "../section/section.ts";
@@ -33,21 +35,20 @@ export type { FormChrome, FormPolicy } from "./policy.ts";
 export interface FormField {
   readonly field: string;
   readonly span?: number;
-  readonly options?: Collection | PickerOptions;
+  readonly options?: Collection | PickerOptions | TreeChoices;
   /** A label override; default: the field's title from metadata. */
   readonly title?: string;
   /** Help text under the control. */
   readonly hint?: string;
   /** Placeholder text, for the controls that have one. */
   readonly placeholder?: string;
-  /** Starts read-only unless a page rule names read-only. */
+  /** Restricts this host field to read-only. */
   readonly readOnly?: boolean;
-  /** Starts disabled unless a page rule names enabled. */
+  /** Disables this host field. */
   readonly disabled?: boolean;
-  /** Starts required unless a page rule names required. */
-  readonly required?: boolean;
   /** A typed editor override, or a renderer for a custom control (JavaScript only). */
   readonly control?: FormControl;
+  readonly presentation?: FieldPresentation;
 }
 
 /** A value shown read-only, such as a figure derived from other fields. */
@@ -76,10 +77,18 @@ export interface FormSubmitDetail {
  * Fields laid out from metadata. The app gives the arrangement
  * (sections, columns, spans) and may override a field's label, hint,
  * placeholder or editor; each field's control, type, allowed values and
- * state still come from the model and its metadata. Static read-only,
- * disabled and required values are defaults that page rules override.
+ * state still come from the model and its metadata. Host read-only and
+ * disabled restrictions narrow controls without changing shared model policy.
  */
 export class Form extends AsterElement {
+  readonly #fieldPresentation = this.prop<FieldPresentations>({});
+  /** Shared display overrides by field and semantic type. */
+  get fieldPresentation(): FieldPresentations { return this.#fieldPresentation.value; }
+  set fieldPresentation(value: FieldPresentations) {
+    validateFieldPresentations(value);
+    this.#fieldPresentation.value = value;
+  }
+
   #shared: ReadonlyMap<string, string> = new Map();
   readonly #model = this.prop<EditModel | undefined>(undefined);
   readonly #sections = this.prop<readonly FormSection[]>([]);
@@ -99,6 +108,9 @@ export class Form extends AsterElement {
     return this.#sections.value;
   }
   set sections(v: readonly FormSection[]) {
+    for (const [sectionIndex, section] of v.entries()) for (const [itemIndex, item] of section.items.entries()) {
+      if (typeof item === "object" && "field" in item && "required" in item) throw new TypeError(`sections[${sectionIndex}].items[${itemIndex}].required belongs to EditModel.applyPolicy or applyRules; move requiredness to the shared edit session`);
+    }
     this.#sections.value = v;
   }
 
@@ -110,7 +122,7 @@ export class Form extends AsterElement {
     this.#level.value = v;
   }
 
-  /** Static edit defaults for the whole form, as [[object:FormPolicy]]. Default `{}`. */
+  /** Host edit restrictions for the whole form, as [[object:FormPolicy]]. Default `{}`. */
   get policy(): FormPolicy {
     return this.#policy.value;
   }
@@ -215,14 +227,6 @@ export class Form extends AsterElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    let applied: EditModel | undefined;
-    const stopPolicy = effect(() => {
-      const model = this.#model.value;
-      const policy = this.#editPolicy(this.#policy.value);
-      if (applied && applied !== model) applied.applyPolicy({});
-      applied = model;
-      model?.applyPolicy(policy);
-    });
     let hadErrors = false;
     const stopFocus = effect(() => {
       const model = this.#model.value;
@@ -234,11 +238,19 @@ export class Form extends AsterElement {
       if (any && !hadErrors) requestAnimationFrame(() => this.focusFirst());
       hadErrors = any;
     });
+    // A rule over the record that newly fails, with no field at fault, is what a save just showed: with autoFocus, the summary takes focus.
+    let hadRule = false;
+    const stopRuleFocus = effect(() => {
+      const model = this.#model.value;
+      const failing = (model?.recordErrors.value.length ?? 0) > 0;
+      const alone = failing && Object.keys(model!.errors.value).length === 0;
+      if (alone && !hadRule && autoFocusOnError(this.#chrome.value)) requestAnimationFrame(() => this.#focusSummary());
+      hadRule = failing;
+    });
     this.listen(this, "keydown", (event) => this.#keydown(event));
     this.onDisconnect(() => {
-      stopPolicy();
       stopFocus();
-      applied?.applyPolicy({});
+      stopRuleFocus();
     });
   }
 
@@ -257,7 +269,8 @@ export class Form extends AsterElement {
     const showErrors = inlineErrorsShown(chrome);
     this.#shared = this.#sharedReasons(model);
     const labels = this.#fieldLabels(model);
-    const summary = errorSummaryShown(chrome) ? this.#summary(model, labels) : nothing;
+    // Field errors sit on their fields, so their summary is the page's choice; a rule over the whole record has nowhere else to show.
+    const summary = this.#summary(model, labels, errorSummaryShown(chrome));
     const timing = validationOn(this.#features.value);
     return html`${summary}${[...this.#shared].map(([reason, id]) => html`<p class="aster-hint aster-form-reason" id=${id}>${reason}</p>`)}
       ${this.#sections.value.map((section) => {
@@ -278,6 +291,9 @@ export class Form extends AsterElement {
     }
     const configured = typeof item === "object" ? item : undefined;
     return controlFor(model, nameOf(item), {
+      presentation: resolveFieldPresentation(model.type.field(nameOf(item)), nameOf(item), this.#fieldPresentation.value, configured?.presentation),
+      readOnly: this.#policy.value.readOnly === true || configured?.readOnly === true,
+      disabled: this.#policy.value.disabled === true || configured?.disabled === true,
       options: configured?.options,
       labelled: true,
       span,
@@ -315,16 +331,35 @@ export class Form extends AsterElement {
   }
 
   /** The errors above the sections, each a button that focuses its field. */
-  #summary(model: EditModel, labels: ReadonlyMap<string, string>): View {
-    const errors = Object.entries(model.errors.value).filter(([name]) => labels.has(name) && model.state(name).value.visible);
-    const formError = model.formError.value;
-    if (!errors.length && !formError) return nothing;
+  #summary(model: EditModel, labels: ReadonlyMap<string, string>, fields: boolean): View {
+    const errors = fields ? Object.entries(model.errors.value).filter(([name]) => labels.has(name) && model.state(name).value.visible) : [];
+    const formError = fields ? model.formError.value : undefined;
+    const rules = model.recordErrors.value;
+    const problems = errors.length + rules.length;
+    if (!problems && !formError) return nothing;
     return html`<div class="aster-form-summary" role="alert" tabindex="-1">
-      ${errors.length ? html`<p class="aster-form-summary-title">${errors.length === 1 ? "There is 1 problem" : `There are ${errors.length} problems`}</p>` : nothing}
+      ${problems ? html`<p class="aster-form-summary-title">${problems === 1 ? "There is 1 problem" : `There are ${problems} problems`}</p>` : nothing}
       ${formError ? html`<p class="aster-form-summary-form">${formError}</p>` : nothing}
-      ${errors.length ? html`<ul>${errors.map(([name, messages]) => html`<li>${messages.map((message) =>
-        html`<button type="button" @click=${() => this.#focusField(name)}>${labels.get(name)}: ${message}</button>`)}</li>`)}</ul>` : nothing}
+      ${problems ? html`<ul>${errors.map(([name, messages]) => html`<li>${messages.map((message) =>
+        html`<button type="button" @click=${() => this.#focusField(name)}>${labels.get(name)}: ${message}</button>`)}</li>`)}
+        ${rules.map((rule) => html`<li>${rule.list
+          ? html`<button type="button" @click=${() => this.#focusList(rule.list!)}>${rule.message}</button>`
+          : rule.message}</li>`)}</ul>` : nothing}
     </div>`;
+  }
+
+  /** Focuses the list editor showing `list`, wherever in the document it is. */
+  #focusList(list: object): void {
+    const root = this.getRootNode() as Document | ShadowRoot;
+    const editors = [...root.querySelectorAll<HTMLElement & { list?: unknown; focusFirst?(): void }>("aster-list-editor")];
+    editors.find((editor) => editor.list === list)?.focusFirst?.();
+  }
+
+  /** Moves focus to the summary, unless it is in a control being edited: a live change must never take it from a cell. */
+  #focusSummary(): void {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active.matches("input:not([type=hidden]), textarea, select, [contenteditable], [role=combobox]")) return;
+    this.querySelector<HTMLElement>(".aster-form-summary")?.focus();
   }
 
   /** Focuses a field by name, opening its collapsed section first and waiting for the field to take focus. */
@@ -351,30 +386,12 @@ export class Form extends AsterElement {
     return [...this.querySelectorAll<HTMLElement>(selector)].find(isFocusable);
   }
 
-  /** Static defaults the form adds to the model: form-wide entries, then each field's own. */
-  #editPolicy(policy: FormPolicy): EditPolicy {
-    const fields: Record<string, EditFieldPolicy> = {};
-    for (const item of this.#sections.value.flatMap((s) => s.items)) {
-      if (typeof item !== "object" || !("field" in item)) continue;
-      if (item.readOnly === undefined && item.disabled === undefined && item.required === undefined) continue;
-      fields[item.field] = {
-        ...(item.readOnly === undefined ? {} : { readOnly: item.readOnly }),
-        ...(item.disabled === undefined ? {} : { disabled: item.disabled }),
-        ...(item.required === undefined ? {} : { required: item.required }),
-      };
-    }
-    return {
-      ...(policy.readOnly === undefined ? {} : { readOnly: policy.readOnly }),
-      ...(policy.disabled === undefined ? {} : { disabled: policy.disabled }),
-      ...(Object.keys(fields).length ? { fields } : {}),
-    };
-  }
-
   #keydown(event: KeyboardEvent): void {
-    if (!savesOnEnter(this.#features.peek())) return;
+    if (!savesOnEnter(this.#features.peek()) || this.#policy.peek().readOnly || this.#policy.peek().disabled) return;
     if (event.defaultPrevented || event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+    if (target.closest("[data-readonly], [data-disabled]")) return;
     // A textarea takes its own newline; buttons, links and comboboxes have their own Enter.
     if (target.closest("textarea, button, a, [role=button], [role=combobox], input[type=checkbox], input[type=radio]")) return;
     const model = this.#model.peek();

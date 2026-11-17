@@ -6,6 +6,7 @@ interface Excerpt { title: string; explanation: string; file: string; from?: str
 const collection = "apps/showcase/src/examples/collections/collection-demo.js";
 const tabs = "apps/showcase/src/examples/tabs/tabs.js";
 const windows = "apps/showcase/src/examples/windows/windows.js";
+const finance = "apps/showcase/src/examples/finance/";
 const dashboard = "apps/showcase/src/examples/dashboard/dashboard.js";
 const excerpts: Record<string, readonly Excerpt[]> = {
   composition: [
@@ -26,6 +27,12 @@ const excerpts: Record<string, readonly Excerpt[]> = {
     { title: "Provide the sign-in interaction", explanation: "This complete application handler offers simulated passkey, email and SSO flows. It settles or cancels the shared recovery and releases its dialog listeners when aborted.", file: "apps/showcase/src/examples/mail/mail.js", from: "function recover", to: "const auth =" },
     { title: "Coordinate challenges and replay in the data layer", explanation: "This is the framework implementation executed by the demo. It shows request parking, shared recovery, fresh credentials, generation checks, cancellation, deadlines and identity checks.", file: "packages/data/src/authentication.ts", from: "export class Authentication {" },
     { title: "Retain a draft until sending succeeds", explanation: "The model keeps the same draft while authentication is pending or fails. Only a successful send removes it; the mock rejects expired requests before applying writes.", file: "apps/showcase/src/examples/mail/mail-model.js", from: "    send: own(", to: "  return { values:" },
+  ],
+  finance: [
+    { title: "Edit an invoice and its lines as one record", explanation: "One RecordEdit per invoice holds the header model and the owned lines; it is kept while another invoice is shown, and saves as one deep update.", file: finance + "finance-invoices.js", from: "  // One edit per invoice", to: "  const customerOf" },
+    { title: "Post an invoice: create the entry, then read the changed accounts", explanation: "The entry's lines and its posted status are saved in one request. The service recomputes balances; the listener reads each reported account again so every view follows the store.", file: finance + "finance-service.js", from: "  // Balances are the service's to compute", to: "  const load = " },
+    { title: "Show the service's roll-up in a tree grid", explanation: "The grid is configured with a parent field and a currency format. It never sums a child: balance is a server-computed field.", file: finance + "finance-accounts.js", from: "const view = {", to: "export function mountAccounts" },
+    { title: "Check debits against credits across the lines", explanation: "An edit model's rule sees one record, so the entry's totals are computed from the list's rows and block posting.", file: finance + "finance-journal.js", from: "/** Debits, credits", to: "export function mountJournal" },
   ],
   grid: [
     { title: "Create paged collections and their views", explanation: "ctx is the existing DataContext. Collections own loaded pages; the table and tiles are presentation controls.", file: collection, from: "  const collections = {", to: "  const active = signal" },

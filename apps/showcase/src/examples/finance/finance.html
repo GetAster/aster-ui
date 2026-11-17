@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance workspace — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css"><link rel="stylesheet" href="../lib/aster-ui.css">
+<link rel="stylesheet" href="../../shared/navigation/showcase.css"><link rel="stylesheet" href="./finance.css">
+</head><body><main>
+<header class="finance-intro finance-no-print">
+  <div>
+    <h1>Finance workspace</h1>
+    <p>Post an invoice and watch the ledger follow: its journal entry appears and every account balance up the chart changes. All three screens read one local dataset.</p>
+  </div>
+  <div class="finance-appearance"><div class="showcase-appearance"><span>Theme</span><aster-choice id="theme"></aster-choice></div><div class="showcase-appearance"><span>Scheme</span><aster-choice id="scheme"></aster-choice></div></div>
+</header>
+<p id="loading" role="status">Loading the ledger…</p>
+<aster-tabs id="screens"></aster-tabs>
+<aster-toaster></aster-toaster>
+<script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./finance.js"></script>
+</main></body></html>

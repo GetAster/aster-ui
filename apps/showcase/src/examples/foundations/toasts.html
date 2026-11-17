@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Toasts — Aster UI</title>
+<link id="identity" rel="stylesheet" href="../lib/themes/lamplight.css">
+<link rel="stylesheet" href="../lib/aster-ui.css">
+<link rel="stylesheet" href="../../shared/navigation/showcase.css">
+<style>
+body { height: auto; min-height: 100dvh; padding: 24px; }
+main { max-width: 760px; margin: auto; }
+.appearance, .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+section { display: grid; gap: 10px; margin-block: 20px; }
+h2 { margin: 0; font-size: 1.1rem; }
+.dialog-body { padding: 20px; display: grid; gap: 12px; }
+@media (max-width: 480px) { body { padding: 12px; } }
+</style></head><body><main>
+<h1>Toasts</h1>
+<p>Results with no place of their own: variants, update in place, progress and a small stack. Errors stay until dismissed.</p>
+<div class="appearance"><aster-choice id="theme"></aster-choice><aster-choice id="scheme"></aster-choice><a href="./control-states.html">Control states</a></div>
+<section aria-labelledby="variants-heading"><h2 id="variants-heading">Variants</h2><div class="row" id="variants"></div></section>
+<section aria-labelledby="progress-heading"><h2 id="progress-heading">Progress and promises</h2><div class="row" id="work"></div></section>
+<section aria-labelledby="stack-heading"><h2 id="stack-heading">Stack and pause</h2><div class="row" id="stack"></div></section>
+<aster-dialog id="modal"></aster-dialog>
+<aster-toaster id="toaster"></aster-toaster>
+</main><script type="module" src="../../shared/navigation/showcase-nav.js"></script><script type="module" src="./toasts.js"></script></body></html>

@@ -29,13 +29,18 @@ export const examples = [
   { id: "tabs", navigationLabel: "Tabs", title: "A place for every open device", category: "Tabs", file: "tabs.html", action: "Explore tabs", ref: "class:Tabs",
     description: "Open data-driven tabs with lazy panels, retained drafts and optional close actions. A scrolling strip works on touch screens and narrow windows.",
     task: "Write a note, switch tabs, then try closing your unsaved device." },
+  { id: "finance", navigationLabel: "Finance workspace", title: "A ledger that follows every posting", category: "Finance workspace", file: "finance.html", action: "Open the finance workspace", ref: "class:Grid",
+    description: "Invoices, a chart of accounts and a journal over one dataset. Posting an invoice books its entry and the service recomputes every balance up the tree.",
+    task: "Post an invoice, then open the chart of accounts and the journal." },
+  { id: "toasts", navigationLabel: "Toasts", title: "Messages that say what is happening", category: "Toasts", file: "toasts.html", action: "Explore toasts", ref: "class:Toaster",
+    description: "Success, warning and error toasts, a loading toast that updates in place with progress, and a small stack that waits while a dialog is open. Errors stay until dismissed.",
+    task: "Export the rows, then show five messages, open the dialog and press Escape." },
 ] as const;
 
 export type ExampleId = typeof examples[number]["id"];
 
 /** The standalone editor is also available from each component example. */
 export const standaloneExamples: readonly (readonly [string, string])[] = [
-  ...examples.slice(0, 2).map(example => [example.file, example.navigationLabel] as const),
   ["composition.html", "Composition"],
-  ...examples.slice(2).map(example => [example.file, example.navigationLabel] as const),
+  ...examples.map(example => [example.file, example.navigationLabel] as const),
 ];

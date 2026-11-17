@@ -47,6 +47,57 @@ mock.dump().data.People;                                                     // 
 await mock.reset();                                                           // back to the seed
 ```
 
+## Computed values
+
+A real service often keeps a figure in a view or a computed column that no
+client writes: an account's balance, a line's amount. The mock computes three
+kinds, declared on the property in `$metadata` with an annotation in the
+`Aster.Mock.V1` namespace (a real service would not publish them) next to
+`Core.Computed`, which tells clients not to send the property. They are
+recomputed after every write that changes the data, and once when the service
+is created, so a seed may leave them out. A record whose computed value
+changed is reported to [[method:MockService.onChange]] as an update, and in a
+set with ETags its ETag changes.
+
+- `Aster.Mock.V1.Product`: `["quantity", "rate"]`. The product of two numeric
+  properties of the same record, rounded to the property's scale.
+- `Aster.Mock.V1.Concat`: `["code", "name"]`. The named string properties of the same
+  record joined with a space, skipping empty ones: a display label such as
+  `1110 Bank account`.
+- `Aster.Mock.V1.Rollup`: a tree roll-up of line amounts. A record's value is the
+  debits less credits of the `Lines` set's records that refer to it (`Account`)
+  or to any record below it (by `Parent`), on the side `Negate` leaves alone.
+
+```json
+"balance": {
+  "$Type": "Edm.Decimal", "$Scale": 2, "@Org.OData.Core.V1.Computed": true,
+  "@Aster.Mock.V1.Rollup": {
+    "Parent": "parentId", "Lines": "JournalLines", "Account": "accountId",
+    "Debit": "debit", "Credit": "credit",
+    "Entry": { "Property": "entryId", "Set": "JournalEntries", "Status": "status", "Value": "posted" },
+    "Negate": { "Property": "type", "Values": ["liability", "equity", "revenue"] }
+  }
+}
+```
+
+`Entry` (optional) counts only lines whose entry has that status, so drafts
+don't count. `Negate` (optional) reverses the sign for records whose property
+holds one of the values, so a credit-normal account reads positive. A name that
+isn't in the metadata makes the service refuse to start. The client has no
+change feed: reload the accounts an `onChange` listener reports, as the finance
+example does.
+
+## Constraints over owned rows
+
+The mock enforces an entity-level `Validation.Constraint#id` the way the engine
+does. A condition that reads an owned collection (`AsterData.Sum(lines, debit)`,
+`lines/$count`, published as CSDL dynamic expressions) is judged on the rows a
+write leaves, in the same request: a deep update that adds the missing line is
+judged on the new lines. A write to one owned row, a delete or a change of its
+foreign key, re-checks its parent, and a failure answers 400 with the rule's id
+as the detail `code` and its `FailureMessage`. Conditions use `and`, `or`,
+`not`, comparison, `add sub mul div divby`, the five aggregates and `$count`.
+
 ## Limits
 
 - It is a single process with all of the data in memory. Every request walks
@@ -439,3 +490,33 @@ await new Promise<void>((resolve) => worker.addEventListener("message", () => re
 const mock = connectMockWorker(worker);
 const ctx = await DataContext.connect(mock.transport);
 ```
+
+### Request calculations
+
+The packaged engine supports `$compute` and `$apply=compute(...)` when the
+entity-set metadata declares `@AsterData.RequestCalculations: { Mode: "readers" }`
+or `{ Mode: "roles", Roles: ["analyst"] }`. Missing policy leaves calculations
+disabled. `Capabilities.ComputeSupported` describes capability and grants no
+permission. Invalid modes and empty or whitespace-padded roles fail initialization.
+
+For role tests, supply `principal: { subject: "test-user", roles: ["analyst"] }`
+to `createMockService`. This is a trusted test fixture captured at creation and
+retained by reset; the default caller is anonymous. Request headers never supply
+identity or grants. It is not authentication for a production service.
+
+Calculations execute inside the Rust engine before dependent filtering, sorting,
+counting and paging. Use `Accept: application/json;IEEE754Compatible=true` for
+Decimal strings; request-local Decimal aliases retain `Alias@odata.type`.
+Null sources propagate through arithmetic. Existing `ViewableWhen` rules mask
+source values before calculations. For child summaries, issue a separate child-set
+`$apply=filter(...)/compute(...)/aggregate(...)` request using complete parent keys;
+`$apply` within or alongside `$expand` remains unsupported by the engine.
+
+The mock transfers static `Core.Permissions` field permissions (`Read`, `Write`,
+`ReadWrite`, `None`) and `Capabilities.ReadRestrictions.Readable: false` into
+the engine's existing access policies. Unreadable source properties cannot be
+renamed or used in calculations. Read-only permissions also prevent inserts and
+updates; existing computed and immutable restrictions continue to apply.
+The mock does not reconstruct ordinary authenticated or role-based entity read
+authorization from capability metadata. Test those production policies against
+the configured service.

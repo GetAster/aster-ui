@@ -35,6 +35,24 @@ valid. The check is the field's metadata (on an update, only the changed
 fields), fields required by page rules, then the application's own rules,
 whose messages win. See [[group:changes]].
 
+**Rules over a record and its rows.** A rule that sees a record together with
+the collections it owns ("an entry's debits equal its credits", "an invoice
+has at least one line") is declared once, on the server, as a
+`Validation.Constraint` on the entity type, and read from `$metadata` into
+[[attr:EntityType.rules]]. A [[class:RecordEdit]] judges each one live over
+its working state: the record's own values with unsaved edits, the owned rows
+including new ones, and not the rows marked for removal
+([[attr:RecordEdit.rules]]). It never changes `dirty`, marks nothing pending
+and never disables saving, because a rule may depend on what the save changes.
+Only the part of a condition the client can judge exactly is judged; the rest
+is `deferred` to the server, which judges the rows a write leaves and answers
+a refusal with the rule's id as the error's `code`. A failure is shown once a
+save or [[method:RecordEdit.problems]] shows it, then follows the working
+state: on the record ([[attr:EditModel.recordErrors]], which `aster-form`
+lists in its summary) and on the list the condition reads when it reads
+exactly one ([[attr:ListEdit.errors]]). [[method:RecordEdit.explain]] gives a
+button such as Post the reason it is unavailable.
+
 **Field state.** `state(name)` is a signal of the field's `FieldState`
 (visible, enabled, read-only, required, with reasons). It combines page rules
 ([[group:page-rules]]) with what the metadata and record say: computed fields
@@ -112,6 +130,11 @@ field.dispose();
 - A `ListEdit` edits the rows its collection has loaded. Load the collection
   fully (`loadAll()`) before editing; a `RecordEdit` does this for its owned
   collections, so very large owned collections are loaded whole.
+- A rule over a record and its rows is declared on the server and read from
+  `$metadata`; there is no client-side declaration. The client judges
+  aggregates (`Sum`, `Min`, `Max`, `Average`, `Count`), `nav/$count`,
+  comparison, `and`, `or`, `not` and `add`, `sub`, `mul` over the record's own
+  fields and its owned rows; anything else is deferred to the server.
 - A `RecordEdit` edits an existing record. Create the record first with an
   `EditModel` (or `DataContext.create`), then open it.
 - A `RecordEdit` checks for conflicts on the record only: the request carries
@@ -178,6 +201,13 @@ The record's entity type from `$metadata`, with its fields, key and
 navigations. Plain, read-only. Use it to look up a field's title or
 annotations, or to pass to [[staticMethod:criteriaRule]].
 
+## attr:EditModel.ctx
+
+The [[class:DataContext]] the model reads and saves through, as given to the
+constructor. Plain, read-only. [[staticMethod:controlFor]] uses it to find
+whether a foreign key points into a tree; use it for the same kind of
+lookup, not to write around the model.
+
 ## attr:EditModel.key
 
 A signal of the record's key text, or `undefined` for a new record. It
@@ -221,6 +251,16 @@ A signal of the message for a failure that isn't about one field: the
 server's message for a refused save with no field errors, or "This record
 has been deleted, so these changes can't be saved." `undefined` otherwise.
 Cleared when a save starts and on `accept()`.
+
+## attr:EditModel.recordErrors
+
+A signal of the rules over the whole record that are failing and shown
+([[object:RecordError]]), such as "debits equal credits". Only a
+[[class:RecordEdit]] sets it, from its rules over the record and its owned
+rows; an edit model on its own, or one belonging to a list row, has none. It is
+not part of `valid` or [[attr:EditModel.errors]]. `aster-form` lists these in
+its summary, with or without the `errorSummary` chrome, because a rule over
+the whole record has no field to sit under.
 
 ## attr:EditModel.busy
 
@@ -838,6 +878,14 @@ row whose edit model is dirty.
 A computed signal: true while every row not marked for deletion is valid.
 Errors aren't shown; call `validate()` on each row's `edit` for that.
 
+## attr:ListEdit.errors
+
+A signal of the messages of the failures that belong to the list as a whole,
+while they are shown: the failing rules of the owning [[class:RecordEdit]]
+whose condition reads this list and no other. Empty for a list on its own.
+`aster-list-editor` shows them under the rows, describes the list by them,
+and says them through its polite live region.
+
 ## attr:ListEdit.busy
 
 A signal that is true while `save()` runs. A second `save()` meanwhile
@@ -1189,6 +1237,35 @@ A computed signal: true while the record's model and every owned list are
 valid. Nothing is shown; [[method:RecordEdit.problems]] shows and names what
 fails.
 
+## attr:RecordEdit.rules
+
+A computed signal of each of the record type's constraints
+([[attr:EntityType.rules]]) over the working state, as
+[[object:RuleResult]]s: `pass`, `fail`, or `deferred` when the client cannot
+judge it (a part of the condition outside what it evaluates, or owned rows
+that have not loaded). A rule the server refused is `fail` until the record or
+its rows next change. Reading it changes nothing: it is derived from the
+record's values, the owned rows not marked for removal (new rows and unsaved
+edits included) and, for a refusal, the working state it was refused for.
+`valid` is false while any rule fails; `dirty` and the pending marks are never
+affected.
+
+## method:RecordEdit.explain
+
+- `patch`: values to lay over the record's own fields, such as
+  `{ status: "posted" }`.
+
+Returns the rules that would fail if `patch` were applied to the record, over
+the working owned rows, as `{ id, message }`; a rule the client cannot judge
+is not listed, because the server decides. Writes nothing and changes nothing
+(`dirty`, `rules` and the shown failures stay as they were). It reads
+signals, so a view that calls it follows the edit. Use the first message as
+the reason a button that changes state is unavailable:
+
+```ts
+const reason = record.explain({ status: "posted" })[0]?.message;   // undefined when it would pass
+```
+
 ## attr:RecordEdit.ready
 
 A promise. Until it settles, the owned lists may have no rows yet;
@@ -1236,8 +1313,8 @@ position. Not reactive.
 ## method:RecordEdit.problems
 
 Runs `validate()` on the record's model and on every row not marked for
-deletion, so errors show even on tabs nobody opened, and returns a
-[[object:RecordProblems]]. Use it to say where the errors are ("2 problems
+deletion, so errors show even on tabs nobody opened, shows any failing
+rule ([[attr:RecordEdit.rules]]), and returns a [[object:RecordProblems]]. Use it to say where the errors are ("2 problems
 on Answers") or to switch to the first tab with one.
 
 ```ts
@@ -1250,7 +1327,9 @@ p.owned.answers;     // [{ id: "new:1", fields: ["key", "label"] }]
 
 Resolves to a [[object:RecordSave]], or `undefined` without sending anything
 when this is a replay, a save is already running, nothing is dirty, the
-record's model has a conflict or is deleted, or `problems()` finds any error.
+record's model has a conflict or is deleted, or `problems()` finds any error,
+a failing rule included (nothing is sent for a rule the client can judge; a
+rule it cannot judge never refuses a save).
 
 Otherwise it sends one PATCH of the record with `If-Match` from the record's
 ETag: the record's changed fields, and for each changed owned collection
@@ -1271,8 +1350,9 @@ the record; with no overlap with the local edits the request is sent once
 more, otherwise `edit.conflict` is set and the result has `ok: false`. On any
 other refusal nothing is saved, everything stays pending, and the server's
 error details are placed: a target such as `answers[2]/label` on that row's
-field, a bare field name on the record's field, and anything else in
-[[attr:RecordEdit.failure]]. Errors other than `ODataError` are rethrown.
+field, a bare field name on the record's field, a detail with no target whose
+`code` is a rule's id as that failing rule ([[attr:RecordEdit.rules]]), and
+anything else in [[attr:RecordEdit.failure]]. Errors other than `ODataError` are rethrown.
 
 ## attr:RecordEdit.failure
 
@@ -1353,11 +1433,51 @@ mean nothing fails.
 
 The record's field names with errors (keys of `edit.errors`).
 
+## attr:RecordProblems.rules
+
+The ids of the failing rules ([[attr:RecordEdit.rules]]). A deferred rule is
+not listed.
+
 ## attr:RecordProblems.owned
 
 By navigation name, the failing rows of that list: each row's
 [[attr:ListRow.id]] and the field names with errors. A list with no failing
 rows is left out.
+
+## object:RuleResult
+
+One element of [[attr:RecordEdit.rules]]. Plain data.
+
+## attr:RuleResult.id
+
+The rule's id: the qualifier of its `Validation.Constraint`, which the server
+reports as an error's `code`.
+
+## attr:RuleResult.message
+
+The rule's `FailureMessage`.
+
+## attr:RuleResult.state
+
+`"pass"`, `"fail"` or `"deferred"` ([[type:RuleOutcome]]).
+
+## object:RecordError
+
+One element of [[attr:EditModel.recordErrors]]. Plain data.
+
+## attr:RecordError.id
+
+The failing rule's id.
+
+## attr:RecordError.message
+
+The rule's message.
+
+## attr:RecordError.list
+
+The [[class:ListEdit]] the failure attaches to, when the rule's condition reads
+exactly one owned list; absent otherwise. Compare it with a list editor's
+`list`.
 
 ## object:RecordSave
 

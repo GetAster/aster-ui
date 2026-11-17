@@ -16,6 +16,14 @@ import { validateEntity, type FieldErrors } from "../validate/validate.ts";
  */
 export type Rule = (values: Entity) => Readonly<Record<string, string | undefined>>;
 
+/** A rule of the whole record that is failing: `id` is the rule's, `list` the owned list it is about, when it is about exactly one. */
+export interface RecordError {
+  readonly id: string;
+  readonly message: string;
+  /** The `ListEdit` the failure attaches to; compare it with a list editor's `list`. */
+  readonly list?: object;
+}
+
 export interface EditOptions {
   readonly rules?: readonly Rule[];
 }
@@ -41,6 +49,7 @@ export interface EditPolicy {
 }
 
 const NONE: ReadonlySet<string> = new Set();
+const NO_ERRORS: readonly RecordError[] = [];
 const NO_EFFECTS: ReadonlySet<Effect> = new Set();
 const EFFECTS = ["visible", "enabled", "readOnly", "required"] as const;
 
@@ -99,6 +108,7 @@ export class EditModel {
   readonly #forced = signal<ReadonlySet<string>>(new Set());
   readonly #errors = signal<FieldErrors>({});
   readonly #formError = signal<string | undefined>(undefined);
+  readonly #recordSource = signal<ReadonlySignal<readonly RecordError[]> | undefined>(undefined);
   readonly #busy = signal(false);
   readonly #conflict = signal<Conflict | undefined>(undefined);
   readonly #deleted = signal(false);
@@ -119,6 +129,10 @@ export class EditModel {
   #replay = false;
   #explainer: { readonly scope: PageScope; readonly target: string } | undefined;
 
+  /** The context the model reads and saves through; elements use it to find a field's related set. */
+  get ctx(): DataContext {
+    return this.#ctx;
+  }
   readonly key: ReadonlySignal<KeyText | undefined> = this.#key;
   readonly baseline: ReadonlySignal<Entity> = this.#baseline;
   readonly values: ReadonlySignal<Entity> = this.#values;
@@ -127,6 +141,11 @@ export class EditModel {
   readonly errors: ReadonlySignal<FieldErrors> = this.#errors;
   /** A failure that isn't about one field. */
   readonly formError: ReadonlySignal<string | undefined> = this.#formError;
+  /**
+   * Rules of the whole record, such as "debits equal credits", that are failing and shown. Only a
+   * `RecordEdit` sets them, from its rules over the record and its owned rows; a lone edit has none.
+   */
+  readonly recordErrors: ReadonlySignal<readonly RecordError[]> = computed(() => this.#recordSource.value?.value ?? NO_ERRORS);
   readonly busy: ReadonlySignal<boolean> = this.#busy;
   readonly conflict: ReadonlySignal<Conflict | undefined> = this.#conflict;
   /** The record was deleted, by someone else or elsewhere in this client. Saving is refused. */
@@ -210,6 +229,11 @@ export class EditModel {
       this.#errors.value = {};
       this.#formError.value = undefined;
     });
+  }
+
+  /** @internal Where a `RecordEdit` publishes its failing rules. */
+  useRecordErrors(source: ReadonlySignal<readonly RecordError[]>): void {
+    this.#recordSource.value = source;
   }
 
   /** Shows errors the server gave for these fields, such as a deep update's errors on a child. */

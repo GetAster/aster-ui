@@ -9,7 +9,7 @@ person's action:
 | `aster-window` | [[class:Window]] | A non-modal, movable, resizable window beside the page, such as a debug or help panel. |
 | `aster-dialog` | [[class:Dialog]] | A modal dialog that makes the rest of the page inert. |
 | `aster-tabs` | [[class:Tabs]] | A tab bar that picks which panel the page shows. |
-| `aster-toaster` | [[class:Toaster]] | A short message after an action, with an optional Undo. |
+| `aster-toaster` | [[class:Toaster]] | Short messages after an action or while work runs: variants, update in place, progress, a small stack. |
 | (function) | [[staticMethod:announce]] | Telling screen readers about a result, with nothing on screen. |
 | `aster-button` | [[class:Button]] | A button with busy, confirmation and "can't act now" states that never change its width. |
 
@@ -118,10 +118,9 @@ async function archive(): Promise<void> {
   positioning support from the browser, and have no fallbacks.
 - One menu element holds one open menu. Opening it again replaces the menu that
   was open.
-- A toaster shows one message at a time, and a new message replaces the last. It
-  doesn't queue.
-- A toast hides itself after a fixed time (see [[method:Toaster.show]]). Don't put
-  anything the person must read or act on only in a toast.
+- A toaster shows up to [[attr:Toaster.maxVisible]] toasts and queues the rest. A
+  toast that times out does so after a fixed time (see [[class:Toaster]]). Don't put
+  anything the person must read or act on only in a toast; an error toast stays.
 - Button names, key help and announcements are in English.
 
 ## class:Menu
@@ -1008,6 +1007,12 @@ them. No `detail`. It bubbles, so a handler on the `aster-dialog` element or an
 ancestor hears it. Focus has already returned to the opener. Use it to reset
 the dialog's state, so the next opening starts clean.
 
+## event:Dialog.open
+
+Fires after the dialog has opened, by [[method:Dialog.show]]. No `detail`. It
+bubbles and is not cancelable. Pairs with [[event:Dialog.close]]; a
+[[class:Toaster]] listens to both to hold its timers while a modal dialog is open.
+
 ## class:Tabs
 
 Tag: `aster-tabs`. Bind it with `items` and `value`, and set `value` yourself
@@ -1158,15 +1163,37 @@ enabled item is displayed. With no enabled items, no panel is shown.
 ## class:Toaster
 
 Tag: `aster-toaster`. Put one in the page and call [[method:Toaster.show]] on it.
-The toast is a fixed box at the bottom centre of the viewport, drawn above the
-page's content. It is a `role="status"` live region, so a screen reader reads the
-message when it changes. Nothing moves focus to it, so an Undo button on a toast
-is reached by Tab only while it is showing; offer the same action somewhere else
-too, when it matters.
+Toasts stack at a logical edge of the viewport, drawn above the page's content,
+and several can show at once ([[attr:Toaster.maxVisible]], default 3; more queue).
+Nothing moves focus to a toast, so an Undo button on one is reached by Tab only
+while it is showing; offer the same action somewhere else too, when it matters.
 
 A toast fits a result with no place of its own on screen, such as "Created Brand
-refresh", or an action that can be undone. For a result that has a visible place,
-show it there. For one with nothing to show, use [[staticMethod:announce]].
+refresh", an action that can be undone, or work still running. For a result that
+has a visible place, show it there. For one with nothing to show, use
+[[staticMethod:announce]]. Don't put anything the person must read or act on only
+in a toast: the exception is an error toast, which stays until dismissed.
+
+Each toast has a [[type:ToastVariant]]. `error` toasts are `role="alert"` (assertive)
+and stay until dismissed; `loading` toasts are polite and stay until updated or
+dismissed; `info`, `success` and `warning` are polite and time out. The polite ones
+share one persistent `role="status"` region with `aria-atomic="false"`, so a toast
+that changes does not re-read the others. Each variant has its own icon shape as
+well as its own colour.
+
+Timing follows WCAG 2.2.1 (Timing Adjustable). A toast stays [[attr:Toaster.duration]]
+(6 s), or [[attr:Toaster.actionDuration]] (10 s) with an action: long enough to
+read about twenty words, or to notice the toast and reach its button. Hovering
+the stack, focusing inside it, an open modal dialog or [[method:Toaster.pause]]
+holds every timer, and a held toast keeps at least two more seconds once released.
+`policy.autoDismiss = false` turns timeouts off for hosts that serve people who
+need more time, and each toast can set its own `duration`.
+
+Escape dismisses the toast that has focus, or else the newest one showing, but only
+when focus is inside the toaster or nowhere in particular. With focus in another
+control (an open picker, a text box) Escape is left to that control, even if it does
+not cancel the key, and the toast stays. A toast that does not time out always has a
+dismiss button.
 
 ```ts
 const toaster = document.querySelector<Toaster>("aster-toaster")!;
@@ -1174,33 +1201,284 @@ toaster.show("Moved to Archive", { label: "Undo", run: () => undoMove() });
 declare function undoMove(): void;
 ```
 
+An export that reports its progress. [[staticMethod:exportCsv]]'s `onProgress`
+gives the number of records read and no total, so a percentage needs a total you
+already have, such as the selection's length. Without one, put the count in the
+message and leave the bar out.
+
+```ts
+declare function exportRows(options: { onProgress(read: number): void }): Promise<{ rows: number }>;
+declare const selected: number;
+const id = toaster.show("Exporting…", { variant: "loading", progress: 0 });
+const done = await exportRows({ onProgress: (read) => toaster.update(id, { progress: read / selected }) });
+toaster.update(id, { message: `Exported ${done.rows} rows`, variant: "success", progress: null });
+```
+
+For work whose duration is not known up front, [[method:Toaster.promise]] does the
+whole sequence and applies the progress policy, so a fast operation shows only its
+result (see [[staticMethod:progressPolicy]] and [[class:ProgressState]] for the
+timing rules it reuses).
+
+```ts
+declare function save(): Promise<number>;
+await toaster.promise(save(), {
+  loading: "Saving…",
+  success: (n) => `Saved ${n} changes`,
+  error: (e) => `Could not save: ${e instanceof Error ? e.message : String(e)}`,
+});
+```
+
+The toaster follows the host-configuration split. [[attr:Toaster.policy]] says what
+may happen, [[attr:Toaster.features]] how, and [[attr:Toaster.chrome]] what shows.
+
+| Sugar | Sets |
+|---|---|
+| `toaster.maxVisible = 1` | `{ kind: "stack", max: 1 }` in `features` |
+
+The same values work in a composition catalog; callbacks and the methods are
+JavaScript only.
+
+```yaml
+children:
+  toasts:
+    type: Toaster
+    props:
+      maxVisible: 2
+      policy: { dismissOnEscape: false }
+      features:
+        - { kind: hold, while: [focus] }
+      chrome:
+        position: { block: start, inline: end }
+```
+
 ## attr:Toaster.duration
 
-How long a toast with no action stays, in milliseconds. Default `1800`. Read
-when [[method:Toaster.show]] is called, so a change applies to the next toast.
+How long a toast with no action stays, in milliseconds. Default `6000`. Applies to
+`info`, `success` and `warning` toasts; `error` and `loading` stay until dismissed.
+Read when a toast is shown or updated, so a change applies to the next toast.
 
 ## attr:Toaster.actionDuration
 
-How long a toast with an action stays, in milliseconds. Default `6000`. Read
-when [[method:Toaster.show]] is called.
+How long a toast with an action stays, in milliseconds. Default `10000`. Read when
+a toast is shown or updated.
+
+## attr:Toaster.policy
+
+What the host permits, as a [[object:ToasterPolicy]]. Default `{}`. Policy can only
+restrict: with `autoDismiss: false` no toast times out, whatever its own
+`duration` says. Reactive; invalid keys or values throw.
+
+## attr:Toaster.features
+
+An array of [[type:ToasterFeature]] descriptors: `{ kind: "stack", max }` sets how
+many toasts show at once, and `{ kind: "hold", while }` lists which of `"hover"`,
+`"focus"` and `"modal"` hold the timers (default all three). A kind appears at most
+once. [[method:Toaster.pause]] always holds. Default `[]`. Reactive; unknown kinds
+and options throw.
+
+## attr:Toaster.chrome
+
+What shows, as a [[object:ToasterChrome]]. Default `{}`. Reactive; unknown keys throw.
+
+## attr:Toaster.maxVisible
+
+Sugar for `{ kind: "stack", max }` in [[attr:Toaster.features]]. Default `3`. A toast
+beyond it waits, and starts its timer only once it shows, so every toast is
+visible for its whole time. A toast that does not time out keeps its place, but at
+most `maxVisible - 1` of them do: one place is always left for a toast that times
+out, such as an Undo, and a further error or loading toast queues until one is
+dismissed. With `maxVisible` of 1 there is no spare place and the first toast keeps it.
+
+## attr:Toaster.progressPolicy
+
+The `delayMs` and `minVisibleMs` [[method:Toaster.promise]] uses for its loading
+toast, merged over any [[staticMethod:provideProgressPolicy]] above the toaster.
+Default `{}`, which inherits the page's.
 
 ## method:Toaster.show
 
-Shows a message, replacing any message already showing.
+Shows a message and returns its toast's id.
 
 - `message`: the text.
-- `action`: optional [[object:ToastAction]]. A button with its `label` appears in
-  the toast; pressing it dismisses the toast and then calls `run`.
+- `actionOrOptions`: an [[object:ToastAction]] (the existing form), or
+  [[object:ToastOptions]]. An action adds a button with its `label`; pressing it
+  dismisses the toast, then calls `run`.
 
-Returns nothing. The toast stays [[attr:Toaster.actionDuration]] with an action and
-[[attr:Toaster.duration]] without, whatever the message's length. Pointing at it or
-focusing inside it (the Undo button, say) holds it; once neither applies it
-stays a further 2 seconds.
+Returns the id. Showing an `id` that exists replaces that toast's message, variant,
+action and progress in place and restarts its timer, so the toast does not
+jump or re-appear. With `dedupe`, a showing toast with the same message and
+variant is reused instead of stacked. `show` throws on an invalid variant,
+duration or progress.
+
+## method:Toaster.update
+
+Changes a toast in place.
+
+- `id`: the id `show` returned.
+- `patch`: a [[object:ToastPatch]].
+
+Returns `true`, or `false` when no toast has that id (it was dismissed or timed
+out). A patch of `progress` alone leaves the timer and the announcement alone;
+anything else restarts the timer. A patch can turn a `loading` toast into a
+`success` one.
+
+## method:Toaster.promise
+
+Shows a `loading` toast while a promise runs, then its result in the same toast.
+
+- `promise`: the work.
+- `messages`: `loading`, and `success` and `error` as text or functions of the
+  value or the reason.
+- `options`: an optional `id`, and for the result an `action`, `duration` and
+  `onDismiss`.
+
+Returns the original promise, unchanged: a rejection still rejects for the caller.
+The loading toast appears after the progress policy's `delayMs` and the result
+only once `minVisibleMs` has passed, so work that finishes at once shows only its
+result. If the person dismissed the loading toast, the result still appears.
 
 ## method:Toaster.dismiss
 
-No parameters. Hides the current toast at once and cancels its timer. Returns
-nothing. Does nothing when no toast is showing.
+Dismisses the toast with this `id`, or the newest showing one when none is given,
+and reports the reason `"api"`. Returns nothing. Does nothing for an unknown id.
+
+## method:Toaster.dismissAll
+
+Dismisses every toast, showing or queued, each with the reason `"api"`. Returns
+nothing.
+
+## method:Toaster.pause
+
+Holds every timer until [[method:Toaster.resume]], whatever else holds or releases.
+Use it when something else owns the person's attention. Open modal dialogs hold
+without it. Returns nothing.
+
+## method:Toaster.resume
+
+Releases the host's hold. Timers restart once nothing else holds them, with at
+least two seconds left. Returns nothing.
+
+## event:Toaster.toast-change
+
+Fires after a toast is shown, updated in place or dismissed. `detail` is
+`{ id, change, message, variant, reason? }`: `change` is `"shown"`, `"updated"` or
+`"dismissed"`, and `reason` is one of `"timeout"`, `"button"`, `"escape"`, `"api"`
+and `"action"` (its action was pressed) for a dismissal. Not cancelable; it bubbles.
+For one toast, `onDismiss` in its options reports the same reason.
+
+## type:ToastVariant
+
+`"info"` (default), `"success"`, `"warning"`, `"error"` or `"loading"`. `error` is
+assertive and stays until dismissed; `loading` stays until updated or dismissed.
+
+## type:ToastDismissReason
+
+Why a toast left: `"timeout"`, `"button"` (its dismiss button), `"escape"`, `"api"`
+(`dismiss`, `dismissAll`) or `"action"` (its action was pressed).
+
+## object:ToastOptions
+
+The second argument of [[method:Toaster.show]] for anything beyond an action.
+
+```ts
+const options: ToastOptions = { id: "export", variant: "loading", progress: 0.4 };
+```
+
+## attr:ToastOptions.id
+
+A string. Showing an id that exists updates that toast. Default: generated.
+
+## attr:ToastOptions.variant
+
+A [[type:ToastVariant]]. Default `"info"`.
+
+## attr:ToastOptions.action
+
+An [[object:ToastAction]].
+
+## attr:ToastOptions.duration
+
+Milliseconds, or `null` for until dismissed. Default by variant and action. The
+host's `autoDismiss: false` overrides it.
+
+## attr:ToastOptions.progress
+
+A number from 0 to 1. Draws a progress bar and a percentage. The bar and number
+change silently; the message is what is announced.
+
+## attr:ToastOptions.dedupe
+
+Boolean. Reuse a showing toast with the same message and variant, and restart its
+timer. Default `false`.
+
+## attr:ToastOptions.onDismiss
+
+A function called once with the [[type:ToastDismissReason]].
+
+## object:ToastPatch
+
+What [[method:Toaster.update]] changes. Every key is optional; `null` clears the
+`action` or the `progress` bar.
+
+## attr:ToastPatch.message
+
+The new text. Restarts the timer.
+
+## attr:ToastPatch.variant
+
+A new [[type:ToastVariant]], such as `"success"` once work finishes. Restarts the
+timer.
+
+## attr:ToastPatch.action
+
+An [[object:ToastAction]], or `null` to remove it. Restarts the timer.
+
+## attr:ToastPatch.duration
+
+Milliseconds, or `null` for until dismissed. Restarts the timer.
+
+## attr:ToastPatch.progress
+
+A number from 0 to 1, or `null` to remove the bar. The only key that does not
+restart the timer.
+
+## object:ToasterPolicy
+
+What a host permits of toasts.
+
+## attr:ToasterPolicy.autoDismiss
+
+Boolean. Default `true`. `false` keeps every toast until it is dismissed.
+
+## attr:ToasterPolicy.dismissOnEscape
+
+Boolean. Default `true`.
+
+## type:ToasterFeature
+
+`{ kind: "stack"; max?: number }` or `{ kind: "hold"; while?: ToastHoldSource[] }`.
+`max` is a positive integer, default 3. `while` lists `"hover"`, `"focus"` and
+`"modal"`; the default is all three. A kind appears once per list.
+
+## object:ToasterChrome
+
+What a toaster shows. Hiding never changes what the policy allows.
+
+## attr:ToasterChrome.position
+
+`{ block?: "start" | "end"; inline?: "start" | "center" | "end" }`. Default
+`{ block: "end", inline: "center" }`. The values are logical, so `inline: "end"` is
+the left edge in right-to-left text. Toasts grow away from the edge, so the oldest
+keeps its place; error toasts sit nearest the edge.
+
+## attr:ToasterChrome.icon
+
+Boolean. Default `true`. A variant icon on each toast.
+
+## attr:ToasterChrome.dismissButton
+
+Boolean. Default `false`: a dismiss button on every toast. A toast that does not
+time out always has one.
 
 ## staticMethod:announce
 

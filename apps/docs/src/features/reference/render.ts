@@ -58,6 +58,7 @@ export function referencePages(entries: Entry[], revision = "", assets = "../doc
   }
 
   function sourceLink(e: Entry): string {
+    if (e.package === "data-navigator") return "Proprietary extension";
     const [path, line] = e.source.split(":");
     return path?.startsWith("docs/") ? "" : `<a href="${SOURCE}${path}#L${line}">Source</a>`;
   }

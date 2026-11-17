@@ -251,8 +251,7 @@ test("formatters change text while server sort aliases and filters retain raw se
   await ready(page);
   await page.evaluate(() => {
     const grid = document.querySelector('aster-grid') as any;
-    grid.formatters = { ...grid.formatters, sender: (value: string) => `Display: ${value}` };
-    grid.renderers = { subject: grid.renderers.subject };
+    grid.fieldPresentation = { fields: { ...grid.fieldPresentation.fields, sender: { formatter: ({ value }: { value: string }) => `Display: ${value}` } } };
     grid.view = { ...grid.view, columns: grid.view.columns.map((column: any) => column.field === 'sender' ? { ...column, sortField: 'senderAddress' } : column),
       sort: [{ field: 'sender' }], filters: { sender: { op: 'eq', field: 'sender', value: 'Oliver Brown' } } };
   });

@@ -24,7 +24,7 @@ export const TOKENS = {
   elevation: ["shadow", "highlight", "ring", "e1", "e2", "e3", "well", "scrim", "press"],
   shape: ["r-ctl", "r-card", "r-pop", "r-dialog"],
   motion: ["ease", "t-morph", "t-ink", "t-micro", "t-caret", "t-scheme"],
-  toast: ["toast-bg", "toast-text", "toast-action", "toast-mark"],
+  toast: ["toast-bg", "toast-text", "toast-action", "toast-mark", "toast-success", "toast-warning", "toast-error"],
   /** Lamplight's lamp, which other identities set to something neutral; `lamp-bulb` is the glow round the switch's bulb. */
   light: ["lamp", "glow", "lamp-bulb"],
 } as const;
@@ -52,6 +52,7 @@ export const COMPONENT_VARS = {
   menu: ["cell-height", "icon-size"],
   window: ["header-height", "title-size", "control-size", "inset", "body-padding-block", "body-padding-inline"],
   dialog: ["max-width"],
+  scrollbar: ["clearance"],
 } as const;
 /** Every name in [[constant:COMPONENT_VARS]] as a full custom property name, such as `--aster-grid-header-height`. */
 export const COMPONENT_VAR_NAMES: readonly string[] = Object.entries(COMPONENT_VARS)

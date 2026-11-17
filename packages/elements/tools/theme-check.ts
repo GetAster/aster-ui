@@ -65,6 +65,10 @@ export const PAIRS: readonly (readonly [string, string, number])[] = [
   ["indicator", "surface", 3],
   ["toast-text", "toast-bg", 4.5],
   ["toast-action", "toast-bg", 4.5],
+  ["toast-mark", "toast-bg", 3],
+  ["toast-success", "toast-bg", 3],
+  ["toast-warning", "toast-bg", 3],
+  ["toast-error", "toast-bg", 3],
 ];
 
 /** The first `@layer aster.identity` block, so base and element rules in a composed sheet are ignored. */
@@ -132,8 +136,29 @@ export function check(identity: Identity): Report {
       const ratio = contrast(over(foreground, under), under);
       if (ratio + 1e-9 < min) errors.push({ scheme, message: `${fg} on ${bg} is ${ratio.toFixed(2)}:1; needs ${min}:1` });
     }
+    for (const message of markHues(values)) errors.push({ scheme, message });
   }
   return { identity: identity.name || "default", errors, warnings };
+}
+
+/** Toast marks differ by icon shape too, but their colours must also read apart: hues at least this far apart. */
+export const MARK_HUE_GAP = 40;
+const MARKS = ["toast-mark", "toast-success", "toast-warning", "toast-error"] as const;
+
+function markHues(values: ReadonlyMap<string, string>): Finding["message"][] {
+  const hues = MARKS.map((m) => {
+    const c = resolve(values, `--aster-${m}`, new Set());
+    return [m, c ? toOklch(c)[2] : undefined] as const;
+  });
+  const out: string[] = [];
+  for (let i = 0; i < hues.length; i++) for (let j = i + 1; j < hues.length; j++) {
+    const [a, x] = hues[i]!;
+    const [b, y] = hues[j]!;
+    if (x === undefined || y === undefined) continue;
+    const gap = Math.min(Math.abs(x - y), 360 - Math.abs(x - y));
+    if (gap < MARK_HUE_GAP) out.push(`${a} and ${b} are ${gap.toFixed(0)}° apart in hue; marks need ${MARK_HUE_GAP}°`);
+  }
+  return out;
 }
 
 const WHITE: Rgba = { r: 1, g: 1, b: 1, a: 1 };

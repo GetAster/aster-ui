@@ -75,7 +75,10 @@
     --aster-toast-bg: oklch(27% .04 258);
     --aster-toast-text: oklch(97% .008 245);
     --aster-toast-action: oklch(80% .1 265);
-    --aster-toast-mark: oklch(72% .16 32);
+    --aster-toast-mark: oklch(78% .1 235);
+    --aster-toast-success: oklch(78% .12 170);
+    --aster-toast-warning: oklch(82% .12 80);
+    --aster-toast-error: oklch(74% .14 25);
 
     --aster-lamp: oklch(100% 0 0);
     --aster-glow: 0;
@@ -119,7 +122,10 @@
     --aster-toast-bg: oklch(93% .012 245);
     --aster-toast-text: oklch(22% .035 258);
     --aster-toast-action: oklch(42% .15 268);
-    --aster-toast-mark: oklch(58% .17 32);
+    --aster-toast-mark: oklch(45% .13 245);
+    --aster-toast-success: oklch(42% .1 170);
+    --aster-toast-warning: oklch(46% .1 70);
+    --aster-toast-error: oklch(46% .16 25);
 
     color-scheme: dark;
   }

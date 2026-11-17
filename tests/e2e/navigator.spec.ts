@@ -66,6 +66,34 @@ test("a task can be opened but not chosen under itself or its subtasks, and says
   await expect(dialog).toHaveCount(0);
 });
 
+// A scrolled list shows an overlay scrollbar for a moment, and that scrollbar
+// takes pointer events over the strip it covers. The Open chevron must sit clear of it.
+test("an Open chevron stays clickable just after the list scrolls, while its scrollbar is showing", async ({ page }) => {
+  await tasks(page);
+  const data = await all(page);
+  const project1 = data.filter((t) => t.projectId === 1);
+  const target = project1.find((t) => t.parentId === null && data.some((c) => c.parentId === t.id))!;
+  const moving = project1.find((t) => t.parentId === null && t.id !== target.id && !data.some((c) => c.parentId === t.id))!;
+  const r = row(page, moving.id);
+  await r.hover();
+  await r.locator(".aster-grid-controls button[aria-label='Move to…']").click();
+  const dialog = page.getByRole("dialog", { name: `Move ${moving.title}` });
+  const open = dialog.getByRole("button", { name: `Open ${target.title}` });
+  await expect(open).toBeVisible();
+  await expect(dialog.locator(".aster-drill-row").nth(10)).toBeVisible();
+  const settled = () => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+  // Move the list on, then bring the chevron to the top, as a scroll into view does.
+  await dialog.locator(".aster-drill-list").evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  await settled();
+  await open.evaluate((el) => el.scrollIntoView({ block: "start" }));
+  await settled();
+  const box = (await open.boundingBox())!;
+  const under = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("button")?.getAttribute("aria-label"), { x: box.x + box.width / 2, y: box.y + box.height / 2 });
+  expect(under).toBe(`Open ${target.title}`);
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(dialog.locator(".aster-drill-heading")).toHaveText(target.title);
+});
+
 test.describe("at phone width", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

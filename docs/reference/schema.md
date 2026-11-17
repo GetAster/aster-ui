@@ -374,6 +374,11 @@ paths in page rules and for finding foreign keys.
 The navigation property's name, as used in criteria such as
 `{ op: "via", field: "lead", … }`.
 
+## attr:Navigation.title
+
+Optional readable relationship label from `Core.Description`. The navigation
+name remains its query and path identity.
+
 ## attr:Navigation.target
 
 The name of the entity set it leads to. How it is chosen is in
@@ -435,6 +440,71 @@ skipped are not in it.
 ## attr:EntityType.navigations
 
 The navigations, in declaration order, base type's first.
+
+## attr:EntityType.rules
+
+The type's `Validation.Constraint#id` annotations as [[object:RecordRule]]s: a
+condition over the record and its owned rows that the server enforces and
+[[class:RecordEdit]] judges live. Empty when the type publishes none.
+
+## object:RecordRule
+
+A published constraint over a record and its owned rows. The condition is the
+engine's own, read from the CSDL dynamic expression in `$metadata`; there is
+no second declaration. [[class:RecordEdit]] evaluates it over the working
+state; it is evaluated over a [[object:RuleState]] and says [[type:RuleOutcome]].
+
+What it judges: paths on the record's own fields; literals; `eq ne gt ge lt
+le`; `and or not`; `add sub mul`; `Sum`, `Min`, `Max`, `Average` and `Count`
+over an owned navigation with an optional filter; and `nav/$count`. Numbers
+are exact decimals; `eq` and `ne` see null, an ordering with null is false,
+arithmetic with null is null, and aggregates skip nulls and are null over no
+rows (so a sum equality holds for an empty collection, which is why a rule asks
+for a count too). A condition that is not true fails the record. An average
+with no finite decimal form is not compared. Anything outside this is
+unknown, and unknown parts follow three-valued logic: `false and unknown` is
+false, `true or unknown` is true, otherwise the rule is deferred.
+
+## attr:RecordRule.id
+
+The annotation's qualifier, which the server reports as the failure's `code`.
+
+## attr:RecordRule.message
+
+`FailureMessage`, or a neutral sentence when the constraint has none.
+
+## attr:RecordRule.evaluable
+
+True when every part of the condition is one the client judges; false when
+some part is deferred to the server.
+
+## attr:RecordRule.reads
+
+The navigations the condition reads, including ones the client cannot judge.
+
+## attr:RecordRule.list
+
+The owned navigation the condition reads when it reads exactly one navigation
+and nothing else: where a failure attaches. `undefined` when it reads none or
+several.
+
+## method:RecordRule.evaluate
+
+- `state`: a [[object:RuleState]].
+
+Returns [[type:RuleOutcome]]. Pure: it reads only `state`.
+
+## object:RuleState
+
+The state a rule is judged over: `record`, the record's field values (with any
+patch laid over them), and `rows`, each owned navigation's working rows by
+navigation name. A navigation that is not listed has not loaded, and a rule
+that reads it is deferred. Plain data.
+
+## type:RuleOutcome
+
+`"pass"`, `"fail"` or `"deferred"`: the server judges a deferred rule when the
+change is saved.
 
 ## attr:EntityType.title
 

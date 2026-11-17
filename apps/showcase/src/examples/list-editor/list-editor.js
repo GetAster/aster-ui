@@ -102,11 +102,11 @@ laid.layout = [
   [{ field: "description", span: "all", control: "multiline" }],
   [{ field: "source", span: "all", show: "reading" }],
 ];
-laid.renderers = {
-  name: v => html`<strong>${String(v.name ?? "") || "Untitled field"}</strong>`,
-  required: v => (v.required ? html`<span class="flag">Required</span>` : nothing),
-  source: v => html`<small class="source">Inherited from ${String(v.source)}</small>`,
-};
+laid.fieldPresentation = { fields: {
+  name: { display: ({ value }) => html`<strong>${String(value ?? "") || "Untitled field"}</strong>` },
+  required: { display: ({ value }) => (value ? html`<span class="flag">Required</span>` : nothing) },
+  source: { display: ({ value }) => html`<small class="source">Inherited from ${String(value)}</small>` },
+} };
 const saveLaid = document.querySelector("#save-laid");
 saveLaid.label = "Save";
 effect(() => {

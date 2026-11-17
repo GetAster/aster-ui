@@ -3,6 +3,7 @@ import { html, nothing } from "lit-html";
 import { live } from "lit-html/directives/live.js";
 import { define, type View } from "../base/element.ts";
 import { BoundField, type ControlContext } from "./bound-field.ts";
+import { formatFigure, validateValueFormat, type ValueFormat } from "../format.ts";
 import { formatValue, parseInput } from "./values.ts";
 import { canonicalNumeric, compareNumeric, numericAligned, stepNumeric } from "./numeric.ts";
 
@@ -23,7 +24,7 @@ export class NumberField extends BoundField {
   readonly #readOnly = this.prop(false);
   readonly #draft = this.prop<string | undefined>(undefined);
   readonly #focused = this.prop(false);
-  readonly #format = this.prop<((value: NumericValue) => string) | undefined>(undefined);
+  readonly #format = this.prop<ValueFormat | ((value: NumericValue) => string) | undefined>(undefined);
   #last: Value | undefined;
 
   get value() { return this.#value.value; }
@@ -46,8 +47,9 @@ export class NumberField extends BoundField {
   set placeholder(v: string) { this.#placeholder.value = v; }
   get readOnly() { return this.#readOnly.value; }
   set readOnly(v: boolean) { this.#readOnly.value = v; }
+  /** How the value reads while the input is not focused: a [[object:ValueFormat]], or a function from the value to text (JavaScript only). */
   get format() { return this.#format.value; }
-  set format(v: ((value: NumericValue) => string) | undefined) { this.#format.value = v; }
+  set format(v: ValueFormat | ((value: NumericValue) => string) | undefined) { this.#format.value = v === undefined || typeof v === "function" ? v : validateValueFormat(v); }
 
   override focus(options?: FocusOptions): void { this.querySelector("input")?.focus(options); }
 
@@ -117,7 +119,10 @@ export class NumberField extends BoundField {
     let display = formatValue(c.meta, current);
     const formatter = this.#format.value;
     if (formatter && current !== undefined && typeof current !== "boolean") {
-      try { if (current !== null) canonicalNumeric(current); display = formatter(current); } catch { /* Invalid text stays visible. */ }
+      try {
+        if (current !== null) canonicalNumeric(current);
+        display = typeof formatter === "function" ? formatter(current) : current === null ? display : formatFigure(current, formatter, { field: c.meta });
+      } catch { /* Invalid text stays visible. */ }
     }
     const text = this.#focused.value ? entered : display;
     const readOnly = this.#readOnly.value || c.state.readOnly;

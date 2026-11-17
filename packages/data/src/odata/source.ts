@@ -1,4 +1,4 @@
-import type { Query } from "../criteria/ast.ts";
+import type { ComputeColumn, Query } from "../criteria/ast.ts";
 import { formatLiteral, toApply, toQueryString, type Aggregate } from "../criteria/compile.ts";
 import type { Criteria, SortKey } from "../criteria/ast.ts";
 import { parseCsdl } from "../schema/csdl.ts";
@@ -43,14 +43,28 @@ export class ODataSource {
    * asks for an exact one (`Prefer: aster.count=exact`) where the server
    * would otherwise estimate it or leave it out.
    */
-  async query(query: Query, range: { skip?: number; top?: number; count?: boolean; exact?: boolean } = {}): Promise<Page> {
-    const options = [toQueryString(query, this.schema)];
-    if (range.skip) options.push(`$skip=${range.skip}`);
-    if (range.top !== undefined) options.push(`$top=${range.top}`);
-    if (range.count) options.push("$count=true");
+  async query(query: Query, range: { skip?: number; top?: number; count?: boolean; exact?: boolean; signal?: AbortSignal } = {}): Promise<Page> {
+    const relationship = query.relationship;
+    const nav = relationship ? this.schema.set(relationship.set).type.navigation(relationship.navigation) : undefined;
+    if (relationship && (!nav || nav.target !== query.set)) throw new Error(`invalid relationship ${relationship.set}/${relationship.navigation} for ${query.set}`);
+    const single = nav && !nav.collection;
+    if (single && (query.filter || query.orderBy?.length)) throw new Error("filtering or sorting a to-one relationship window is unsupported; use a parent via criterion for membership");
+    const compiled = toQueryString(query, this.schema);
+    const options = single ? compiled.split("&").filter((option) => (option.startsWith("$select=") || option.startsWith("$compute="))) : [compiled];
+    if (!single) {
+      if (range.skip) options.push(`$skip=${range.skip}`);
+      if (range.top !== undefined) options.push(`$top=${range.top}`);
+      if (range.count) options.push("$count=true");
+    }
     const qs = options.filter(Boolean).join("&");
-    const headers = range.count && range.exact ? { prefer: "aster.count=exact" } : undefined;
-    let body = await this.#json("GET", qs ? `${query.set}?${qs}` : query.set, undefined, headers);
+    const headers = !single && range.count && range.exact ? { prefer: "aster.count=exact" } : undefined;
+    const path = relationship ? `${this.#entityUrl(relationship.set, relationship.key)}/${encodeURIComponent(relationship.navigation)}` : query.set;
+    let body = await this.#json("GET", qs ? `${path}?${qs}` : path, undefined, headers, range.signal);
+    if (single) {
+      const record = toRecord(body);
+      const present = this.schema.set(query.set).type.key.every((field) => record.entity[field] !== undefined && record.entity[field] !== null);
+      return { records: present && !range.skip && range.top !== 0 ? [record] : [], count: present ? 1 : 0 };
+    }
     const count = body["@odata.count"];
     const estimated = COUNT_ESTIMATED.some((a) => body[a] === true);
     const records: StoredRecord[] = [];
@@ -59,7 +73,7 @@ export class ODataSource {
       records.push(...value.map(toRecord));
       const next = body["@odata.nextLink"];
       if (typeof next !== "string" || (range.top !== undefined && records.length >= range.top)) break;
-      body = await this.#json("GET", relativeToRoot(next, query.set));
+      body = await this.#json("GET", relativeToRoot(next, relationship?.set ?? query.set), undefined, undefined, range.signal);
     }
     return {
       records: range.top === undefined ? records : records.slice(0, range.top),
@@ -76,13 +90,14 @@ export class ODataSource {
     set: string,
     request: {
       readonly filter?: Criteria;
+      readonly compute?: readonly ComputeColumn[];
       readonly groupBy?: readonly string[];
       readonly aggregates?: readonly Aggregate[];
       readonly orderBy?: readonly SortKey[];
     },
   ): Promise<Record<string, Value>[]> {
     const entitySet = this.schema.set(set);
-    const apply = toApply(entitySet.type, request.filter, request.groupBy ?? [], request.aggregates ?? [], entitySet, this.schema);
+    const apply = toApply(entitySet.type, request.filter, request.groupBy ?? [], request.aggregates ?? [], entitySet, this.schema, request.compute);
     const order = request.orderBy?.length ? `&$orderby=${encodeURIComponent(request.orderBy.map((k) => `${k.field}${k.descending ? " desc" : ""}`).join(","))}` : "";
     let body = await this.#json("GET", `${set}?$apply=${encodeURIComponent(apply)}${order}`);
     const values: Record<string, unknown>[] = [];
@@ -149,6 +164,7 @@ export class ODataSource {
 
   #entityUrl(set: string, key: KeyValues): string {
     const type = this.schema.set(set).type;
+    if (key.length !== type.key.length) throw new Error(`expected ${type.key.length} key values for ${set}`);
     const literal = (name: string, v: Value) => {
       const field = type.field(name);
       if (!field) throw new Error(`${type.name} has no key property ${name}`);
@@ -156,7 +172,7 @@ export class ODataSource {
     };
     const parts = type.key.map((name, i) => {
       const v = key[i];
-      if (v === undefined) throw new Error(`missing key value for ${name}`);
+      if (v === undefined || v === null) throw new Error(`missing key value for ${name}`);
       return type.key.length === 1 ? literal(name, v) : `${name}=${literal(name, v)}`;
     });
     return `${set}(${parts.join(",")})`;
@@ -167,17 +183,19 @@ export class ODataSource {
     url: string,
     body?: string,
     headers?: Record<string, string>,
+    signal?: AbortSignal,
   ): Promise<Record<string, unknown>> {
-    const res = await this.#send(method, url, body, headers);
-    const parsed = JSON.parse(res.body) as Record<string, unknown>;
+    const res = await this.#send(method, url, body, headers, signal);
+    const parsed = (res.body ? JSON.parse(res.body) ?? {} : {}) as Record<string, unknown>;
     if (res.headers.etag && parsed["@odata.etag"] === undefined) parsed["@odata.etag"] = res.headers.etag;
     return parsed;
   }
 
-  async #send(method: Method, url: string, body?: string, headers?: Record<string, string>): Promise<ODataResponse> {
+  async #send(method: Method, url: string, body?: string, headers?: Record<string, string>, signal?: AbortSignal): Promise<ODataResponse> {
     const request: ODataRequest = {
       method,
       url,
+      ...(signal ? { signal } : {}),
       headers: {
         accept: ACCEPT,
         ...(body === undefined ? {} : { "content-type": "application/json;IEEE754Compatible=true" }),
@@ -224,12 +242,14 @@ function relativeToRoot(link: string, set: string): string {
  */
 function toRecord(json: Record<string, unknown>): StoredRecord {
   const entity: Record<string, Value> = {};
+  const types: Record<string, string> = {};
   let etag: string | undefined;
   let hidden: ReadonlySet<string> | undefined;
   for (const [name, v] of Object.entries(json)) {
-    if (name === "@odata.etag") etag = String(v);
+    if (name.endsWith("@odata.type") && !name.startsWith("@")) types[name.slice(0, -11)] = String(v);
+    else if (name === "@odata.etag") etag = String(v);
     else if (HIDDEN.includes(name) && Array.isArray(v) && v.length > 0) hidden = new Set(v.map(String));
     else if (!name.includes("@")) entity[name] = v as Value;
   }
-  return { entity, ...(etag === undefined ? {} : { etag }), ...(hidden ? { hidden } : {}) };
+  return { entity, ...(Object.keys(types).length ? { types } : {}), ...(etag === undefined ? {} : { etag }), ...(hidden ? { hidden } : {}) };
 }

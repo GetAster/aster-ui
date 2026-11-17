@@ -51,7 +51,7 @@ describe("appearance review regressions", () => {
       kind: "number", style: "currency", currency: "GBP", minimumFractionDigits: 2, maximumFractionDigits: 2,
     })).toBe("£1,000.00");
     expect(cellText(field("Edm.Decimal"), ".5", { kind: "number", style: "integer" })).toBe("1");
-    expect(cellText(field("Edm.Decimal"), "-99.5", { kind: "number", style: "integer" })).toBe("-100");
+    expect(cellText(field("Edm.Decimal"), "-99.5", { kind: "number", style: "integer" })).toBe("−100");
   });
 
   test("default style bounds match the platform's resolved fraction digits", () => {

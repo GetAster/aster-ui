@@ -1,3 +1,4 @@
+import { PUBLIC_PACKAGES } from "./package-policy.mjs";
 import ts from "typescript";
 import { buildVersion } from "./version.ts";
 import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
@@ -13,7 +14,8 @@ if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z]+(?:[.
   throw new Error("Invalid package version");
 }
 verifyWasm(root);
-const out = join(root, "dist-release");
+const includeProprietary = process.argv.includes("--include-proprietary");
+const out = join(root, includeProprietary ? "dist-private" : "dist-release");
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 const run = (args: string[], cwd = root) => {
@@ -23,7 +25,7 @@ const run = (args: string[], cwd = root) => {
 };
 run(["bunx", "tsc", "-p", "scripts/lib", "--outDir", join(out, "types")]);
 const reference = buildReference().entries;
-const packages = ["data", "elements", "elements-preview", "mock"];
+const packages = [...PUBLIC_PACKAGES, ...(includeProprietary ? ["data-navigator"] : [])];
 for (const name of packages) {
   const source = join(root, "packages", name);
   const destination = join(out, name);
@@ -40,13 +42,13 @@ for (const name of packages) {
     writeFileSync(target, result.outputText);
   }
   cpSync(join(out, "types/packages", name, "src"), dist, { recursive: true });
-  cpSync(join(root, "LICENSE"), join(destination, "LICENSE"));
+  cpSync(join(name === "data-navigator" ? source : root, "LICENSE"), join(destination, "LICENSE"));
   for (const file of ["NOTICE", "README.md"]) cpSync(join(source, file), join(destination, file));
   const manifest = JSON.parse(readFileSync(join(source, "package.json"), "utf8"));
-  delete manifest.private;
+  if (name !== "data-navigator") delete manifest.private;
   manifest.version = version;
   manifest.types = "./dist/index.d.ts";
-  manifest.publishConfig = { access: "public" };
+  if (name !== "data-navigator") manifest.publishConfig = { access: "public" };
   manifest.files = ["dist", "LICENSE", "NOTICE", "README.md"];
   manifest.exports = { ".": { types: "./dist/index.d.ts", import: "./dist/index.js", default: "./dist/index.js" } };
   manifest.engines = { node: ">=22" };
@@ -62,6 +64,8 @@ for (const name of packages) {
       manifest.customElements = "custom-elements.json";
       manifest.files.push("styles", "bin", "skill", "custom-elements.json");
       manifest.exports["./styles/*"] = "./styles/*";
+      manifest.exports["./grid-state"] = { types: "./dist/grid-state.d.ts", import: "./dist/grid-state.js", default: "./dist/grid-state.js" };
+      manifest.exports["./format"] = { types: "./dist/format.d.ts", import: "./dist/format.js", default: "./dist/format.js" };
       manifest.exports["./yaml"] = { types: "./dist/yaml.d.ts", import: "./dist/yaml.js", default: "./dist/yaml.js" };
       manifest.sideEffects = ["./dist/index.js", "./dist/**/*.js", "./styles/*.css"];
       for (const tool of ["aster-theme-check", "aster-lint", "aster-skill"]) {
@@ -78,6 +82,13 @@ for (const name of packages) {
       manifest.files.push("styles");
       manifest.exports["./styles/*"] = "./styles/*";
       manifest.exports["./conversation"] = { types: "./dist/conversation/session.d.ts", import: "./dist/conversation/session.js" };
+      manifest.sideEffects = ["./dist/**/*.js", "./styles/*.css"];
+      break;
+    case "data-navigator":
+      manifest.exports["./model"] = { types: "./dist/model/index.d.ts", import: "./dist/model/index.js", default: "./dist/model/index.js" };
+      cpSync(join(source, "src/styles"), join(destination, "styles"), { recursive: true });
+      manifest.files.push("styles");
+      manifest.exports["./styles/*"] = "./styles/*";
       manifest.sideEffects = ["./dist/**/*.js", "./styles/*.css"];
       break;
     case "mock":

@@ -448,7 +448,7 @@ test("the composition catalog accepts plain presentation and labels and rejects 
         diagnostics({ presentation: { rowClass: () => "x" } }),
         diagnostics({ presentation: { columns: { name: { align: "middle" } } } }),
         diagnostics({ presentation: { columns: { due: { format: { kind: "date", style: "long" } } } } }),
-        diagnostics({ presentation: { columns: { hours: { format: { kind: "number", style: "currency" } } } } }),
+        diagnostics({ presentation: { columns: { hours: { format: { kind: "number", style: "currency", currency: "pounds" } } } } }),
         diagnostics({ presentation: { hilites: [{ scope: "cell", when: { field: "status", op: "eq", value: "active" } }] } }),
         diagnostics({ presentation: { hilites: [{ test: () => true }] } }),
         diagnostics({ presentation: { columns: { name: { cellClass: [{ class: "x", test: () => true }] } } } }),

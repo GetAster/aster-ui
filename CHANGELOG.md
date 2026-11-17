@@ -2,10 +2,66 @@
 
 Aster UI publishes one version across `@getaster/data`, `@getaster/elements`,
 `@getaster/elements-preview` and `@getaster/mock`. The patch number is derived
-from the commit count at the release commit (see `VERSION`). The previous
-published release is 0.3.0; a later 0.3-line patch (0.3.5) was published
-but its installs were still inside the registry's dependency cooldown when
-0.4.0 shipped.
+from the commit count at the release commit (see `VERSION`).
+
+## 0.4.120
+
+Aster UI adds meters and sliders, richer toast notifications, and validation
+rules spanning a record and its working child rows. Grids, forms and list
+editors share metadata-driven field presentation, and a new finance workspace
+demonstrates invoices, account balances and journal validation.
+
+### Added
+
+- `Meter` and `Slider` support metadata-aware numeric presentation, including a
+  two-handle slider for a shared filter's between condition.
+- `Toaster` supports information, success, warning, error and loading variants,
+  progress, updates in place, promise results and a bounded notification stack.
+- Published record constraints are evaluated over draft records and owned rows.
+  Forms and list editors display record-level failures; the mock service
+  enforces these constraints when writing.
+- Shared `fieldPresentation` supports field and semantic-type overrides across
+  grids, forms and list editors, including email links and guarded callbacks.
+  `FieldSelection` provides a checkbox tree for direct and related fields.
+- Form and list-editor choices can use a tree picker. List columns support
+  alignment, number formats and captions when their layout stacks.
+- Queries support server-calculated columns and scoped relationship reads.
+  The mock supports calculated queries and metadata-declared products,
+  concatenated labels and account roll-ups.
+
+The hosted showcase also demonstrates the proprietary `@getaster/data-navigator`
+extension: nested grid and form views, scoped filters, calculated and aggregate
+columns, and saved views. Its implementation is excluded from GitHub source and
+public npm releases. The four public packages remain Apache-licensed.
+
+### Breaking changes
+
+- `compactMoney` is removed from `@getaster/elements`. Replace
+  `compactMoney(value, "GBP")` with
+  `formatFigure(value, { style: "currency", currency: "GBP", compact: true })`.
+- `Grid.renderers`, `Grid.formatters` and `ListEditor.renderers` are replaced by
+  `fieldPresentation.fields[name].display` or `.formatter`. Callbacks receive
+  a context containing the field, value, key and a frozen projection of current,
+  visible record values. Migrate callback arguments as described in the
+  formatted-values guide. Grid column value-map decoration remains supported.
+- Forms no longer install or clear policy on a borrowed `EditModel`.
+  `Form.readOnly`, `Form.disabled` and field-level equivalents restrict only
+  that host and cannot override shared model restrictions. Move session defaults
+  to `EditModel.applyPolicy` and shared rules to `applyRules`. `FormField.required`
+  is removed; move requiredness to the edit model. A field-level `false` no longer
+  exempts a field from a form-wide restriction; configure restricted fields
+  individually when another field must remain editable.
+- `DataContext.release(collection)` now cancels pending reads and disposes that
+  collection. Released collections must not be reused; request a new collection
+  from the context instead.
+
+### Fixed
+
+- Grid header labels and controls align with their cells, the whole header
+  responds to sorting and column dragging, and trailing controls remain
+  clear of overlay scrollbars.
+- Worker-backed mock collections load correctly when requests carry a
+  cancellation signal, avoiding failed showcase loads during collection reads.
 
 ## 0.4.72
 

@@ -317,3 +317,13 @@ describe("parseCsdl: errors carry paths", () => {
     expect(failure(j).path).toBe("/AsterDemo/Person/$BaseType");
   });
 });
+
+test("navigation labels preserve metadata titles without changing relationship paths", () => {
+  const json = clone();
+  json.AsterDemo.Task.assignee["@Core.Description"] = "Assigned person";
+  const type = parseCsdl(json).set("Tasks").type;
+  expect(type.navigation("assignee")?.title).toBe("Assigned person");
+  expect(type.navigation("assignee")?.keys).toEqual([["assigneeId", "id"]]);
+  expect(type.navigation("Assigned person")).toBeUndefined();
+  expect(schema.set("Tasks").type.navigation("assignee")?.title).toBeUndefined();
+});
