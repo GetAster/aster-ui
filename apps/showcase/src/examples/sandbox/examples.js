@@ -27,15 +27,21 @@ const people = new PickerOptions(ctx, { set: "People" });
 let edit;
 
 function view() {
-  render(html\`
+  const list = html\`
     <aster-grid .ctx=\${ctx} .set=\${"Projects"} .label=\${"Projects"} .publish=\${"projects"}
+      .selectionColumn=\${true}
       .lookups=\${{ leadId: { set: "People", display: "name" } }}
       .view=\${{ columns: [{ field: "name" }, { field: "leadId" }, { field: "state" }, { field: "health" }], sort: [{ field: "name" }], filters: {}, frozen: 1 }}
-      style="height: 300px"></aster-grid>
-    \${edit
-      ? html\`<aster-form .model=\${edit} .sections=\${[{ title: "Project", columns: 2, items: [{ field: "name", span: 2 }, { field: "leadId", options: people }, "state"] }]}></aster-form>
-          <aster-button .label=\${"Save"} .variant=\${"primary"} @click=\${() => edit.save()}></aster-button>\`
-      : html\`<p>Choose a project.</p>\`}
+      style="height: 100%"></aster-grid>\`;
+  const detail = edit
+    ? html\`<aster-form .model=\${edit} .sections=\${[{ title: "Project", columns: 2, items: [{ field: "name", span: 2 }, { field: "leadId", options: people }, "state"] }]}></aster-form>
+        <aster-button .label=\${"Save"} .variant=\${"primary"} @click=\${() => edit.save()}></aster-button>\`
+    : html\`<p>Choose a project.</p>\`;
+  render(html\`
+    <aster-split .orientation=\${"vertical"} .label=\${"Resize the project list"}
+      .size=\${260} .min=\${150} .max=\${400} .persist=\${"playground-project-list"}
+      .start=\${list} .end=\${html\`<div style="padding: 12px">\${detail}</div>\`}
+      style="height: 540px"></aster-split>
   \`, out);
 }
 

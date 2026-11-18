@@ -68,6 +68,7 @@ children:
       ctx: { ref: inputs.ctx }
       label: Managed devices table
       selectable: true
+      selectionColumn: true
       collection: { ref: model.collection }
       selection: { ref: model.selection }
       view:

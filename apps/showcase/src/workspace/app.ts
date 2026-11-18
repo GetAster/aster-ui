@@ -279,7 +279,7 @@ export class AsterDemo extends AsterElement {
         <div class="table">
           <div class="thead" aria-hidden="true"><span>Project</span><span>Lead</span><span>Status</span><span class="r">Open</span><span class="r">Updated</span></div>
           <aster-listbox id="projects-list" class="rows" .label=${`${TAB_TITLES[tab]} projects`}
-            .selection=${model.selection} .publish=${"projects"}
+            .selection=${model.selection} .selectionColumn=${true} .publish=${"projects"}
             .renderRow=${(e: Entity, key: KeyText) => this.#row(e, key)}
             .empty=${html`<p class="rows-empty">${EMPTY[tab]}</p>`}
             @row-menu=${(e: CustomEvent<RowMenuDetail>) => this.#rowMenu(e.detail)}

@@ -2,15 +2,40 @@
 
 A list and an edit form should agree about the record they show. Aster gives them a shared context, while an edit model keeps uncommitted input separate from the stored record.
 
+## Choose the detail layout
+
+Start with **row expansion** when the details fit comfortably beneath the row.
+This keeps the record and its edit controls in context. Choose a split when the
+detail needs more room or the user will move through many records in one session.
+
+| Layout | When to use it | Aster components |
+| --- | --- | --- |
+| Row expansion | A compact form, preview or a few related fields. This is the default. | Supply an editor with `Grid.expansion`. Give people an Edit or View row action, and let Grid handle focus and closing over unsaved changes. |
+| Vertical master–detail | The list and details both need the full width. Details sit below the list. | Use Split with `orientation = "vertical"` so people can resize the two panes. |
+| Horizontal master–detail | People need to keep the list in view while reading or editing substantial detail, such as a ticket conversation. | Use a horizontal Split with the list at the start and details at the end. Let it stack in narrow containers. |
+
+Name the divider for what it resizes and give Split a `persist` key so it
+remembers the chosen size. Use [Tabs](../playground/tabs.html) within the detail
+when the record has meaningful sections. Keep one edit model across those
+sections. The [Grid expansion reference](../reference/#attr:Grid.expansion)
+shows how to supply the detail editor.
+
 ## Run the workflow
 
 [Open the editable grid-and-form example](../playground/). Choose a project, edit its name, and save. The grid reflects the saved change because it reads the same record store. You can edit the example’s source and run it again.
 
-The example is the playground’s default: **A grid, a form and a picker on the same data**.
+The playground’s default example, **A grid, a form and a picker on the same
+data**, demonstrates the vertical split. Drag the divider to give the grid or
+form more room.
 
 ## Publish the selection
 
 Create a `PageScope` and provide it on a common ancestor. Give the grid a publication name, `projects`. The grid publishes its selection there; another view can observe `projects.key` without querying the grid’s DOM.
+
+When a grid needs visible selection controls, set `selectionColumn: true`
+(`.selectionColumn=${true}` in Lit). Grid gives the checkboxes an aligned
+leading column, independent of displayed fields and their widths. A compact
+editor opened with an Edit or View action can rely on row expansion alone.
 
 ```javascript
 const scope = new PageScope();
@@ -19,7 +44,7 @@ provideScope(out, scope);
 
 ```html
 <aster-grid .ctx=${ctx} .set=${"Projects"}
-  .publish=${"projects"} .label=${"Projects"}>
+  .selectionColumn=${true} .publish=${"projects"} .label=${"Projects"}>
 </aster-grid>
 ```
 

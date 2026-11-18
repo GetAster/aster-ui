@@ -105,6 +105,11 @@ Choose the most representative screen from section 1, usually a list with a deta
 
 Connect a \`DataContext\` to the user's OData service, or to their WebData deployment, and build the screen as in [Connect a grid and form](${docs}guide/connected-views.md). Keep the user's own authentication; [Authentication recovery](${docs}guide/authentication.md) shows how a request that needs sign-in is retried. Then compare the result with the original screen: its paging, saving, validation and what happens when two people edit the same record.
 
+Use Grid's \`selectionColumn: true\` for visible row selection. Start with
+row expansion for a compact record editor. Use a resizable Split for stacked
+or side-by-side details, and Tabs within a detail with several sections. See
+[Choose the detail layout](${docs}guide/connected-views.md#choose-the-detail-layout).
+
 ## 5. Check the work
 
 Run these after each change, and fix what they report before handing the work back:

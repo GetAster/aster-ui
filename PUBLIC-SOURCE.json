@@ -35,7 +35,7 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "2f4ea65eb6f22ac0800b3e24ce68dc6b1a63648493fae5673a67b3f872fcef4b"
+      "sha256": "eba4c3f9bb9a4e38c20cbb1c98b108c2bbdcba1b7316e6b0b1351517cbf9a37b"
     },
     {
       "path": "CHANGELOG.md",
@@ -67,7 +67,7 @@
     },
     {
       "path": "apps/docs/build/agent-docs.ts",
-      "sha256": "396d08d7088585130dd4316973f754b16695af6deef2915268b966ae861593bb"
+      "sha256": "8f2b629718fe05f9106165f4fe8826799b040efd85c041b33c4f8ff8093cbec0"
     },
     {
       "path": "apps/docs/build/examples.ts",
@@ -307,7 +307,7 @@
     },
     {
       "path": "apps/showcase/src/examples/composition/composition.ui.yaml",
-      "sha256": "5d76f7c777f5ae873b6f5b45ddd0dd35e503307af555ec842f1d8330ceef449f"
+      "sha256": "bf816afb1b3e66881e65069efc79d310ca3d1705fb2c200afc51bda796d299f9"
     },
     {
       "path": "apps/showcase/src/examples/conversations/README.md",
@@ -507,7 +507,7 @@
     },
     {
       "path": "apps/showcase/src/examples/sandbox/examples.js",
-      "sha256": "4fca249f58551ddcc9a70ff25864c30f81381af2d7fd12d8337b7baebeecf1ff"
+      "sha256": "e0bff2ea52ffd2005fc0dddccbbf06c2c69ce25d5ddab0474b9d68a376b2ee6b"
     },
     {
       "path": "apps/showcase/src/examples/sandbox/index.html",
@@ -567,7 +567,7 @@
     },
     {
       "path": "apps/showcase/src/workspace/app.ts",
-      "sha256": "e8980b93f3f7ab99c2b0638eb8a54e6e4cf46c642be66051ae24c42d1f41ff03"
+      "sha256": "edb498957de3dd9ddbe2f4ff7eb1ec473f102dba14ca08a6fdcb67440a1e8ba5"
     },
     {
       "path": "apps/showcase/src/workspace/clock.ts",
@@ -735,7 +735,7 @@
     },
     {
       "path": "docs/guide/connected-views.md",
-      "sha256": "084ea11d843823af7d8ed1ced5cbc35318abc3db454c2044dc57682eeb5971d5"
+      "sha256": "859a74b4f4c961194c2ce9386b01353f32908353dbd39f6e0c45d7a5ef2603f2"
     },
     {
       "path": "docs/guide/conversation-preview.md",
@@ -827,7 +827,7 @@
     },
     {
       "path": "docs/guide/workspace-patterns.md",
-      "sha256": "cadd8e4dd5502a03885f8ba06ec6fc76de3571549d46915c19d20892c255bb9e"
+      "sha256": "7280f345f2f78fcc3879f939195290c9a2db38b22171ff14bb5d6aa05362ed2e"
     },
     {
       "path": "docs/guide/workspace-tooling.md",

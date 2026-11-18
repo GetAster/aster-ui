@@ -75,6 +75,7 @@ table:
   type: Grid
   props:
     selectable: true
+    selectionColumn: true
     collection: { ref: model.collection }
     selection: { ref: model.selection }
 ```
