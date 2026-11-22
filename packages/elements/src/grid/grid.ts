@@ -3842,7 +3842,9 @@ export class Grid extends AsterElement {
   }
 
   #key(e: KeyboardEvent, columns: number): void {
-    if ((e.target as Element).closest(".aster-grid-filters, .aster-grid-panel, .aster-grid-selection, [data-editing], .aster-grid-group button")) return;
+    const eventTarget = e.target as Element;
+    if (eventTarget.closest(".aster-grid-filters, .aster-grid-panel, .aster-grid-selection, [data-editing], .aster-grid-group button")) return;
+    if (e.key === " " && eventTarget.matches(".aster-grid-select-head input")) return;
     // Focus can still be on the grid during the frame an edit starts in; Escape ends it all the same.
     if (e.key === "Escape" && this.#editing.peek()) {
       e.preventDefault();

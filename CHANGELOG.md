@@ -4,6 +4,12 @@ Aster UI publishes one version across `@getaster/data`, `@getaster/elements`,
 `@getaster/elements-preview` and `@getaster/mock`. The patch number is derived
 from the commit count at the release commit (see `VERSION`).
 
+## 0.4.121
+
+The grid's **Select all** checkbox is centered above the row checkboxes in
+`@getaster/elements`. Tab reaches the header checkbox and Space selects or
+clears all loaded rows.
+
 ## 0.4.120
 
 Aster UI adds meters and sliders, richer toast notifications, and validation

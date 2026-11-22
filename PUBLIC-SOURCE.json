@@ -35,11 +35,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "2f4ea65eb6f22ac0800b3e24ce68dc6b1a63648493fae5673a67b3f872fcef4b"
+      "sha256": "eba4c3f9bb9a4e38c20cbb1c98b108c2bbdcba1b7316e6b0b1351517cbf9a37b"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "eea5ea7aa3c2a8accd33ca9d6514b9c6415e11c5da8256b020253f688b909785"
+      "sha256": "6b54f6ba4b1e4c363eca6f25be59ba3773323b6f26f5ce5192570053d8f0c291"
     },
     {
       "path": "LICENSE",
@@ -899,7 +899,7 @@
     },
     {
       "path": "docs/reference/grid.md",
-      "sha256": "c1adb4add199b3a5a140d0134605eae46b3483f37dd60ac3864f63e4c8bdbfb1"
+      "sha256": "76c1d279e7ba300aab5303f4e0e54f5b55d90eaf4c5b3e44b392ac99332845c2"
     },
     {
       "path": "docs/reference/grouping.md",
@@ -1651,7 +1651,7 @@
     },
     {
       "path": "packages/elements/src/grid/grid.ts",
-      "sha256": "cf921793cd002ee6a8312f0128a59d9c0cf4b4f8cf8749721859fcf7da42b5ee"
+      "sha256": "d607463fb3adfc235d7a73fc681ba2f7c4dc51e0d32751f6283f38f8c81a8293"
     },
     {
       "path": "packages/elements/src/grid/header.ts",
@@ -1803,7 +1803,7 @@
     },
     {
       "path": "packages/elements/src/styles/elements.css",
-      "sha256": "408a587f7b6d8db355a4ef672f49d6f0383e983c74201cf9ed78050927f875ea"
+      "sha256": "a22f61ffd993f1408967500a510fa45dae0b5f054e572c02251736f6589e159b"
     },
     {
       "path": "packages/elements/src/styles/field-selection.css",
@@ -2975,7 +2975,7 @@
     },
     {
       "path": "tests/e2e/grid-p1.spec.ts",
-      "sha256": "8334cceef499488931a9c56b324b76631b3157c82deb92611e1ca18428c4ad69"
+      "sha256": "93acd63f18a44e81df819bd506ea0beb978669f5a49bd0b5737a11caec12810b"
     },
     {
       "path": "tests/e2e/grid-policy.spec.ts",

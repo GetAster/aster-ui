@@ -347,7 +347,16 @@ test("selectionColumn's header selects and clears loaded rows with a mixed state
   await table.evaluate((element) => { (element as HTMLElement & { selectionColumn: boolean }).selectionColumn = true; });
   const loaded = await table.evaluate((element) => (element as HTMLElement & { collection: { keys: { peek(): (string | undefined)[] } } }).collection.keys.peek().filter(Boolean).length);
   const head = table.locator(".aster-grid-select-head input");
+  const firstRowBox = table.locator(".aster-grid-row[data-key]").first().locator(".aster-grid-select input");
   await expect(head).toBeVisible();
+  const { offsetX, offsetY } = await head.evaluate((input) => {
+    const box = input.getBoundingClientRect();
+    const cell = input.parentElement!.getBoundingClientRect();
+    return { offsetX: box.x + box.width / 2 - (cell.x + cell.width / 2), offsetY: box.y + box.height / 2 - (cell.y + cell.height / 2) };
+  });
+  expect(Math.abs(offsetX)).toBeLessThan(1);
+  expect(Math.abs(offsetY)).toBeLessThan(1);
+  expect((await head.boundingBox())!.x).toBeCloseTo((await firstRowBox.boundingBox())!.x);
   await expect(head).not.toBeChecked();
   await head.click();
   await expect(head).toBeChecked();
@@ -357,13 +366,21 @@ test("selectionColumn's header selects and clears loaded rows with a mixed state
   // Some chosen: the header reports a mixed state.
   await table.locator(".aster-grid-row[data-key]").nth(2).locator(".aster-grid-select input").click();
   await expect(head).not.toBeChecked();
-  expect(await head.evaluate((element) => (element as HTMLInputElement).indeterminate)).toBe(true);
-  await head.click();
+  await expect(head).toHaveJSProperty("indeterminate", true);
+
+  await table.getByRole("grid").focus();
+  await page.keyboard.press("Tab");
+  await expect(head).toBeFocused();
+  await page.keyboard.press("Space");
   await expect(head).toBeChecked();
-  expect(await head.evaluate((element) => (element as HTMLInputElement).indeterminate)).toBe(false);
+  await expect(head).toHaveJSProperty("indeterminate", false);
+  await page.keyboard.press("Space");
+  await expect(head).not.toBeChecked();
+  await expect(head).toHaveJSProperty("indeterminate", false);
+  await expect(firstRowBox).not.toBeChecked();
 
   // A row checkbox names its record.
-  expect(await table.locator(".aster-grid-row[data-key]").first().locator(".aster-grid-select input").getAttribute("aria-label")).toMatch(/^(Select|Deselect) \S/);
+  expect(await firstRowBox.getAttribute("aria-label")).toMatch(/^(Select|Deselect) \S/);
 });
 
 interface GridEvent {

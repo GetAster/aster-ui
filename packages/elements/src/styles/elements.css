@@ -1235,7 +1235,7 @@
   /* The header and filter row stick together. */
   .aster-grid-headgroup { position: sticky; top: 0; z-index: 2; display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
   .aster-grid-head { border-bottom: 1px solid var(--aster-rule); }
-  .aster-grid-head .aster-grid-cell { position: relative; display: flex; align-items: stretch; padding: 0; background: var(--aster-surface); }
+  .aster-grid-head .aster-grid-header { position: relative; display: flex; align-items: stretch; padding: 0; background: var(--aster-surface); }
   .aster-grid-headgroup .aster-grid-cell[data-frozen] { position: sticky; z-index: 3; }
   .aster-grid-header-menu { flex: none; width: 22px; display: grid; place-items: center; color: var(--aster-text-3); opacity: 0; transition: opacity var(--aster-t-micro); }
   .aster-grid-header:hover .aster-grid-header-menu, .aster-grid-header-menu:focus-visible { opacity: 1; }

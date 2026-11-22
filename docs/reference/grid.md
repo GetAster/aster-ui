@@ -1212,9 +1212,8 @@ grid.selectionColumn = true;
 ```
 
 The row checkbox is pointer-first: Space and Ctrl/Meta-click on the grid remain
-the keyboard routes, and F2 enters the checkbox for a shared selection. The
-header select-all is an ordinary tab stop; the grid's other keyboard model is
-unchanged.
+the keyboard routes, and F2 enters the checkbox for a shared selection. Tab
+reaches the header checkbox, and Space selects or clears the loaded rows.
 
 ## object:GridPolicy
 
