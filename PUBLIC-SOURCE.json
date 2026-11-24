@@ -35,11 +35,11 @@
     },
     {
       "path": "BUILD_NUMBER",
-      "sha256": "eba4c3f9bb9a4e38c20cbb1c98b108c2bbdcba1b7316e6b0b1351517cbf9a37b"
+      "sha256": "baa6260e1435a6c03199a5d345587e1d5f4d27387e512d951e12de91b0c65fb5"
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "6b54f6ba4b1e4c363eca6f25be59ba3773323b6f26f5ce5192570053d8f0c291"
+      "sha256": "4a403cd2c9a29ea28632e7f571257b09189cda11fbed6b38d5b5d3f82149f139"
     },
     {
       "path": "LICENSE",
@@ -783,7 +783,7 @@
     },
     {
       "path": "docs/guide/getting-started.md",
-      "sha256": "918dd535917fe3818ee0d7a8d00bd981b2d9c27bad715a63f5413430df6ad055"
+      "sha256": "6f61acbd2993f7573ef5e6c4bdaf79c80265eb9e2ea05cca435b2958e8b481f0"
     },
     {
       "path": "docs/guide/integrate-sql-and-apis.md",
@@ -1171,7 +1171,7 @@
     },
     {
       "path": "packages/data/src/transport.ts",
-      "sha256": "26afd6e662b8ea7abe21099c1b45b3094bdb670225f6db9682f2be6ff73a98c4"
+      "sha256": "5817febf48ed86ec85a1021a4d4972c51f43de54ba4c694abcb0e32f2f63088c"
     },
     {
       "path": "packages/data/src/tree/tree.ts",
@@ -1191,7 +1191,7 @@
     },
     {
       "path": "packages/data/test/authentication.test.ts",
-      "sha256": "38d32bb6ae8f1cd5bc477b561a42ffeae57935fcbe8e4c80e7a661ecc398968d"
+      "sha256": "72d9805a06f19015521e424ce2d4cef9602c52556df21ec08b2b54f739ed9109"
     },
     {
       "path": "packages/data/test/composition.test.ts",
@@ -1651,7 +1651,7 @@
     },
     {
       "path": "packages/elements/src/grid/grid.ts",
-      "sha256": "d607463fb3adfc235d7a73fc681ba2f7c4dc51e0d32751f6283f38f8c81a8293"
+      "sha256": "41fbc7dcd47180e5804a48fe3276f3bc9395db79acb7726f1cc4057761e54662"
     },
     {
       "path": "packages/elements/src/grid/header.ts",
@@ -2555,7 +2555,7 @@
     },
     {
       "path": "templates/consumer/README.md",
-      "sha256": "2bea88949ae858d34295a5cea0978d995f3af202a78515ff4147f698878cd640"
+      "sha256": "8ffeb6cff2c2185c18eff7cbf7292af8b957293a1a40ba7caccb5274a8b86b54"
     },
     {
       "path": "templates/consumer/build.ts",
@@ -2975,7 +2975,7 @@
     },
     {
       "path": "tests/e2e/grid-p1.spec.ts",
-      "sha256": "93acd63f18a44e81df819bd506ea0beb978669f5a49bd0b5737a11caec12810b"
+      "sha256": "b58a4775a8705520762717f6063fb1f9c090e5f59826298727dc5d776fa611f1"
     },
     {
       "path": "tests/e2e/grid-policy.spec.ts",

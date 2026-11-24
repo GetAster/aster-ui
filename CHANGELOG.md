@@ -4,6 +4,13 @@ Aster UI publishes one version across `@getaster/data`, `@getaster/elements`,
 `@getaster/elements-preview` and `@getaster/mock`. The patch number is derived
 from the commit count at the release commit (see `VERSION`).
 
+## 0.4.122
+
+Live OData connections accept service URLs with or without a trailing slash.
+Grids show a retry when the first collection request returns 404.
+The getting-started guide shows how to reuse a Web Data service's metadata in
+the mock, and the template explains how to install the agent skill manually.
+
 ## 0.4.121
 
 The grid's **Select all** checkbox is centered above the row checkboxes in

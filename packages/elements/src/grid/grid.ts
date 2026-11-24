@@ -17,6 +17,7 @@ import {
   EditModel,
   editPublication,
   keyText,
+  ODataError,
   Tree,
   type Collection,
   type CollectionOptions,
@@ -3165,8 +3166,14 @@ export class Grid extends AsterElement {
     const pending = this.#pendingFocus.value;
     const retain = [this.#active.peek().row, ...(pending === undefined ? [] : [pending])];
     const run = () => {
+      // A missing collection needs an explicit retry or a new query.
+      const pages = [...wanted].filter(([c]) => {
+        const error = c.error.peek();
+        return c.count.peek() !== undefined || !(error instanceof ODataError && error.status === 404);
+      });
+      if (!pages.length) return;
       this.#loadingRows = true;
-      void Promise.all([...wanted].map(([c, r]) => c.view(r.from, r.to, c === this.#external() ? retain : []).catch(() => {}))).finally(() => {
+      void Promise.all(pages.map(([c, r]) => c.view(r.from, r.to, c === this.#external() ? retain : []).catch(() => {}))).finally(() => {
         this.#loadingRows = false;
         const next = this.#nextLoad;
         this.#nextLoad = undefined;

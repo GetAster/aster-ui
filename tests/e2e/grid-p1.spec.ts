@@ -606,6 +606,37 @@ test("a root collection failure shows a retry, and refresh recovers", async ({ p
   await expect(fresh.locator(".aster-grid-row[data-key]").first()).toBeVisible();
 });
 
+test("a first collection 404 stays visible until an explicit retry", async ({ page }) => {
+  const fresh = await freshGrid(page, { autoFetch: false });
+  await page.evaluate(async () => {
+    const { DataContext } = await import("/lib/aster-ui.js" as string);
+    const demo = (globalThis as any).compositionDemo;
+    let attempts = 0;
+    let missing = true;
+    (globalThis as any).firstLoad = { attempts: () => attempts, restore: () => { missing = false; } };
+    const context = await DataContext.connect(async (request: { url: string }) => {
+      if (request.url.startsWith("Devices")) {
+        attempts++;
+        if (missing) return { status: 404, headers: {}, body: "" };
+      }
+      return demo.mock.transport(request);
+    });
+    const element = document.querySelector("#fresh-grid") as HTMLElement & { ctx: unknown; autoFetch: boolean };
+    element.ctx = context;
+    element.autoFetch = true;
+  });
+  const failure = fresh.getByRole("alert");
+  await expect(failure).toContainText("Couldn’t load rows.");
+  await expect(fresh.locator(".aster-grid-scroll")).toHaveAttribute("aria-busy", "false");
+  await fresh.evaluate((element) => { element.style.height = "240px"; });
+  await expect(failure).toBeVisible();
+  expect(await page.evaluate(() => (globalThis as any).firstLoad.attempts())).toBe(1);
+  await page.evaluate(() => (globalThis as any).firstLoad.restore());
+  await failure.getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(fresh.locator(".aster-grid-row[data-key]").first()).toBeVisible();
+  await expect(failure).toHaveCount(0);
+});
+
 test("pageSize, keepPages and exactCount configure the owned collection", async ({ page }) => {
   const fresh = await freshGrid(page, { pageSize: 7, keepPages: 2, exactCount: true });
   await expect(fresh.locator(".aster-grid-row[data-key]").first()).toBeVisible();

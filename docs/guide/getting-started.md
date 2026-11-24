@@ -91,11 +91,27 @@ Replace the mock setup with a fetch transport pointing to your OData service roo
 import { DataContext, fetchTransport } from "../lib/aster-ui.js";
 
 const ctx = await DataContext.connect(
-  fetchTransport("https://your-service.example/odata/")
+  fetchTransport("https://your-service.example/odata")
 );
 ```
 
 Keep the rendering code, change `Projects` and its fields to match your metadata, and configure authentication and CORS for your deployment. The service must support the operations you enable. Metadata annotations drive field types, labels, validation and declared capabilities; see [the shared data model](data-model.md).
+
+## Use Web Data metadata in the mock
+
+Run the Web Data service, then [export its metadata as JSON](https://webdata.getaster.now/guide/model-your-data.html#export-metadata-for-an-aster-ui-mock). Save it as `src/metadata.json` in the consumer template. In `src/mock.ts`, replace the hand-written metadata with the imported file and supply sample rows for the published sets. For the Web Data quickstart shop:
+
+```ts
+import metadata from "./metadata.json";
+
+export { metadata };
+export const seed = {
+  Customer: [{ id: 1, name: "Ada Example", region: "EU" }],
+  Order: [{ id: 10, customerId: 1, total: 120 }],
+};
+```
+
+The template already passes both exports to `createMockService`. In `src/model.ts`, change the collection to `Customer`. In `src/screen.ui.yaml`, use the corresponding set and fields, such as `name` and `region`. Re-export the JSON when the Web Data model changes. The fixture rows stay in the app and you can edit them independently.
 
 ## Continue building
 

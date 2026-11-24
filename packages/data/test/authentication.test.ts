@@ -129,3 +129,21 @@ test("fetch transport merges configured headers and request cancellation", async
     expect(sent?.credentials).toBe("include"); expect(sent?.signal).toBe(controller.signal);
   } finally { globalThis.fetch = previous; }
 });
+
+test("fetch transport joins relative and absolute service roots with one slash", async () => {
+  const previous = globalThis.fetch;
+  const urls: string[] = [];
+  globalThis.fetch = (async (url: string) => { urls.push(url); return new Response("ok"); }) as typeof fetch;
+  try {
+    for (const root of ["/dc", "/dc/", "https://example.invalid/odata///", "/"]) {
+      await fetchTransport(root)({ method: "GET", url: "$metadata" });
+      await fetchTransport(root)({ method: "GET", url: "Fund?$top=1" });
+    }
+    expect(urls).toEqual([
+      "/dc/$metadata", "/dc/Fund?$top=1",
+      "/dc/$metadata", "/dc/Fund?$top=1",
+      "https://example.invalid/odata/$metadata", "https://example.invalid/odata/Fund?$top=1",
+      "/$metadata", "/Fund?$top=1",
+    ]);
+  } finally { globalThis.fetch = previous; }
+});

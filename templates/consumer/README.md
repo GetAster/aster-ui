@@ -10,7 +10,7 @@ checkout, no build script from the Aster repository, no Rust.
 
 ## Run it
 
-You need [Bun](https://bun.sh/) 1.2 or later.
+Install [Bun](https://bun.sh/docs/installation) 1.2 or later before running the template. Check that `bun --version` works in a new terminal.
 
 ```sh
 bun install
@@ -36,6 +36,9 @@ mock until a real service exists), to look up the API in the installed
 `custom-elements.json` and type declarations, and to run the checks below before
 handing work back. `AGENTS.md` carries the same rules in brief. Run
 `bunx aster-skill check` to confirm the copies are current.
+
+If the install skipped lifecycle scripts, run `bunx aster-skill` or
+`npx aster-skill` from this folder after installing the dependencies.
 
 After `bun run build`, serve `dist/` with `/odata_mock.wasm` beside
 `index.html`; `build.ts` copies the engine there from the installed package.
@@ -84,13 +87,16 @@ Replace the mock setup in `src/main.ts`:
 import { DataContext, fetchTransport } from "@getaster/data";
 
 const ctx = await DataContext.connect(
-  fetchTransport("https://your-service.example/odata/"),
+  fetchTransport("https://your-service.example/odata"),
 );
 ```
 
 Keep the rest: change the entity set and fields in `src/screen.ui.yaml` and
 `src/model.ts` to match your metadata. The application configures authentication
 and CORS, and the service must support the operations you enable.
+
+If you want to keep working offline against the same model, see
+[Use Web Data metadata in the mock](https://ui.getaster.now/docs/guide/getting-started.html#use-web-data-metadata-in-the-mock).
 
 ## Eject from the template
 

@@ -28,8 +28,9 @@ export interface ODataResponse {
 
 export type Transport = (request: ODataRequest) => Promise<ODataResponse>;
 
-/** A transport over `fetch` to `serviceRoot` (no trailing slash). */
+/** A transport over `fetch` to `serviceRoot`, with or without a trailing slash. */
 export function fetchTransport(serviceRoot: string, init?: RequestInit): Transport {
+  const root = serviceRoot.replace(/\/+$/, "");
   return async (request) => {
     const init2: RequestInit = { ...init, method: request.method };
     const merged = new Headers(init?.headers);
@@ -37,7 +38,7 @@ export function fetchTransport(serviceRoot: string, init?: RequestInit): Transpo
     init2.headers = merged;
     if (request.signal) init2.signal = init?.signal ? AbortSignal.any([init.signal, request.signal]) : request.signal;
     if (request.body !== undefined) init2.body = request.body;
-    const res = await fetch(`${serviceRoot}/${request.url}`, init2);
+    const res = await fetch(`${root}/${request.url}`, init2);
     const headers: Record<string, string> = {};
     res.headers.forEach((value, name) => {
       headers[name.toLowerCase()] = value;
